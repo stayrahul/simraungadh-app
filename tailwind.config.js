@@ -1,0 +1,45 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
+  presets: [require("nativewind/preset")],
+  theme: {
+    extend: {
+      colors: {
+        // Modern Vibrant Theme Palette
+        primary: {
+          DEFAULT: '#6366f1',
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
+          800: '#3730a3',
+          900: '#312e81',
+        },
+        background: '#090d16',
+        surface: '#111827',
+        surfaceLight: '#1f2937',
+        glass: 'rgba(255, 255, 255, 0.07)',
+        glassBorder: 'rgba(255, 255, 255, 0.12)',
+        accent: '#6366f1',
+        accentGlow: '#818cf8',
+        accentPink: '#f43f5e',
+        accentGreen: '#10b981',
+        accentOrange: '#f97316',
+        accentBlue: '#38bdf8',
+        accentPurple: '#a855f7',
+        textPrimary: '#f8fafc',
+        textSecondary: '#94a3b8',
+        textMuted: '#64748b',
+        border: 'rgba(255, 255, 255, 0.08)',
+        borderLight: 'rgba(255, 255, 255, 0.15)',
+        like: '#f43f5e',
+        card: '#111827',
+      },
+    },
+  },
+  plugins: [],
+}
