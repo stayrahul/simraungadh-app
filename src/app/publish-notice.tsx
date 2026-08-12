@@ -181,32 +181,28 @@ export default function PublishNoticeModal() {
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
       {/* Top Header */}
-      <View className={`px-5 py-3.5 flex-row items-center justify-between border-b ${theme.headerBgClass} z-10`}>
+      <View className="px-5 py-3 flex-row items-center justify-between z-10">
         <TouchableOpacity 
           onPress={() => router.canGoBack() ? router.back() : router.replace('/')} 
-          className={`w-9 h-9 items-center justify-center rounded-full ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}
+          className={`w-10 h-10 items-center justify-center rounded-full ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}
         >
-          <X size={18} color={theme.iconColor} />
+          <X size={20} color={theme.iconColor} />
         </TouchableOpacity>
-        <View className="flex-row items-center">
-          <Megaphone size={18} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
-          <Text className={`font-black text-[16px] ml-1.5 ${theme.textClass}`}>Broadcast Official Notice</Text>
-        </View>
         <TouchableOpacity
           onPress={handleSubmit}
           disabled={!isFormValid || loading}
-          className={`px-4 py-2 rounded-xl flex-row items-center ${
+          className={`px-5 py-2.5 rounded-[20px] flex-row items-center ${
             !isFormValid || loading 
               ? (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-200') 
-              : (theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600')
+              : (theme.isDark ? 'bg-indigo-500 shadow-sm shadow-indigo-500/20' : 'bg-indigo-600 shadow-sm shadow-indigo-600/20')
           }`}
         >
           {loading ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <>
-              <Send size={13} color="#fff" className="mr-1" />
-              <Text className="font-bold text-[13px] text-white ml-1">Publish</Text>
+              <Send size={14} color={!isFormValid ? theme.iconColor : "#fff"} className="mr-1.5" />
+              <Text className={`font-black tracking-wide text-[13px] uppercase ${!isFormValid ? theme.textSecondaryClass : "text-white"}`}>Publish</Text>
             </>
           )}
         </TouchableOpacity>
@@ -216,7 +212,7 @@ export default function PublishNoticeModal() {
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           
           {/* Official Publisher Info Badge */}
-          <View className={`rounded-2xl p-3.5 mb-5 flex-row items-center border ${theme.isDark ? 'bg-indigo-950/20 border-indigo-500/30' : 'bg-indigo-50/80 border-indigo-200'}`}>
+          <View className={`rounded-[24px] p-3.5 mb-5 flex-row items-center border ${theme.isDark ? 'bg-indigo-950/20 border-indigo-500/30' : 'bg-indigo-50/80 border-indigo-200'}`}>
             <View className="w-9 h-9 rounded-full bg-indigo-600 items-center justify-center mr-3">
               <CheckCircle2 size={18} color="#ffffff" />
             </View>
@@ -224,30 +220,29 @@ export default function PublishNoticeModal() {
               <Text className={`font-bold text-[13px] ${theme.isDark ? 'text-indigo-300' : 'text-indigo-900'}`}>
                 Official Broadcast ({profile?.full_name || 'Official User'})
               </Text>
-              <Text className={`text-[11px] ${theme.isDark ? 'text-indigo-400/80' : 'text-indigo-700/80'}`}>
+              <Text className={`text-[11px] ${theme.isDark ? 'text-primary-400/80' : 'text-indigo-700/80'}`}>
                 {profile?.department ? `${profile.department} Department` : 'Simraungadh Municipality'}
               </Text>
             </View>
           </View>
 
-          {/* Category Selector */}
-          <Text className={`${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'} font-bold text-[11px] uppercase tracking-wider mb-2.5 ml-0.5`}>Category</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-5">
-            <View className="flex-row gap-2">
+          <Text className={`${theme.isDark ? 'text-primary-400' : 'text-primary'} font-semibold text-[11px] uppercase tracking-wider mb-2.5 ml-0.5`}>Category</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
+            <View className={`flex-row p-2 rounded-full ${theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-100/50'}`}>
               {CATEGORIES.map(cat => {
                 const isActive = category === cat;
                 return (
                   <TouchableOpacity
                     key={cat}
                     onPress={() => setCategory(cat)}
-                    className={`px-4 py-2 rounded-xl border ${
+                    className={`px-5 py-3.5 rounded-full items-center mr-1 ${
                       isActive 
-                        ? (theme.isDark ? 'bg-indigo-600 border-indigo-500' : 'bg-indigo-600 border-indigo-600')
-                        : (theme.isDark ? 'bg-white/[0.04] border-white/10' : 'bg-slate-100 border-slate-200')
+                        ? (theme.isDark ? 'bg-indigo-500 shadow-sm shadow-indigo-500/20' : 'bg-indigo-600 shadow-sm shadow-indigo-600/20')
+                        : 'bg-transparent'
                     }`}
                   >
-                    <Text className={`font-bold text-[12.5px] ${
-                      isActive ? 'text-white' : theme.textSecondaryClass
+                    <Text className={`font-black tracking-widest text-[12px] uppercase ${
+                      isActive ? 'text-white' : theme.textMutedClass
                     }`}>{cat}</Text>
                   </TouchableOpacity>
                 );
@@ -256,19 +251,19 @@ export default function PublishNoticeModal() {
           </ScrollView>
 
           {/* Notice Inputs */}
-          <View className={`rounded-2xl p-4 border mb-5 ${theme.cardClass}`} style={theme.cardShadow}>
+          <View className={`mb-6 p-6 rounded-[32px] ${theme.glassCardClass}`}>
             <Text className={`font-bold text-[12px] mb-1.5 ${theme.textSecondaryClass}`}>Notice Title</Text>
             <TextInput
-              className={`border rounded-xl px-3.5 h-11 mb-4 font-semibold text-[14.5px] ${theme.inputClass}`}
-              placeholder="e.g. Ward Road Renovation & Closure Notice"
+              className={`border-b border-slate-200/50 dark:border-white/10 pb-3 mb-5 font-black text-[18px] ${theme.textClass}`}
+              placeholder="e.g. Ward Road Renovation"
               placeholderTextColor={theme.inputPlaceholder}
               value={title}
               onChangeText={setTitle}
             />
 
-            <Text className={`font-bold text-[12px] mb-1.5 ${theme.textSecondaryClass}`}>Notice Content & Details</Text>
+            <Text className={`font-bold text-[12px] mb-1.5 ${theme.textSecondaryClass}`}>Details</Text>
             <TextInput
-              className={`text-[14px] leading-relaxed min-h-[140px] font-normal ${theme.textClass}`}
+              className={`text-[16px] leading-[26px] min-h-[160px] font-medium ${theme.textClass}`}
               placeholder="Provide complete information, schedule, instructions, or contact details for citizens..."
               placeholderTextColor={theme.inputPlaceholder}
               multiline
@@ -279,7 +274,7 @@ export default function PublishNoticeModal() {
           </View>
 
           {/* Photo Attachments Section (Official Photos Support) */}
-          <View className={`rounded-2xl p-4 border mb-5 ${theme.cardClass}`} style={theme.cardShadow}>
+          <View className={`rounded-[24px] p-4 border mb-5 ${theme.cardClass}`} style={theme.cardShadow}>
             <View className="flex-row items-center justify-between mb-3">
               <View className="flex-row items-center">
                 <Camera size={16} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
@@ -322,7 +317,7 @@ export default function PublishNoticeModal() {
           </View>
 
           {/* Emergency Highlight Toggle */}
-          <View className={`rounded-2xl p-4 border flex-row items-center justify-between ${
+          <View className={`rounded-[24px] p-4 border flex-row items-center justify-between ${
             isEmergency 
               ? (theme.isDark ? 'bg-rose-950/30 border-rose-500/40' : 'bg-rose-50 border-rose-300') 
               : theme.cardClass

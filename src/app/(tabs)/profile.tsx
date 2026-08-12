@@ -1,12 +1,13 @@
 // @ts-nocheck
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, RefreshControl, Dimensions, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, RefreshControl, Dimensions, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, Share, ActivityIndicator, Animated } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/authStore';
 import { useLangStore } from '../../store/langStore';
+import { useAlert } from '../../components/AlertProvider';
 import { translations } from '../../lib/translations';
-import { ArrowLeft, Settings, Camera, Clock, Wrench, Send, FileText, Star, ShieldCheck, CheckCircle2, Inbox, UserX, LogIn, Award, TrendingUp, Globe, Sparkles, Check, Bookmark, Phone, Pencil, X, HelpCircle, ImagePlus, Trash2, LogOut, Moon, Sun, Bell, Edit3, Target, Activity, Heart, PlusCircle } from 'lucide-react-native';
+import { ArrowLeft, Settings, Camera, Clock, Wrench, Send, File, Star, ShieldCheck, CheckCircle2, Inbox, UserX, LogIn, Award, TrendingUp, Globe, Sparkles, Check, Bookmark, Phone, Pencil, X, HelpCircle, ImagePlus, Trash2, LogOut, Moon, Sun, Bell, Edit3, Target, Activity, Heart, PlusCircle, ChevronRight, Share2, LayoutGrid, List } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
@@ -17,11 +18,14 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { decode } from 'base64-arraybuffer';
 import AnimatedCard from '../../components/AnimatedCard';
 import Badge from '../../components/Badge';
+import { UserBadges } from '../../components/UserBadges';
 import Skeleton from '../../components/Skeleton';
-import { useAlert } from '../../components/AlertProvider';
+import { BadgeIcon } from '../../components/BadgeIcon';
+import IssueImageCarousel from '../../components/IssueImageCarousel';
 import UserListModal from '../../components/UserListModal';
-
+import FullScreenImageViewer from '../../components/FullScreenImageViewer';
 import { useTheme } from '../../hooks/use-theme';
+import * as Haptics from 'expo-haptics';
 import { useSettingsStore } from '../../store/settingsStore';
 
 const { width } = Dimensions.get('window');
@@ -41,13 +45,14 @@ export default function ProfileScreen() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
-  const [editTitle, setEditTitle] = useState('');
+
   const [editDescription, setEditDescription] = useState('');
   const [editImages, setEditImages] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<{ uri: string; base64: string }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showAvatarViewer, setShowAvatarViewer] = useState(false);
   const [editName, setEditName] = useState('');
   const [editDepartment, setEditDepartment] = useState('');
   const [editPhone, setEditPhone] = useState('');
@@ -56,6 +61,18 @@ export default function ProfileScreen() {
   const [editAge, setEditAge] = useState('');
   const [editTole, setEditTole] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [hideCompleteProfile, setHideCompleteProfile] = useState(false);
+  const statsAnim = React.useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(statsAnim, {
+      toValue: 1,
+      tension: 50,
+      friction: 7,
+      useNativeDriver: Platform.OS !== 'web'
+    }).start();
+  }, []);
 
   useEffect(() => {
     if (profile) {
@@ -99,7 +116,7 @@ export default function ProfileScreen() {
         updates.age = null;
       }
 
-      if (profile.role === 'official') {
+      if (profile.role === 'official' || profile.role === 'admin') {
         updates.department = editDepartment.trim();
       }
 
@@ -135,7 +152,7 @@ export default function ProfileScreen() {
       setLoading(true);
     }
     try {
-      let query = supabase.from('issues').select('*').order('created_at', { ascending: false });
+      let query = supabase.from('issues').select('*, author:profiles!issues_author_id_fkey(id, full_name, avatar_url, role, badges, is_verified), issue_comments(count)').eq('is_deleted', false).order('created_at', { ascending: false });
       if (profileRole === 'official') {
         query = query.neq('status', 'resolved');
       } else {
@@ -235,7 +252,7 @@ export default function ProfileScreen() {
           </View>
 
           {/* Interactive Language Selector Pill */}
-          <View className={`flex-row p-1 rounded-xl border ${theme.isDark ? 'bg-white/[0.04] border-white/10' : 'bg-slate-100 border-slate-200'}`}>
+          <View className={`flex-row p-1 rounded-xl ${theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}>
             <TouchableOpacity
               onPress={() => language !== 'en' && toggleLanguage()}
               className={`px-3 py-1.5 rounded-lg ${language === 'en' ? (theme.isDark ? 'bg-indigo-500/30' : 'bg-indigo-600') : ''}`}
@@ -258,9 +275,9 @@ export default function ProfileScreen() {
 
         {/* Center Card Container */}
         <View className="flex-1 justify-center items-center px-5">
-          <View className={`w-full max-w-[340px] rounded-3xl p-6 items-center border ${theme.cardClass}`} style={theme.cardShadow}>
+          <View className={`w-full max-w-[340px] rounded-[32px] p-6 items-center border ${theme.glassCardClass}`} style={theme.cardShadow}>
             {/* Avatar Icon */}
-            <View className={`w-16 h-16 rounded-2xl items-center justify-center mb-4 ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50'}`}>
+            <View className={`w-16 h-16 rounded-[32px] items-center justify-center mb-4 ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50'}`}>
               <UserX size={32} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
             </View>
 
@@ -299,17 +316,12 @@ export default function ProfileScreen() {
     );
   }
 
-  const isOfficial = profile.role === 'official';
+  const isOfficial = profile.role === 'official' || profile.role === 'admin';
   const pendingCount = issues.filter(i => i.status === 'pending').length;
   const inProgressCount = issues.filter(i => i.status === 'in_progress').length;
 
-  const civicPoints = profile.civic_points || 0;
-  const currentLevel = Math.floor(civicPoints / 100) + 1;
-  const progressPercent = (civicPoints % 100);
-
   const openEditModal = (issue: Issue) => {
     setEditingIssue(issue);
-    setEditTitle(issue.title);
     setEditDescription(issue.description);
     setEditImages(issue.image_urls || (issue.image_url ? [issue.image_url] : []));
     setNewImages([]);
@@ -333,8 +345,8 @@ export default function ProfileScreen() {
 
   const handleSaveEdit = async () => {
     if (!editingIssue) return;
-    if (!editTitle.trim() || !editDescription.trim()) {
-      Alert.alert('Error', 'Title and description cannot be empty');
+    if (!editDescription.trim()) {
+      Alert.alert('Error', 'Description cannot be empty');
       return;
     }
     setIsSaving(true);
@@ -354,7 +366,6 @@ export default function ProfileScreen() {
 
       const finalImages = [...editImages, ...uploadedUrls];
       const payload = {
-        title: editTitle,
         description: editDescription,
         image_urls: finalImages,
         image_url: finalImages[0] || null,
@@ -369,16 +380,16 @@ export default function ProfileScreen() {
       
       setIssues(prev => prev.map(i => i.id === editingIssue.id ? { ...i, ...payload } : i));
       setEditingIssue(null);
-      Alert.alert('Success', 'Post updated successfully');
+      showAlert('Success', 'Post updated successfully');
     } catch (e: any) {
-      Alert.alert('Error', e.message);
+      showAlert('Error', e.message);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeletePost = (issue: Issue) => {
-    Alert.alert(
+    showAlert(
       'Delete Post',
       'Are you sure you want to delete this post? This action cannot be undone.',
       [
@@ -388,12 +399,13 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const { error } = await supabase.from('issues').delete().eq('id', issue.id);
+              // Soft delete keeps comments and upvotes intact
+              const { error } = await supabase.from('issues').update({ is_deleted: true, status: 'rejected' }).eq('id', issue.id).eq('is_deleted', false);
               if (error) throw error;
               setIssues(prev => prev.filter(i => i.id !== issue.id));
-              Alert.alert('Deleted', 'Your post has been deleted.');
+              showAlert('Deleted', 'Your post has been deleted.');
             } catch (e: any) {
-              Alert.alert('Error', e.message);
+              showAlert('Error', e.message);
             }
           }
         }
@@ -406,7 +418,7 @@ export default function ProfileScreen() {
     
     return (
       <AnimatedCard 
-        className={`mb-3 p-3 rounded-2xl border flex-col ${theme.cardClass}`} 
+        className={`mb-5 p-5 ${theme.glassCardClass}`} 
         style={theme.cardShadow}
         onPress={() => router.push(`/issue/${item.id}`)}
       >
@@ -422,18 +434,13 @@ export default function ProfileScreen() {
           ) : null}
 
           <View className="flex-1 justify-center">
-            <View className="flex-row justify-between items-start mb-1">
-              <Text className={`font-semibold text-[14px] flex-1 mr-2 ${theme.textClass}`} numberOfLines={1}>
-                {item.title}
-              </Text>
-              {item.status && item.status !== 'pending' ? (
+              {item.post_type === 'report' && item.status && item.status !== 'pending' ? (
                 <Badge 
                   type={item.status} 
                   text={t[item.status as keyof typeof t] || item.status.replace('_', ' ')} 
                   size="sm" 
                 />
               ) : null}
-            </View>
 
             <Text className={`text-[12px] mb-2 leading-relaxed ${theme.textSecondaryClass}`} numberOfLines={2}>
               {item.description}
@@ -462,7 +469,7 @@ export default function ProfileScreen() {
           <View className={`flex-row gap-2 mt-3 pt-3 border-t ${theme.borderSubtleClass}`}>
             {item.status === 'pending' ? (
               <TouchableOpacity onPress={() => handleUpdateStatus(item.id, 'in_progress')} className={`flex-1 py-2 rounded-xl items-center ${theme.isDark ? 'bg-indigo-500/12' : 'bg-indigo-50'}`}>
-                <Text className={`${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'} font-semibold text-[12px]`}>
+                <Text className={`${theme.isDark ? 'text-primary-400' : 'text-primary'} font-semibold text-[12px]`}>
                   {t.startWork}
                 </Text>
               </TouchableOpacity>
@@ -491,108 +498,198 @@ export default function ProfileScreen() {
   const totalUpvotes = issues.reduce((acc, i) => acc + (i.upvotes_count || 0), 0);
 
   const renderHeader = () => (
-    <View className="mb-6">
-      <SafeAreaView edges={['top']} className="px-5 pt-4">
+    <View className="mb-4">
+      {/* Massive Blurred Background Cover Photo */}
+      <View className="absolute top-0 left-0 right-0 h-80 overflow-hidden">
+        {profile?.avatar_url ? (
+          <>
+            <Image 
+              source={{ uri: profile.avatar_url }} 
+              style={{ width: '100%', height: '100%' }}
+              blurRadius={60}
+              contentFit="cover"
+            />
+            <View className={`absolute inset-0 ${theme.isDark ? 'bg-[#000000]/50' : 'bg-[#f2f2f7]/60'}`} />
+          </>
+        ) : (
+          <LinearGradient
+            colors={theme.isDark ? ['#4f46e5', 'transparent'] : ['#e0e7ff', 'transparent']}
+            style={{ flex: 1 }}
+          />
+        )}
+      </View>
+
+      <SafeAreaView edges={['top']} className="px-5 pt-4 z-10">
         {/* Navbar */}
-        <View className="flex-row justify-between items-center mb-6">
-          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/')} className={`w-9 h-9 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-            <ArrowLeft size={17} color={theme.iconColor} />
+        <View className="flex-row justify-between items-center mb-8">
+          <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/')} className={`w-10 h-10 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/10' : 'bg-white shadow-sm'}`} style={!theme.isDark ? theme.cardShadow : {}}>
+            <ArrowLeft size={18} color={theme.iconColor} />
           </TouchableOpacity>
-          <Text className={`font-bold text-[16px] ${theme.textClass}`}>{isOfficial ? t.workspace : t.myProfile}</Text>
-          <TouchableOpacity onPress={() => router.push('/settings')} className={`w-9 h-9 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-            <Settings size={17} color={theme.iconColor} />
+          <View className="flex-1" />
+          <TouchableOpacity onPress={() => router.push('/settings')} className={`w-10 h-10 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/10' : 'bg-white shadow-sm'}`} style={!theme.isDark ? theme.cardShadow : {}}>
+            <Settings size={18} color={theme.iconColor} />
           </TouchableOpacity>
         </View>
 
-        {/* Avatar & Info */}
-        <View className="items-center mb-5">
-          <TouchableOpacity onPress={pickAvatar} className="relative mb-3">
-            {profile.avatar_url ? (
-              <Image 
-                source={{ uri: profile.avatar_url }} 
-                style={{ width: 88, height: 88, borderRadius: 44 }}
-                className={theme.isDark ? 'bg-[#1a2540]' : 'bg-slate-100'}
-                transition={200}
-              />
-            ) : (
-              <View className={`w-[88px] h-[88px] rounded-full justify-center items-center ${theme.isDark ? 'bg-[#1a2540]' : 'bg-slate-100'}`}>
-                <Text className={`font-black text-3xl ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                  {profile.full_name?.[0]?.toUpperCase() || (isOfficial ? 'O' : 'C')}
-                </Text>
-              </View>
-            )}
-            <View className={`absolute bottom-0 right-0 w-8 h-8 rounded-full items-center justify-center ${theme.isDark ? 'bg-indigo-500/20 border-2 border-[#0b1120]' : 'bg-indigo-600 border-2 border-white'}`}>
-              <Camera size={14} color={theme.isDark ? '#818cf8' : '#fff'} />
-            </View>
-          </TouchableOpacity>
-          
-          <Text className={`text-xl font-bold mt-0.5 ${theme.textClass}`}>{profile.full_name || (isOfficial ? 'Official' : 'Citizen')}</Text>
-          <Badge type={isOfficial ? 'department' : 'general'} text={profile.department || profile.role} className="mt-1.5 mb-2" size="md" />
-
-          {/* Quick Edit Profile Button */}
-          <View className="flex-row items-center gap-2 mt-1 mb-1">
-            <TouchableOpacity 
-              onPress={() => setShowEditProfile(true)} 
-              className={`flex-row items-center px-4 py-1.5 rounded-full ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}
-            >
-              <Edit3 size={12} color={theme.iconColor} />
-              <Text className={`font-semibold text-[11.5px] ml-1.5 ${theme.textClass}`}>Edit Profile</Text>
-            </TouchableOpacity>
-
-            {profile.home_ward == null && (
-              <TouchableOpacity 
-                onPress={() => router.push('/complete-profile')} 
-                className="flex-row items-center px-3.5 py-1.5 rounded-full bg-emerald-600"
-              >
-                <ShieldCheck size={12} color="#ffffff" />
-                <Text className="font-bold text-[11.5px] ml-1.5 text-white">Set Ward Number</Text>
+        {/* Profile Info (Directly on background, no heavy card) */}
+        <View className="items-center mb-6">
+          {/* Avatar */}
+            <View className="relative mb-5">
+              <TouchableOpacity onPress={() => profile.avatar_url && setShowAvatarViewer(true)} activeOpacity={0.8}>
+                {profile.avatar_url ? (
+                  <Image 
+                    source={{ uri: profile.avatar_url }} 
+                    style={{ width: 80, height: 80, borderRadius: 40 }}
+                    className="shadow-sm"
+                    transition={200}
+                  />
+                ) : (
+                  <View className={`w-20 h-20 rounded-full justify-center items-center ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50'}`}>
+                    <Text className={`font-black text-3xl ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>
+                      {profile.full_name?.[0]?.toUpperCase() || 'C'}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
-            )}
-          </View>
+              <TouchableOpacity onPress={pickAvatar} className={`absolute bottom-0 right-[-2px] w-8 h-8 rounded-full items-center justify-center shadow-sm ${theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600'}`}>
+                {uploadingAvatar ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Camera size={18} color="#fff" />
+                )}
+              </TouchableOpacity>
+            </View>
 
-          {/* Follow Stats */}
-          <View className={`flex-row items-center justify-around mt-5 py-3 px-4 w-full rounded-2xl border ${theme.cardClass}`} style={theme.cardShadow}>
-            <TouchableOpacity 
-              activeOpacity={0.7} 
-              onPress={() => { setUserListTab('followers'); setShowUserList(true); }}
-              className="items-center flex-1"
+            {/* Name & Bio Area */}
+            <View className="items-center mb-6 mt-1">
+              <View className="flex-row items-center flex-wrap justify-center mb-1">
+                <Text className={`font-black text-[22px] tracking-tight ${theme.textClass}`}>{profile.full_name}</Text>
+                <View className="ml-1.5">
+                  <UserBadges badges={profile.badges || (profile.is_verified ? ['verified'] : [])} size={20} />
+                </View>
+              </View>
+              
+              {(profile.role === 'official' || profile.role === 'admin') && (
+                <View className={`mt-1.5 mb-2 px-3 py-1 rounded-md ${profile.role === 'admin' ? 'bg-rose-500/15' : 'bg-amber-500/15'}`}>
+                  <Text className={`text-[10.5px] font-black uppercase tracking-widest ${profile.role === 'admin' ? (theme.isDark ? 'text-rose-400' : 'text-rose-600') : (theme.isDark ? 'text-amber-400' : 'text-amber-700')}`}>{profile.role === 'admin' ? 'System Admin' : 'Official'}</Text>
+                </View>
+              )}
+
+              {profile.department && (
+                <Text className={`text-[13px] font-medium mt-1 ${theme.textSecondaryClass}`}>🏛️ {profile.department}</Text>
+              )}
+              {(profile.home_ward || profile.tole) && (
+                <Text className={`text-[13px] font-medium mt-1 ${theme.textMutedClass}`}>
+                  📍 {profile.tole ? `${profile.tole}, ` : ''}Ward {profile.home_ward || '—'}
+                </Text>
+              )}
+            </View>
+
+            {/* Stats Row (Pill design) */}
+            <Animated.View 
+              style={{
+                opacity: statsAnim,
+                transform: [
+                  { translateY: statsAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) },
+                  { scale: statsAnim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1] }) }
+                ]
+              }}
+              className={`flex-row justify-around w-full py-4 rounded-[20px] border border-slate-100 dark:border-white/5 shadow-sm ${theme.isDark ? 'bg-white/[0.03]' : 'bg-white'}`}
             >
-              <Text className={`font-bold text-[17px] ${theme.textClass}`}>{followersCount}</Text>
-              <Text className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${theme.textMutedClass}`}>{t.followers}</Text>
-            </TouchableOpacity>
+              <View className="items-center flex-1">
+                <Text className={`font-black text-[22px] ${theme.textClass}`}>{issues.length}</Text>
+                <Text className={`text-[10px] font-extrabold mt-1 tracking-widest uppercase ${theme.textMutedClass}`}>Posts</Text>
+              </View>
+              <View className={`w-[1px] h-full ${theme.borderClass}`} />
+              <TouchableOpacity onPress={() => { setUserListTab('followers'); setShowUserList(true); }} className="items-center flex-1">
+                <Text className={`font-black text-[22px] ${theme.textClass}`}>{followersCount}</Text>
+                <Text className={`text-[10px] font-extrabold mt-1 tracking-widest uppercase ${theme.textMutedClass}`}>{t.followers || 'Followers'}</Text>
+              </TouchableOpacity>
+              <View className={`w-[1px] h-full ${theme.borderClass}`} />
+              <TouchableOpacity onPress={() => { setUserListTab('following'); setShowUserList(true); }} className="items-center flex-1">
+                <Text className={`font-black text-[22px] ${theme.textClass}`}>{followingCount}</Text>
+                <Text className={`text-[10px] font-extrabold mt-1 tracking-widest uppercase ${theme.textMutedClass}`}>{t.following || 'Following'}</Text>
+              </TouchableOpacity>
+            </Animated.View>
 
-            <View className={`w-px h-6 ${theme.isDark ? 'bg-white/[0.08]' : 'bg-slate-200'}`} />
-
-            <TouchableOpacity 
-              activeOpacity={0.7} 
-              onPress={() => { setUserListTab('following'); setShowUserList(true); }}
-              className="items-center flex-1"
-            >
-              <Text className={`font-bold text-[17px] ${theme.textClass}`}>{followingCount}</Text>
-              <Text className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${theme.textMutedClass}`}>{t.following}</Text>
-            </TouchableOpacity>
-
-            <View className={`w-px h-6 ${theme.isDark ? 'bg-white/[0.08]' : 'bg-slate-200'}`} />
-
-            <View className="items-center flex-1">
-              <Text className={`font-bold text-[17px] ${theme.textClass}`}>{issues.length}</Text>
-              <Text className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${theme.textMutedClass}`}>{t.reports}</Text>
+            {/* Quick Action Buttons */}
+            <View className="flex-row gap-3 w-full mt-5">
+              <TouchableOpacity 
+                onPress={() => setShowEditProfile(true)} 
+                className={`flex-1 py-3.5 rounded-[16px] items-center justify-center flex-row shadow-sm ${theme.isDark ? 'bg-white/5' : 'bg-white border border-slate-100'}`}
+              >
+                <Edit3 size={18} color={theme.iconColor} />
+                <Text className={`font-bold text-[14.5px] ml-2 tracking-tight ${theme.textClass}`}>Edit Profile</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={async () => {
+                  try {
+                    await Share.share({ message: `Check out ${profile.full_name}'s profile on Simraungadh Civic Hub! https://simraungadh.live/user/${profile.id}` });
+                  } catch (e) {}
+                }}
+                className={`flex-1 py-3.5 rounded-[16px] items-center justify-center flex-row shadow-sm ${theme.isDark ? 'bg-white/5' : 'bg-white border border-slate-100'}`}
+              >
+                <Share2 size={18} color={theme.iconColor} />
+                <Text className={`font-bold text-[14.5px] ml-2 tracking-tight ${theme.textClass}`}>Share</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </View>
 
-        {/* Stats */}
+
+
+        {profile.home_ward == null && !hideCompleteProfile && (
+          <View 
+            className={`mb-5 p-5 rounded-[32px] border flex-row items-center relative ${theme.isDark ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}
+          >
+            <TouchableOpacity onPress={() => router.push('/complete-profile')} className="flex-row items-center flex-1 pr-6">
+              <ShieldCheck size={18} color={theme.isDark ? '#34d399' : '#059669'} />
+              <View className="flex-1 ml-3 mr-4">
+                <Text className={`font-bold text-[14px] ${theme.isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Complete Your Profile</Text>
+                <Text className={`text-[12px] mt-0.5 ${theme.textMutedClass}`}>Set your ward number & tole for better civic engagement</Text>
+              </View>
+              <ChevronRight size={16} color={theme.isDark ? '#34d399' : '#059669'} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => setHideCompleteProfile(true)} 
+              className="absolute top-4 right-4 p-2 rounded-full"
+            >
+              <X size={14} color={theme.isDark ? '#34d399' : '#059669'} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Admin Quick Access */}
+        {profile.role === 'admin' && (
+          <TouchableOpacity 
+            onPress={() => router.push('/admin')} 
+            className={`mb-4 p-5 rounded-[32px] border flex-row items-center justify-between ${theme.isDark ? 'bg-rose-500/10 border-rose-500/30' : 'bg-rose-50 border-rose-200'}`}
+            style={theme.glowShadow('#f43f5e')}
+          >
+            <View className="flex-row items-center">
+              <View className="w-12 h-12 rounded-[20px] bg-rose-500 items-center justify-center mr-4 shadow-sm shadow-rose-500/50">
+                <ShieldCheck size={22} color="#fff" />
+              </View>
+              <View>
+                <Text className={`font-black text-[18px] tracking-tight mb-0.5 ${theme.isDark ? 'text-rose-400' : 'text-rose-600'}`}>God Mode</Text>
+                <Text className={`text-[12.5px] font-bold ${theme.isDark ? 'text-rose-400/70' : 'text-rose-600/70'}`}>Full system admin access</Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={theme.isDark ? '#fb7185' : '#e11d48'} />
+          </TouchableOpacity>
+        )}
+
+        {/* Official Stats */}
         {isOfficial ? (
           <View className="mb-2">
             <View className="flex-row gap-2.5 mb-3">
-              <View className={`flex-1 p-4 rounded-2xl border items-center ${theme.cardClass}`} style={theme.cardShadow}>
+              <View className={`flex-1 p-5 rounded-[32px] border items-center ${theme.glassCardClass}`} style={theme.cardShadow}>
                 <View className={`w-9 h-9 rounded-xl items-center justify-center mb-2 ${theme.isDark ? 'bg-amber-500/12' : 'bg-amber-50'}`}>
                   <Clock size={17} color={theme.isDark ? '#fbbf24' : '#d97706'} />
                 </View>
                 <Text className={`font-medium text-[10px] mb-0.5 uppercase tracking-wider ${theme.textSecondaryClass}`}>{t.pending}</Text>
                 <Text className={`font-bold text-2xl ${theme.textClass}`}>{loading ? '-' : pendingCount}</Text>
               </View>
-              <View className={`flex-1 p-4 rounded-2xl border items-center ${theme.cardClass}`} style={theme.cardShadow}>
+              <View className={`flex-1 p-5 rounded-[32px] border items-center ${theme.glassCardClass}`} style={theme.cardShadow}>
                 <View className={`w-9 h-9 rounded-xl items-center justify-center mb-2 ${theme.isDark ? 'bg-indigo-500/12' : 'bg-indigo-50'}`}>
                   <Wrench size={17} color={theme.isDark ? '#818cf8' : '#5b5ef6'} />
                 </View>
@@ -600,19 +697,31 @@ export default function ProfileScreen() {
                 <Text className={`font-bold text-2xl ${theme.textClass}`}>{loading ? '-' : inProgressCount}</Text>
               </View>
             </View>
-
-
-            <AnimatedCard onPress={() => router.push('/publish-notice')} className={`items-center justify-center py-3.5 flex-row rounded-2xl ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-600'}`}>
+            <AnimatedCard onPress={() => router.push('/publish-notice')} className={`items-center justify-center py-3.5 flex-row rounded-[32px] ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-600'}`}>
               <Send size={16} color={theme.isDark ? '#818cf8' : '#fff'} />
               <Text className={`font-semibold text-[14px] ml-2 ${theme.isDark ? 'text-indigo-300' : 'text-white'}`}>{t.broadcastNotice}</Text>
             </AnimatedCard>
           </View>
         ) : null}
 
-        <View className="mt-5 mb-2">
-          <Text className={`font-bold text-[15px] ml-0.5 ${theme.textClass}`}>
-            {isOfficial ? t.actionRequired : t.myHistory}
+        <View className="mt-2 mb-2 flex-row items-center justify-between">
+          <Text className={`font-black text-[15px] ml-0.5 ${theme.textClass}`}>
+            {isOfficial ? t.actionRequired : 'Activity Feed'}
           </Text>
+          <View className={`flex-row rounded-lg p-1 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+            <TouchableOpacity 
+              onPress={() => { Haptics.selectionAsync(); setViewMode('grid'); }}
+              className={`p-1.5 rounded-md ${viewMode === 'grid' ? (theme.isDark ? 'bg-white/10' : 'bg-white shadow-sm') : ''}`}
+            >
+              <LayoutGrid size={16} color={viewMode === 'grid' ? theme.colors.primary : theme.iconColor} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => { Haptics.selectionAsync(); setViewMode('list'); }}
+              className={`p-1.5 rounded-md ${viewMode === 'list' ? (theme.isDark ? 'bg-white/10' : 'bg-white shadow-sm') : ''}`}
+            >
+              <List size={16} color={viewMode === 'list' ? theme.colors.primary : theme.iconColor} />
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     </View>
@@ -621,12 +730,34 @@ export default function ProfileScreen() {
   return (
     <View className={`flex-1 ${theme.bgClass}`}>
       <FlatList
+        key={viewMode === 'grid' ? 'grid-3' : 'list-1'}
         data={loading ? [] : issues}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        numColumns={viewMode === 'grid' ? 3 : 1}
+        contentContainerStyle={viewMode === 'grid' ? { paddingHorizontal: 2, paddingBottom: 100 } : { paddingBottom: 100 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#5b5ef6']} tintColor={theme.isDark ? '#818cf8' : '#5b5ef6'} />}
         ListHeaderComponent={renderHeader}
-        renderItem={({ item }) => <View className="px-5">{renderIssue({ item })}</View>}
+        renderItem={({ item }) => {
+          if (viewMode === 'grid') {
+            const firstImage = item.image_urls?.[0] || item.image_url;
+            return (
+              <TouchableOpacity 
+                onPress={() => router.push(`/issue/${item.id}`)}
+                className="p-0.5"
+                style={{ width: '33.33%', aspectRatio: 1 }}
+              >
+                {firstImage ? (
+                  <Image source={{ uri: firstImage }} style={{ flex: 1, borderRadius: 8 }} />
+                ) : (
+                  <View className={`flex-1 rounded-lg items-center justify-center p-2 ${theme.isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
+                    <Text className={`font-bold text-[10px] text-center ${theme.textSecondaryClass}`} numberOfLines={3}>{item.description}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          }
+          return <View className="px-5">{renderIssue({ item })}</View>;
+        }}
         showsVerticalScrollIndicator={false}
         initialNumToRender={5}
         maxToRenderPerBatch={5}
@@ -634,7 +765,7 @@ export default function ProfileScreen() {
         ListEmptyComponent={
           !loading ? (
             <View className="items-center justify-center py-10 px-5">
-              <View className={`w-16 h-16 rounded-2xl items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+              <View className={`w-16 h-16 rounded-[32px] items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
                 {isOfficial ? <CheckCircle2 size={28} color={theme.iconColor} /> : <Inbox size={28} color={theme.iconColor} />}
               </View>
               <Text className={`font-medium text-center text-[13px] ${theme.textSecondaryClass}`}>
@@ -643,8 +774,8 @@ export default function ProfileScreen() {
             </View>
           ) : (
             <View className="px-5">
-              <Skeleton height={120} className="w-full rounded-2xl mb-3" />
-              <Skeleton height={120} className="w-full rounded-2xl mb-3" />
+              <Skeleton height={120} className="w-full rounded-[32px] mb-3" />
+              <Skeleton height={120} className="w-full rounded-[32px] mb-3" />
             </View>
           )
         }
@@ -661,15 +792,9 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
               </View>
               
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                <Text className={`font-bold text-[13px] uppercase tracking-wider mb-2 ${theme.textSecondaryClass}`}>Title</Text>
-                <TextInput
-                  value={editTitle}
-                  onChangeText={setEditTitle}
-                  className={`border rounded-xl px-4 py-3 mb-4 font-medium text-[15px] ${theme.inputClass} ${theme.textClass}`}
-                  placeholderTextColor={theme.inputPlaceholder}
-                />
+
                 
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                 <Text className={`font-bold text-[13px] uppercase tracking-wider mb-2 ${theme.textSecondaryClass}`}>Description</Text>
                 <TextInput
                   value={editDescription}
@@ -714,12 +839,12 @@ export default function ProfileScreen() {
                   )}
                 </ScrollView>
               </ScrollView>
-              
-              <View className="mt-4 pt-4 border-t border-slate-200/20 dark:border-white/5">
-                <TouchableOpacity 
-                  onPress={handleSaveEdit} 
+
+              <View className="mt-4 pt-4">
+                <TouchableOpacity
+                  onPress={handleSaveEdit}
                   disabled={isSaving}
-                  className={`py-4 rounded-xl items-center ${isSaving ? 'opacity-50' : ''} ${theme.isDark ? 'bg-blue-500' : 'bg-blue-600'}`}
+                  className={`py-4 rounded-xl items-center ${isSaving ? 'opacity-50' : ''} ${theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600'}`}
                 >
                   <Text className="font-bold text-white text-[15px]">
                     {isSaving ? 'Saving...' : 'Save Changes'}
@@ -730,208 +855,6 @@ export default function ProfileScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-
-      {/* Gentle Interactive Edit Profile Modal */}
-      <Modal visible={showEditProfile} transparent animationType="slide">
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-          <View className={`flex-1 justify-end ${theme.isDark ? 'bg-black/80' : 'bg-black/40'}`}>
-            <View className={`rounded-t-3xl p-5 h-[88%] ${theme.bgClass}`}>
-              <View className="flex-row justify-between items-center mb-4 pb-3 border-b border-slate-200/20 dark:border-white/5">
-                <View>
-                  <Text className={`font-black text-xl ${theme.textClass}`}>Edit Your Profile</Text>
-                  <Text className={`text-[12px] font-medium mt-0.5 ${theme.textMutedClass}`}>Update your civic details & preferences</Text>
-                </View>
-                <TouchableOpacity onPress={() => setShowEditProfile(false)} className={`p-2 rounded-full ${theme.isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
-                  <X size={20} color={theme.iconColor} />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                {/* 1. Name */}
-                <View className="mb-4">
-                  <Text className={`font-bold text-[13px] mb-1 ${theme.textClass}`}>What should we call you?</Text>
-                  <TextInput
-                    value={editName}
-                    onChangeText={setEditName}
-                    placeholder="Your full or display name"
-                    placeholderTextColor={theme.inputPlaceholder}
-                    className={`border rounded-xl px-3.5 h-11 font-medium text-[14px] ${theme.inputClass} ${theme.textClass}`}
-                  />
-                </View>
-
-                {/* 2. Phone */}
-                <View className="mb-4">
-                  <Text className={`font-bold text-[13px] mb-1 ${theme.textClass}`}>Phone Number</Text>
-                  <TextInput
-                    value={editPhone}
-                    onChangeText={setEditPhone}
-                    placeholder="e.g. 9800000000"
-                    placeholderTextColor={theme.inputPlaceholder}
-                    keyboardType="phone-pad"
-                    className={`border rounded-xl px-3.5 h-11 font-medium text-[14px] ${theme.inputClass} ${theme.textClass}`}
-                  />
-                </View>
-
-                {/* 3. Home Ward Choice Chips */}
-                <View className="mb-4">
-                  <Text className={`font-bold text-[13px] mb-1.5 ${theme.textClass}`}>Which Ward do you live in?</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} className="py-1">
-                    {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'].map((w) => {
-                      const isSelected = editWard === w;
-                      return (
-                        <TouchableOpacity
-                          key={w}
-                          onPress={() => setEditWard(w)}
-                          activeOpacity={0.7}
-                          className={`px-3.5 py-2 rounded-xl mr-2 border ${
-                            isSelected
-                              ? 'bg-blue-600 border-blue-600'
-                              : (theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200')
-                          }`}
-                        >
-                          <Text className={`text-[12.5px] font-bold ${isSelected ? 'text-white' : theme.textClass}`}>
-                            Ward {w}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-
-                {/* 4. Gender Option Chips */}
-                <View className="mb-4">
-                  <Text className={`font-bold text-[13px] mb-1.5 ${theme.textClass}`}>Gender Identity</Text>
-                  <View className="flex-row flex-wrap gap-2">
-                    {['Male', 'Female', 'Other', 'Prefer not to say'].map((g) => {
-                      const isSelected = editGender?.toLowerCase() === g.toLowerCase();
-                      return (
-                        <TouchableOpacity
-                          key={g}
-                          onPress={() => setEditGender(g)}
-                          activeOpacity={0.7}
-                          className={`px-3.5 py-2 rounded-xl border ${
-                            isSelected
-                              ? 'bg-blue-600 border-blue-600'
-                              : (theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200')
-                          }`}
-                        >
-                          <Text className={`text-[12.5px] font-bold ${isSelected ? 'text-white' : theme.textClass}`}>
-                            {g}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                {/* 5. Age Range Option Chips */}
-                <View className="mb-4">
-                  <Text className={`font-bold text-[13px] mb-1.5 ${theme.textClass}`}>Age Group / Age</Text>
-                  <View className="flex-row flex-wrap gap-2 mb-2">
-                    {['Under 18', '18–25', '26–35', '36–50', '50+'].map((ageOpt) => {
-                      const isSelected = editAge === ageOpt;
-                      return (
-                        <TouchableOpacity
-                          key={ageOpt}
-                          onPress={() => setEditAge(ageOpt)}
-                          activeOpacity={0.7}
-                          className={`px-3 py-1.5 rounded-xl border ${
-                            isSelected
-                              ? 'bg-blue-600 border-blue-600'
-                              : (theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200')
-                          }`}
-                        >
-                          <Text className={`text-[12px] font-bold ${isSelected ? 'text-white' : theme.textClass}`}>
-                            {ageOpt}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                  <TextInput
-                    value={editAge}
-                    onChangeText={setEditAge}
-                    placeholder="Or type exact age (e.g. 28)"
-                    placeholderTextColor={theme.inputPlaceholder}
-                    keyboardType="number-pad"
-                    className={`border rounded-xl px-3.5 h-10 font-medium text-[13px] ${theme.inputClass} ${theme.textClass}`}
-                  />
-                </View>
-
-                {/* 6. Department (If Official) Choice Chips */}
-                {profile?.role === 'official' && (
-                  <View className="mb-4">
-                    <Text className={`font-bold text-[13px] mb-1.5 ${theme.textClass}`}>Municipal Department</Text>
-                    <View className="flex-row flex-wrap gap-2 mb-2">
-                      {['Public Works', 'Health & Sanitation', 'Administration', 'Education', 'IT & Comms', 'Disaster Relief'].map((dept) => {
-                        const isSelected = editDepartment === dept;
-                        return (
-                          <TouchableOpacity
-                            key={dept}
-                            onPress={() => setEditDepartment(dept)}
-                            activeOpacity={0.7}
-                            className={`px-3 py-1.5 rounded-xl border ${
-                              isSelected
-                                ? 'bg-blue-600 border-blue-600'
-                                : (theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200')
-                            }`}
-                          >
-                            <Text className={`text-[12px] font-bold ${isSelected ? 'text-white' : theme.textClass}`}>
-                              {dept}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                    <TextInput
-                      value={editDepartment}
-                      onChangeText={setEditDepartment}
-                      placeholder="Or type department title..."
-                      placeholderTextColor={theme.inputPlaceholder}
-                      className={`border rounded-xl px-3.5 h-10 font-medium text-[13px] ${theme.inputClass} ${theme.textClass}`}
-                    />
-                  </View>
-                )}
-
-                {/* 7. Local Area / Tole */}
-                <View className="mb-4">
-                  <Text className={`font-bold text-[13px] mb-1 ${theme.textClass}`}>Tole / Local Area</Text>
-                  <TextInput
-                    value={editTole}
-                    onChangeText={setEditTole}
-                    placeholder="e.g. Simraungadh Bazaar, Ward 4 Center"
-                    placeholderTextColor={theme.inputPlaceholder}
-                    className={`border rounded-xl px-3.5 h-11 font-medium text-[14px] ${theme.inputClass} ${theme.textClass}`}
-                  />
-                </View>
-              </ScrollView>
-
-              <View className="mt-3 pt-3 border-t border-slate-200/20 dark:border-white/5">
-                <TouchableOpacity
-                  onPress={handleSaveProfile}
-                  disabled={isSavingProfile}
-                  className={`py-3.5 rounded-2xl items-center ${isSavingProfile ? 'opacity-50' : ''} ${theme.isDark ? 'bg-blue-500' : 'bg-blue-600'}`}
-                  style={theme.glowShadow('#2563eb')}
-                >
-                  <Text className="font-bold text-white text-[15px]">
-                    {isSavingProfile ? 'Saving...' : 'Save Profile'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-
-      {profile && (
-        <UserListModal
-          visible={showUserList}
-          onClose={() => setShowUserList(false)}
-          userId={profile.id}
-          userName={profile.full_name || 'User'}
-          initialTab={userListTab}
-        />
-      )}
     </View>
   );
 }

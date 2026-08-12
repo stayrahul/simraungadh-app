@@ -52,11 +52,11 @@ const BADGE_CONFIG: Record<BadgeType, { bgDark: string; bgLight: string; textDar
     icon: XCircle,
   },
   category: {
-    bgDark: 'bg-blue-500/15',
-    bgLight: 'bg-blue-50',
-    borderDark: 'border-blue-500/30',
+    bgDark: 'bg-primary-500/15',
+    bgLight: 'bg-primary-50',
+    borderDark: 'border-primary-500/30',
     borderLight: 'border-blue-200',
-    textDark: 'text-blue-300',
+    textDark: 'text-primary-300',
     textLight: 'text-blue-700',
     icon: Tag,
   },
@@ -105,7 +105,7 @@ export default function Badge({ type, text, className = '', showIcon = true, siz
                     type === 'rejected' ? (theme.isDark ? '#fda4af' : '#e11d48') :
                     type === 'emergency' ? (theme.isDark ? '#fda4af' : '#dc2626') :
                     type === 'department' ? (theme.isDark ? '#7dd3fc' : '#0284c7') :
-                    (theme.isDark ? '#60a5fa' : '#2563eb');
+                    (theme.isDark ? '#818cf8' : '#4f46e5');
 
   const isSmall = size === 'sm';
 

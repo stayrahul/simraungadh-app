@@ -2,14 +2,20 @@
 import '../../global.css';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { Animated, View, Text, Image, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as SplashScreen from 'expo-splash-screen';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
-import { Platform } from 'react-native';
 import { AlertProvider } from '../components/AlertProvider';
 import { useNotifications } from '../hooks/useNotifications';
-
 import { useTheme } from '../hooks/use-theme';
+import { OfflineIndicator } from '../components/OfflineIndicator';
+
+// Keep the native splash screen visible while we set up our custom one
+SplashScreen.preventAutoHideAsync();
+
 let Notifications: any;
 try {
   if (Platform.OS !== 'web') {
@@ -38,6 +44,10 @@ export default function Layout() {
   const { setSession } = useAuthStore();
   const router = useRouter();
   const theme = useTheme();
+  
+  // Splash Screen State
+  const [appIsReady, setAppIsReady] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   
   // Initialize notifications logic (requests permissions & saves token)
   useNotifications();
@@ -108,10 +118,37 @@ export default function Layout() {
     };
   }, []);
 
+  // Prepare app and hide splash screen
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Minimum delay to show the beautiful splash screen (2 seconds)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+        // Hide the native splash screen
+        await SplashScreen.hideAsync();
+        
+        // Fade out our custom splash screen overlay
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }).start();
+      }
+    }
+    prepare();
+  }, []);
+
   return (
-    <AlertProvider>
-      <Stack
-        screenOptions={{
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <AlertProvider>
+        <OfflineIndicator />
+        <Stack
+          screenOptions={{
           headerStyle: { backgroundColor: theme.colors.background },
           headerTintColor: theme.colors.text,
           contentStyle: { backgroundColor: theme.colors.background },
@@ -129,8 +166,38 @@ export default function Layout() {
         <Stack.Screen name="publish-notice" options={{ headerShown: false, presentation: 'modal' }} />
         <Stack.Screen name="issue/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="user/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="saved" options={{ headerShown: false }} />
+        <Stack.Screen name="search" options={{ headerShown: false }} />
+        <Stack.Screen name="admin" options={{ headerShown: false }} />
+        <Stack.Screen name="help" options={{ headerShown: false }} />
+        <Stack.Screen name="privacy" options={{ headerShown: false }} />
+        <Stack.Screen name="contact" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style={theme.statusBar} />
-    </AlertProvider>
+      </AlertProvider>
+
+      {/* Custom Splash Screen Overlay */}
+      {!appIsReady && (
+        <Animated.View style={{ 
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, 
+          backgroundColor: theme.isDark ? '#0A0A0C' : '#FFFFFF',
+          justifyContent: 'center', alignItems: 'center',
+          opacity: fadeAnim,
+          zIndex: 9999
+        }}>
+           {/* Center Logo */}
+           <View style={{ width: 100, height: 100, backgroundColor: '#4F46E5', borderRadius: 24, justifyContent: 'center', alignItems: 'center', shadowColor: '#4F46E5', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8 }}>
+             <Text style={{ color: '#FFFFFF', fontSize: 64, fontWeight: 'bold', fontFamily: Platform.OS === 'ios' ? 'Helvetica' : 'sans-serif' }}>S</Text>
+           </View>
+           
+           {/* Footer Text */}
+           <View style={{ position: 'absolute', bottom: 50, alignItems: 'center' }}>
+             <Text style={{ color: theme.isDark ? '#777587' : '#65676B', fontSize: 14, fontWeight: '600', letterSpacing: 1 }}>from</Text>
+             <Text style={{ color: theme.isDark ? '#FFFFFF' : '#1C1E21', fontSize: 24, fontWeight: '900', marginTop: 2, letterSpacing: 1.5 }}>Simraungadh</Text>
+           </View>
+        </Animated.View>
+      )}
+    </View>
+    </GestureHandlerRootView>
   );
 }

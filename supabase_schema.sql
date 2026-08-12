@@ -706,3 +706,20 @@ CREATE POLICY "Officials can update application status"
   ON public.service_applications FOR UPDATE
   USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'official'));
 
+
+-- ============================================================
+-- 15. Verification Badges
+-- ============================================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false;
+
+-- ============================================================
+-- 16. Soft Deletes
+-- ============================================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT false;
+ALTER TABLE public.issues ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false;
+ALTER TABLE public.notices ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false;
+
+-- ============================================================
+-- 17. Multi-Badge System
+-- ============================================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS badges TEXT[] DEFAULT '{}';

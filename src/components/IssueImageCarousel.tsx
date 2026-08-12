@@ -9,13 +9,16 @@ interface IssueImageCarouselProps {
   imageUrls?: string[] | null;
   fallbackUrl?: string | null;
   onImagePress?: (url: string, index: number) => void;
+  onDoubleTap?: () => void;
   height?: number;
 }
 
-export default function IssueImageCarousel({ imageUrls, fallbackUrl, onImagePress, height = 260 }: IssueImageCarouselProps) {
+export default function IssueImageCarousel({ imageUrls, fallbackUrl, onImagePress, onDoubleTap, height = 260 }: IssueImageCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
   const theme = useTheme();
+  let lastTap = 0;
+  let tapTimer: NodeJS.Timeout;
 
   const images = imageUrls && imageUrls.length > 0 ? imageUrls : fallbackUrl ? [fallbackUrl] : [];
 
@@ -41,9 +44,24 @@ export default function IssueImageCarousel({ imageUrls, fallbackUrl, onImagePres
       />
     );
 
-    if (onImagePress) {
+    const handleTap = () => {
+      const time = new Date().getTime();
+      const delta = time - lastTap;
+      
+      if (delta < 300) {
+        clearTimeout(tapTimer);
+        if (onDoubleTap) onDoubleTap();
+      } else {
+        tapTimer = setTimeout(() => {
+          if (onImagePress) onImagePress(url, index);
+        }, 300);
+      }
+      lastTap = time;
+    };
+
+    if (onImagePress || onDoubleTap) {
       return (
-        <TouchableOpacity key={index} activeOpacity={0.9} onPress={() => onImagePress(url, index)} style={{ width, height }}>
+        <TouchableOpacity key={index} activeOpacity={0.9} onPress={handleTap} style={{ width, height }}>
           {imageElement}
         </TouchableOpacity>
       );
@@ -93,7 +111,7 @@ export default function IssueImageCarousel({ imageUrls, fallbackUrl, onImagePres
                   width: activeIndex === index ? 14 : 5,
                   height: 5,
                   borderRadius: 2.5,
-                  backgroundColor: activeIndex === index ? (theme.isDark ? '#60a5fa' : '#2563eb') : (theme.isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.2)'),
+                  backgroundColor: activeIndex === index ? (theme.isDark ? '#818cf8' : '#4f46e5') : (theme.isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.2)'),
                   marginHorizontal: 2.5,
                 }}
               />

@@ -161,7 +161,7 @@ export default function UserListModal({
       >
         <TouchableOpacity 
           activeOpacity={1} 
-          className={`h-[75%] rounded-t-3xl border-t ${theme.isDark ? 'bg-[#0f172a] border-white/10' : 'bg-white border-slate-200'}`}
+          className={`h-[75%] rounded-t-3xl border-t ${theme.glassCardClass}`}
         >
           {/* Header Bar */}
           <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-white/5">
@@ -186,18 +186,18 @@ export default function UserListModal({
           <View className="flex-row border-b border-white/10 px-5 pt-2">
             <TouchableOpacity 
               onPress={() => setActiveTab('followers')}
-              className={`flex-1 py-3 items-center border-b-2 ${activeTab === 'followers' ? (theme.isDark ? 'border-blue-400' : 'border-blue-600') : 'border-transparent'}`}
+              className={`flex-1 py-3 items-center border-b-2 ${activeTab === 'followers' ? (theme.isDark ? 'border-primary-400' : 'border-primary') : 'border-transparent'}`}
             >
-              <Text className={`font-bold text-[13px] ${activeTab === 'followers' ? (theme.isDark ? 'text-blue-400' : 'text-blue-600') : theme.textMutedClass}`}>
+              <Text className={`font-bold text-[13px] ${activeTab === 'followers' ? (theme.isDark ? 'text-primary-300' : 'text-primary') : theme.textMutedClass}`}>
                 {t.followers}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               onPress={() => setActiveTab('following')}
-              className={`flex-1 py-3 items-center border-b-2 ${activeTab === 'following' ? (theme.isDark ? 'border-blue-400' : 'border-blue-600') : 'border-transparent'}`}
+              className={`flex-1 py-3 items-center border-b-2 ${activeTab === 'following' ? (theme.isDark ? 'border-primary-400' : 'border-primary') : 'border-transparent'}`}
             >
-              <Text className={`font-bold text-[13px] ${activeTab === 'following' ? (theme.isDark ? 'text-blue-400' : 'text-blue-600') : theme.textMutedClass}`}>
+              <Text className={`font-bold text-[13px] ${activeTab === 'following' ? (theme.isDark ? 'text-primary-300' : 'text-primary') : theme.textMutedClass}`}>
                 {t.following}
               </Text>
             </TouchableOpacity>
@@ -206,7 +206,7 @@ export default function UserListModal({
           {/* List */}
           {loading ? (
             <View className="flex-1 items-center justify-center py-12">
-              <ActivityIndicator color={theme.isDark ? '#60a5fa' : '#2563eb'} size="large" />
+              <ActivityIndicator color={theme.isDark ? '#818cf8' : '#4f46e5'} size="large" />
             </View>
           ) : (
             <FlatList
@@ -215,7 +215,7 @@ export default function UserListModal({
               contentContainerStyle={{ padding: 16 }}
               ListEmptyComponent={
                 <View className="items-center justify-center py-16 px-6">
-                  <View className={`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+                  <View className={`w-14 h-14 rounded-3xl items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
                     <Users size={24} color={theme.iconColor} />
                   </View>
                   <Text className={`font-bold text-[15px] mb-1 ${theme.textClass}`}>
@@ -235,7 +235,7 @@ export default function UserListModal({
                   <TouchableOpacity
                     activeOpacity={0.75}
                     onPress={() => handleUserClick(item.id)}
-                    className={`flex-row items-center justify-between p-3.5 mb-3 rounded-2xl border ${theme.cardClass}`}
+                    className={`flex-row items-center justify-between p-3.5 mb-3 rounded-3xl border ${theme.cardClass}`}
                     style={theme.cardShadow}
                   >
                     <View className="flex-row items-center flex-1 pr-3">
@@ -248,9 +248,9 @@ export default function UserListModal({
                       ) : (
                         <View 
                           style={{ width: 46, height: 46, borderRadius: 23, marginRight: 14 }}
-                          className={`items-center justify-center ${theme.isDark ? 'bg-blue-500/15' : 'bg-blue-50'}`}
+                          className={`items-center justify-center ${theme.isDark ? 'bg-primary/20' : 'bg-primary-50'}`}
                         >
-                          <User size={22} color={theme.isDark ? '#60a5fa' : '#2563eb'} />
+                          <User size={22} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
                         </View>
                       )}
 
@@ -260,8 +260,8 @@ export default function UserListModal({
                             {item.full_name || 'Citizen'}
                           </Text>
                           {item.role === 'official' && (
-                            <View className={`px-1.5 py-0.5 rounded-md ${theme.isDark ? 'bg-blue-500/15' : 'bg-blue-50'}`}>
-                              <Text className={`text-[9px] font-bold ${theme.isDark ? 'text-blue-400' : 'text-blue-600'}`}>OFFICIAL</Text>
+                            <View className={`px-1.5 py-0.5 rounded-full ${theme.isDark ? 'bg-primary/20' : 'bg-primary-50'}`}>
+                              <Text className={`text-[9px] font-bold ${theme.isDark ? 'text-primary-300' : 'text-primary'}`}>OFFICIAL</Text>
                             </View>
                           )}
                         </View>
@@ -275,14 +275,14 @@ export default function UserListModal({
                       <TouchableOpacity
                         onPress={() => handleFollowToggle(item.id)}
                         disabled={isLoadingItem}
-                        className={`px-3 py-1.5 rounded-xl flex-row items-center ${
+                        className={`px-3 py-1.5 rounded-full flex-row items-center ${
                           isFollowingItem
                             ? (theme.isDark ? 'bg-white/[0.08]' : 'bg-slate-100')
-                            : (theme.isDark ? 'bg-blue-500/20' : 'bg-blue-600')
+                            : (theme.isDark ? 'bg-primary/20' : 'bg-primary')
                         }`}
                       >
                         {isLoadingItem ? (
-                          <ActivityIndicator size="small" color={isFollowingItem ? theme.iconColor : (theme.isDark ? '#60a5fa' : '#ffffff')} />
+                          <ActivityIndicator size="small" color={isFollowingItem ? theme.iconColor : (theme.isDark ? '#818cf8' : '#ffffff')} />
                         ) : isFollowingItem ? (
                           <>
                             <UserCheck size={13} color={theme.iconColor} />
@@ -290,8 +290,8 @@ export default function UserListModal({
                           </>
                         ) : (
                           <>
-                            <UserPlus size={13} color={theme.isDark ? '#60a5fa' : '#ffffff'} />
-                            <Text className={`text-[11px] font-semibold ml-1 ${theme.isDark ? 'text-blue-300' : 'text-white'}`}>{t.follow}</Text>
+                            <UserPlus size={13} color={theme.isDark ? '#818cf8' : '#ffffff'} />
+                            <Text className={`text-[11px] font-semibold ml-1 ${theme.isDark ? 'text-primary-300' : 'text-white'}`}>{t.follow}</Text>
                           </>
                         )}
                       </TouchableOpacity>

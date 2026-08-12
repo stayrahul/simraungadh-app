@@ -283,9 +283,60 @@ export default function LoginScreen() {
     }
   };
 
-  const handleDemoOfficial = async () => {
-    setEmail('official@simraungadh.gov.np');
-    setPassword('Official123!');
+  const handleQuickDemo = async (role: 'citizen' | 'official') => {
+    setLoading(true);
+    try {
+      const demoEmail = role === 'official' ? 'official@simraungadh.gov.np' : 'citizen.demo@simraungadh.gov.np';
+      const demoPass = 'Simraungadh123!';
+      const demoName = role === 'official' ? 'Municipal Official' : 'Demo Citizen';
+
+      let { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: demoPass,
+      });
+
+      if (signInErr || !signInData?.user) {
+        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+          email: demoEmail,
+          password: demoPass,
+          options: {
+            data: {
+              full_name: demoName,
+              phone_number: '9800000000',
+              role,
+              home_ward: 1,
+            },
+          },
+        });
+
+        if (signUpErr && !signUpData?.user) {
+          throw signUpErr;
+        }
+
+        const userId = signUpData?.user?.id || signInData?.user?.id;
+        if (userId) {
+          await supabase.from('profiles').upsert({
+            id: userId,
+            full_name: demoName,
+            phone_number: '9800000000',
+            role,
+            home_ward: 1,
+          });
+        }
+      }
+
+      await fetchUserProfile();
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch (e: any) {
+      console.error('Quick demo error:', e);
+      showAlert('Demo Login', e?.message || 'Failed to log in with Demo account.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -316,20 +367,16 @@ export default function LoginScreen() {
         >
           {/* Brand Header */}
           <View className="items-center mb-6 mt-4">
-            <View className={`w-14 h-14 rounded-2xl items-center justify-center mb-2.5 ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-600'}`}>
+            <View className={`w-14 h-14 rounded-[24px] items-center justify-center ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-600'}`}>
               <Shield size={28} color={theme.isDark ? '#818cf8' : '#ffffff'} />
             </View>
-            <Text className={`text-2xl font-black tracking-tight ${theme.textClass}`}>Simraungadh</Text>
-            <Text className={`text-[11px] font-semibold tracking-wider uppercase mt-0.5 ${theme.textMutedClass}`}>
-              {isLogin ? t.welcomeBack : t.createCitizenAccount}
-            </Text>
           </View>
 
           {/* Form Container Card */}
-          <View className={`rounded-3xl p-5 border ${theme.cardClass}`} style={theme.cardShadow}>
+          <View className={`rounded-[24px] p-5 border ${theme.cardClass}`} style={theme.cardShadow}>
 
             {/* Role Switcher */}
-            <View className={`flex-row p-1 rounded-2xl mb-5 ${theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}>
+            <View className={`flex-row p-1 rounded-[24px] mb-5 ${theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}>
               <TouchableOpacity
                 className={`flex-1 py-2.5 rounded-xl items-center ${selectedRole === 'citizen' ? (theme.isDark ? 'bg-indigo-500/20 border border-indigo-500/30' : 'bg-indigo-600') : ''}`}
                 onPress={() => setSelectedRole('citizen')}
@@ -355,7 +402,7 @@ export default function LoginScreen() {
                   onPress={handleGoogleLogin}
                   disabled={loading || googleLoading}
                   activeOpacity={0.8}
-                  className={`w-full h-12 px-4 rounded-2xl flex-row items-center justify-center border ${
+                  className={`w-full h-12 px-4 rounded-[24px] flex-row items-center justify-center border ${
                     theme.isDark
                       ? 'bg-white/[0.08] border-white/15 active:bg-white/12'
                       : 'bg-white border-slate-200 active:bg-slate-50'
@@ -393,14 +440,14 @@ export default function LoginScreen() {
             {/* Registration Specific Fields */}
             {!isLogin && selectedRole === 'citizen' && (
               <View className="gap-3.5 mb-5">
-                <Text className={`text-[11px] font-bold uppercase tracking-wider ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                <Text className={`text-[11px] font-bold uppercase tracking-wider ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>
                   {t.personalDetails}
                 </Text>
 
                 {/* Full Name */}
                 <View>
                   <Text className={`font-semibold text-[12px] mb-1.5 ml-0.5 ${theme.textSecondaryClass}`}>{t.fullName}</Text>
-                  <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+                  <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                     <User size={17} color={theme.iconColor} />
                     <TextInput
                       className={`flex-1 ml-2.5 font-medium text-[14px] ${theme.textClass}`}
@@ -416,7 +463,7 @@ export default function LoginScreen() {
                 {/* Phone Number */}
                 <View>
                   <Text className={`font-semibold text-[12px] mb-1.5 ml-0.5 ${theme.textSecondaryClass}`}>{t.phoneNumber}</Text>
-                  <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+                  <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                     <Phone size={17} color={theme.iconColor} />
                     <TextInput
                       className={`flex-1 ml-2.5 font-medium text-[14px] ${theme.textClass}`}
@@ -443,7 +490,7 @@ export default function LoginScreen() {
                           }`}
                       >
                         <Text className={`text-[13px] font-bold ${gender === g
-                            ? (theme.isDark ? 'text-indigo-300' : 'text-indigo-600')
+                            ? (theme.isDark ? 'text-indigo-300' : 'text-primary')
                             : theme.textSecondaryClass
                           }`}>
                           {g === 'Male' ? t.male : t.female}
@@ -458,7 +505,7 @@ export default function LoginScreen() {
                   {/* Age */}
                   <View className="flex-1">
                     <Text className={`font-semibold text-[12px] mb-1.5 ml-0.5 ${theme.textSecondaryClass}`}>{t.age}</Text>
-                    <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+                    <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                       <Calendar size={17} color={theme.iconColor} />
                       <TextInput
                         className={`flex-1 ml-2 font-medium text-[14px] ${theme.textClass}`}
@@ -475,7 +522,7 @@ export default function LoginScreen() {
                   {/* Ward */}
                   <View className="flex-1">
                     <Text className={`font-semibold text-[12px] mb-1.5 ml-0.5 ${theme.textSecondaryClass}`}>{t.homeWard}</Text>
-                    <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+                    <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                       <MapPin size={17} color={theme.iconColor} />
                       <TextInput
                         className={`flex-1 ml-2 font-medium text-[14px] ${theme.textClass}`}
@@ -492,7 +539,7 @@ export default function LoginScreen() {
 
                 <View className={`h-px my-1 ${theme.isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
 
-                <Text className={`text-[11px] font-bold uppercase tracking-wider ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                <Text className={`text-[11px] font-bold uppercase tracking-wider ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>
                   {t.accountCredentials}
                 </Text>
               </View>
@@ -503,7 +550,7 @@ export default function LoginScreen() {
               {/* Email */}
               <View>
                 <Text className={`font-semibold text-[12px] mb-1.5 ml-0.5 ${theme.textSecondaryClass}`}>{t.emailAddress}</Text>
-                <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+                <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                   <Mail size={17} color={theme.iconColor} />
                   <TextInput
                     className={`flex-1 ml-2.5 font-medium text-[14px] ${theme.textClass}`}
@@ -521,7 +568,7 @@ export default function LoginScreen() {
               {/* Password */}
               <View>
                 <Text className={`font-semibold text-[12px] mb-1.5 ml-0.5 ${theme.textSecondaryClass}`}>{t.password}</Text>
-                <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+                <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                   <Lock size={17} color={theme.iconColor} />
                   <TextInput
                     className={`flex-1 ml-2.5 font-medium text-[14px] ${theme.textClass}`}
@@ -542,7 +589,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               onPress={handleAuth}
               disabled={loading || !email.trim() || !password.trim()}
-              className={`h-12 rounded-2xl items-center justify-center ${(!email.trim() || !password.trim())
+              className={`h-12 rounded-[24px] items-center justify-center ${(!email.trim() || !password.trim())
                   ? (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-200')
                   : (theme.isDark ? 'bg-indigo-500/20 border border-indigo-500/30' : 'bg-indigo-600')
                 }`}
@@ -568,24 +615,44 @@ export default function LoginScreen() {
                 {isLogin ? t.dontHaveAccount : t.alreadyHaveAccount}
               </Text>
               <TouchableOpacity onPress={() => setIsLogin(!isLogin)} className="ml-1.5 py-1">
-                <Text className={`font-bold text-[13px] ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                <Text className={`font-bold text-[13px] ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>
                   {isLogin ? t.signUp : t.signIn}
                 </Text>
               </TouchableOpacity>
             </View>
           )}
 
-          {selectedRole === 'official' && isLogin && (
-            <TouchableOpacity 
-              onPress={handleDemoOfficial}
-              disabled={loading}
-              className={`mt-4 py-3 rounded-xl border border-dashed items-center ${theme.isDark ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-indigo-300 bg-indigo-50'}`}
-            >
-              <Text className={`font-semibold text-[13px] ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                Quick Login as Demo Official
-              </Text>
-            </TouchableOpacity>
-          )}
+          {/* 1-Click Quick Demo Login Box */}
+          <View className="mt-5 pt-3 border-t border-dashed border-slate-300/40">
+            <Text className={`text-[11px] font-bold uppercase tracking-wider text-center mb-2.5 ${theme.textMutedClass}`}>
+              ⚡ 1-Click Instant Demo Login
+            </Text>
+            <View className="flex-row gap-2">
+              <TouchableOpacity 
+                onPress={() => handleQuickDemo('citizen')}
+                disabled={loading}
+                className={`flex-1 py-3 px-2 rounded-xl items-center border ${
+                  theme.isDark ? 'border-primary-500/30 bg-primary-500/12' : 'border-blue-200 bg-primary-50'
+                }`}
+              >
+                <Text className={`font-bold text-[12px] ${theme.isDark ? 'text-primary-300' : 'text-blue-700'}`}>
+                  👤 Demo Citizen
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => handleQuickDemo('official')}
+                disabled={loading}
+                className={`flex-1 py-3 px-2 rounded-xl items-center border ${
+                  theme.isDark ? 'border-indigo-500/30 bg-indigo-500/12' : 'border-indigo-200 bg-indigo-50'
+                }`}
+              >
+                <Text className={`font-bold text-[12px] ${theme.isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>
+                  🛡️ Demo Official
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
         </ScrollView>
       </KeyboardAvoidingView>

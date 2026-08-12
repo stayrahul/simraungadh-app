@@ -6,9 +6,8 @@ const key = env.match(/EXPO_PUBLIC_SUPABASE_ANON_KEY=(.*)/)[1];
 const supabase = createClient(url, key);
 
 async function test() {
-  const res = await fetch(`${url}/rest/v1/`, { headers: { apikey: key } });
-  const schema = await res.json();
-  const profiles = schema.definitions.profiles;
-  console.log('badges type:', profiles.properties.badges);
+  const { data, error } = await supabase.from('profiles').select('*').limit(1);
+  console.log(data[0].badges);
+  console.log('isArray?', Array.isArray(data[0].badges));
 }
 test();

@@ -1,8 +1,10 @@
 // @ts-nocheck
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, RefreshControl, ActivityIndicator, ScrollView, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, CheckCircle2, MessageSquare, Heart, UserPlus, Radio, Bell, BellOff, CheckCheck } from 'lucide-react-native';
+import { FlashList } from '@shopify/flash-list';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { ArrowLeft, CheckCircle2, MessageSquare, Heart, UserPlus, Radio, Bell, BellOff, CheckCheck, Trash2 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
@@ -117,7 +119,7 @@ export default function NotificationsScreen() {
   const getBgForType = (type: string) => {
     if (theme.isDark) {
       const map: Record<string, string> = {
-        status_update: 'bg-blue-500/15',
+        status_update: 'bg-primary-500/15',
         new_comment: 'bg-emerald-500/15',
         new_like: 'bg-rose-500/15',
         new_follow: 'bg-purple-500/15',
@@ -126,7 +128,7 @@ export default function NotificationsScreen() {
       return map[type] || 'bg-white/[0.06]';
     }
     const map: Record<string, string> = {
-      status_update: 'bg-blue-50',
+      status_update: 'bg-primary-50',
       new_comment: 'bg-emerald-50',
       new_like: 'bg-rose-50',
       new_follow: 'bg-purple-50',
@@ -150,54 +152,125 @@ export default function NotificationsScreen() {
     return 'now';
   };
 
-  const filteredNotifications = notifications.filter(n => {
-    if (activeFilter === 'all') return true;
-    return n.type === activeFilter;
-  });
+  const sectionedData = React.useMemo(() => {
+    const rawData = notifications.filter(n => {
+      if (activeFilter === 'all') return true;
+      return n.type === activeFilter;
+    });
 
-  const renderItem = ({ item }: { item: AppNotification }) => (
-    <TouchableOpacity 
-      onPress={() => handleNotificationPress(item)}
-      activeOpacity={0.7}
-      className={`mx-4 mb-2.5 p-4 rounded-2xl border flex-row items-start ${theme.cardClass} ${!item.is_read ? (theme.isDark ? 'bg-indigo-500/[0.08] border-indigo-500/20' : 'bg-indigo-50/60 border-indigo-100') : ''}`}
-      style={theme.cardShadow}
-    >
-      <View className={`w-11 h-11 rounded-2xl items-center justify-center mr-3.5 ${getBgForType(item.type)}`}>
-        {getIconForType(item.type)}
-      </View>
-      <View className="flex-1">
-        <View className="flex-row items-start justify-between mb-1">
-          <Text className={`flex-1 text-[14px] mr-2 ${!item.is_read ? `font-bold ${theme.textClass}` : `font-semibold ${theme.textClass}`}`}>
-            {item.title}
-          </Text>
-          <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>{timeAgo(item.created_at)}</Text>
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const grouped = new Map<string, typeof rawData>();
+    grouped.set('Today', []);
+    grouped.set('Yesterday', []);
+    grouped.set('Earlier', []);
+
+    rawData.forEach(item => {
+      const itemDate = new Date(item.created_at);
+      if (itemDate >= today) {
+        grouped.get('Today')!.push(item);
+      } else if (itemDate >= yesterday) {
+        grouped.get('Yesterday')!.push(item);
+      } else {
+        grouped.get('Earlier')!.push(item);
+      }
+    });
+
+    const sections: any[] = [];
+    ['Today', 'Yesterday', 'Earlier'].forEach(label => {
+      const items = grouped.get(label)!;
+      if (items.length > 0) {
+        sections.push({ type: 'header', id: `header-${label}`, label });
+        sections.push(...items.map(item => ({ type: 'item', ...item })));
+      }
+    });
+    return sections;
+  }, [notifications, activeFilter]);
+
+  const handleDeleteNotification = (id: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    supabase.from('notifications').delete().eq('id', id).then();
+  };
+
+  const renderItem = ({ item }: { item: any }) => {
+    if (item.type === 'header') {
+      return (
+        <View className="px-5 py-2 mb-1 mt-2 border-b pb-1" style={{ borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
+          <Text className={`font-bold text-[14px] ${theme.textMutedClass}`}>{item.label}</Text>
         </View>
-        <Text className={`text-[12.5px] leading-relaxed ${!item.is_read ? theme.textSecondaryClass : theme.textMutedClass}`}>
-          {item.body}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+      );
+    }
+    const notif = item;
+
+    const renderRightActions = (progress: any, dragX: any) => {
+      const trans = dragX.interpolate({
+        inputRange: [-80, 0],
+        outputRange: [1, 0],
+        extrapolate: 'clamp',
+      });
+      return (
+        <TouchableOpacity 
+          activeOpacity={0.8}
+          onPress={() => handleDeleteNotification(notif.id)}
+          className={`justify-center items-center w-20 rounded-[24px] mb-2.5 mr-4 ml-[-8px] ${theme.isDark ? 'bg-rose-500/20' : 'bg-rose-500'}`}
+        >
+          <Animated.View style={{ opacity: trans }}>
+            <Trash2 size={22} color={theme.isDark ? '#fb7185' : '#fff'} />
+          </Animated.View>
+        </TouchableOpacity>
+      );
+    };
+
+    return (
+      <Swipeable renderRightActions={renderRightActions} overshootRight={false}>
+        <TouchableOpacity 
+          onPress={() => handleNotificationPress(notif)}
+          activeOpacity={0.85}
+          className={`mx-4 mb-2.5 p-4 rounded-[24px] border flex-row items-start ${!notif.is_read ? (theme.isDark ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-indigo-50 border-indigo-100') : theme.cardClass}`}
+          style={theme.cardShadow}
+        >
+          <View className={`w-11 h-11 rounded-[24px] items-center justify-center mr-3.5 ${getBgForType(notif.type)}`}>
+            {getIconForType(notif.type)}
+          </View>
+          <View className="flex-1">
+            <View className="flex-row items-start justify-between mb-1">
+              <Text className={`flex-1 text-[14px] mr-2 ${!notif.is_read ? `font-bold ${theme.textClass}` : `font-semibold ${theme.textClass}`}`}>
+                {notif.title}
+              </Text>
+              <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>{timeAgo(notif.created_at)}</Text>
+            </View>
+            <Text className={`text-[12.5px] leading-relaxed ${!notif.is_read ? theme.textSecondaryClass : theme.textMutedClass}`}>
+              {notif.body}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
+    );
+  };
 
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
       {/* Navbar Header */}
-      <View className={`px-4 py-3.5 flex-row items-center justify-between border-b ${theme.headerBgClass}`}>
-        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/')} className={`w-9 h-9 items-center justify-center rounded-full ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+      <View className={`px-5 py-3 flex-row items-center justify-between`}>
+        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/')} style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }}>
           <ArrowLeft size={18} color={theme.iconColor} />
         </TouchableOpacity>
-        <Text className={`text-[16px] font-bold ${theme.textClass}`}>{t.notifications}</Text>
         <TouchableOpacity 
           onPress={handleMarkAllRead}
-          className={`w-9 h-9 items-center justify-center rounded-full ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}
+          style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }}
         >
-          <CheckCheck size={18} color={theme.isDark ? '#818cf8' : '#5b5ef6'} />
+          <CheckCheck size={18} color={theme.accentColor} />
         </TouchableOpacity>
       </View>
 
       {!profile ? (
         <View className={`flex-1 items-center justify-center p-8 ${theme.bgClass}`}>
-          <View className={`w-16 h-16 rounded-2xl items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+          <View className={`w-16 h-16 rounded-[24px] items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
             <BellOff size={28} color={theme.iconColor} />
           </View>
           <Text className={`font-bold text-lg mb-1.5 ${theme.textClass}`}>{t.notLoggedIn}</Text>
@@ -209,8 +282,8 @@ export default function NotificationsScreen() {
       ) : (
         <View className="flex-1">
           {/* Category Filter Pills */}
-          <View className="py-3 border-b border-white/5">
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+          <View className="py-3">
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
               {FILTERS.map(filter => {
                 const isSelected = activeFilter === filter.id;
                 return (
@@ -220,17 +293,14 @@ export default function NotificationsScreen() {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       setActiveFilter(filter.id);
                     }}
-                    className={`mr-2 px-4 py-2 rounded-xl border ${
-                      isSelected 
-                        ? (theme.isDark ? 'bg-indigo-500/20 border-indigo-500/40' : 'bg-indigo-600 border-indigo-600')
-                        : (theme.isDark ? 'bg-white/[0.04] border-white/10' : 'bg-slate-100 border-slate-200/80')
-                    }`}
+                    activeOpacity={0.8}
+                    style={[{
+                      paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1,
+                      backgroundColor: isSelected ? theme.accentColor : (theme.isDark ? '#1c1c1e' : '#ffffff'),
+                      borderColor: isSelected ? theme.accentColor : (theme.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+                    }, isSelected ? theme.glowShadow(theme.accentColor) : theme.cardShadow]}
                   >
-                    <Text className={`text-[12px] font-bold ${
-                      isSelected 
-                        ? (theme.isDark ? 'text-indigo-300' : 'text-white')
-                        : theme.textSecondaryClass
-                    }`}>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: isSelected ? '#ffffff' : (theme.isDark ? '#ebebf5' : '#1c1c1e') }}>
                       {filter.label}
                     </Text>
                   </TouchableOpacity>
@@ -240,12 +310,14 @@ export default function NotificationsScreen() {
           </View>
 
           {/* List */}
-          <FlatList
-            data={filteredNotifications}
+          <FlashList
+            data={sectionedData}
             keyExtractor={item => item.id}
             renderItem={renderItem}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#5b5ef6']} tintColor={theme.isDark ? '#818cf8' : '#5b5ef6'} />}
-            contentContainerStyle={filteredNotifications.length === 0 && !loading ? { flex: 1 } : { paddingTop: 12, paddingBottom: 40 }}
+            estimatedItemSize={100}
+            getItemType={(item) => item.type}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.accentColor]} tintColor={theme.accentColor} />}
+            contentContainerStyle={sectionedData.length === 0 && !loading ? { flex: 1 } : { paddingTop: 12, paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               loading ? (
@@ -254,7 +326,7 @@ export default function NotificationsScreen() {
                 </View>
               ) : (
                 <View className={`flex-1 items-center justify-center p-8 ${theme.bgClass}`}>
-                  <View className={`w-16 h-16 rounded-2xl items-center justify-center mb-4 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+                  <View className={`w-16 h-16 rounded-[24px] items-center justify-center mb-4 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
                     <Bell size={28} color={theme.iconColor} />
                   </View>
                   <Text className={`font-bold text-lg mb-1.5 ${theme.textClass}`}>{t.allCaughtUp}</Text>

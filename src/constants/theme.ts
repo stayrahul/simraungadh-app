@@ -15,19 +15,19 @@ export const Colors = {
     backgroundSelected: '#e2e8f0',
     textSecondary: '#475569',
     textMuted: '#94a3b8',
-    primary: '#2563eb', // Royal Blue
-    primaryDark: '#1d4ed8',
-    primaryLight: '#3b82f6',
+    primary: '#4f46e5', // Indigo
+    primaryDark: '#3730a3',
+    primaryLight: '#818cf8',
     card: '#ffffff',
     cardSubtle: '#f8fafc',
     cardElevated: '#ffffff',
     border: '#e2e8f0',
     borderSubtle: '#f1f5f9',
-    tint: '#2563eb',
+    tint: '#4f46e5',
     skeleton: '#e2e8f0',
     overlay: 'rgba(15, 23, 42, 0.4)',
-    glassBg: 'rgba(255, 255, 255, 0.85)',
-    glassBorder: 'rgba(226, 232, 240, 0.8)',
+    glassBg: 'rgba(255, 255, 255, 0.7)',
+    glassBorder: 'rgba(255, 255, 255, 0.4)',
     // Accent palette
     success: '#10b981',
     successBg: '#ecfdf5',
@@ -37,7 +37,7 @@ export const Colors = {
     dangerBg: '#fef2f2',
     info: '#0284c7',
     infoBg: '#f0f9ff',
-    purple: '#0284c7',
+    purple: '#7c3aed',
     pink: '#06b6d4',
   },
   dark: {
@@ -47,15 +47,15 @@ export const Colors = {
     backgroundSelected: '#1e293b',
     textSecondary: '#cbd5e1',
     textMuted: '#64748b',
-    primary: '#3b82f6',
-    primaryDark: '#2563eb',
-    primaryLight: '#60a5fa',
+    primary: '#818cf8', // Lighter Indigo for Dark Mode
+    primaryDark: '#4f46e5',
+    primaryLight: '#a5b4fc',
     card: '#11192e',
     cardSubtle: '#0f172a',
     cardElevated: '#1c2640',
     border: 'rgba(255, 255, 255, 0.09)',
     borderSubtle: 'rgba(255, 255, 255, 0.05)',
-    tint: '#60a5fa',
+    tint: '#818cf8',
     skeleton: '#1e293b',
     overlay: 'rgba(3, 7, 18, 0.75)',
     glassBg: 'rgba(17, 25, 46, 0.85)',
@@ -69,9 +69,9 @@ export const Colors = {
     dangerBg: 'rgba(239, 68, 68, 0.15)',
     info: '#38bdf8',
     infoBg: 'rgba(56, 189, 248, 0.15)',
-    purple: '#38bdf8',
+    purple: '#a78bfa',
     pink: '#22d3ee',
-  },
+  }
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;

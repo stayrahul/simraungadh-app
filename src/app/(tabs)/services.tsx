@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Linking, TextInput, Modal, Clipboard, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PhoneCall, Shield, AlertTriangle, Activity, FileText, BookOpen, Edit3, CreditCard, Briefcase, Search, Smartphone, Trash2, Info, Phone, Calendar, MapPin, Users, LayoutGrid, Sun, CloudRain, Cloud, Maximize2, ArrowRight, Building2, ExternalLink, X, CheckCircle2, ChevronRight, Copy, Check, Globe, Award, Navigation } from 'lucide-react-native';
+import { PhoneCall, Shield, AlertTriangle, Activity, File, BookOpen, Edit3, CreditCard, Briefcase, Search, Smartphone, Trash2, Info, Phone, Calendar, MapPin, Users, LayoutGrid, Sun, CloudRain, Cloud, Maximize2, ArrowRight, Building2, ExternalLink, X, CheckCircle2, ChevronRight, Copy, Check, Globe, Award, Navigation } from 'lucide-react-native';
 import { useLangStore } from '../../store/langStore';
 import { translations } from '../../lib/translations';
 import { supabase } from '../../lib/supabase';
@@ -12,6 +12,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useAlert } from '../../components/AlertProvider';
 import { useWeatherStore } from '../../store/weatherStore';
 import { useTheme } from '../../hooks/use-theme';
+import EventCard from '../../components/EventCard';
 
 const EMERGENCY_CONTACTS = [
   { id: '1', title: 'Simraungadh Helpline', number: '053-411072', icon: PhoneCall, color: '#5b5ef6' },
@@ -34,7 +35,7 @@ const DIGITAL_SERVICES = [
     title: 'राष्ट्रिय परिचयपत्र फारम', 
     subtitle: 'NID Pre-Enrollment Portal',
     url: 'https://enrollment.donidcr.gov.np',
-    icon: FileText, 
+    icon: File, 
     color: '#3b82f6' 
   },
   { 
@@ -42,8 +43,8 @@ const DIGITAL_SERVICES = [
     title: 'नागरिक घटना दर्ता', 
     subtitle: 'Civil Registration Portal',
     url: 'https://citizenportal.donidcr.gov.np',
-    icon: FileText, 
-    color: '#2563eb' 
+    icon: File, 
+    color: '#4f46e5' 
   },
   { 
     id: 'social',
@@ -131,12 +132,21 @@ export default function ServicesScreen() {
   const { language } = useLangStore();
   const t = translations[language];
   const theme = useTheme();
-  const [activeTab, setActiveTab] = useState<'emergency' | 'digital' | 'waste' | 'info'>('emergency');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    emergency: true,
+    digital: true,
+    waste: true,
+    info: true,
+  });
+
+  const toggleSection = (id: string) => {
+    setExpandedSections(prev => ({ ...prev, [id]: !prev[id] }));
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [topContributors, setTopContributors] = useState<Profile[]>([]);
   const [loadingContributors, setLoadingContributors] = useState(true);
-  const { profile } = useAuthStore();
-  const { showAlert } = useAlert();
+  const [events, setEvents] = useState<any[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
 
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
@@ -155,6 +165,8 @@ export default function ServicesScreen() {
   const [formMotherName, setFormMotherName] = useState('');
   const [formEventDate, setFormEventDate] = useState('');
   const [formNotes, setFormNotes] = useState('');
+
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     if (profile) {
@@ -207,6 +219,7 @@ export default function ServicesScreen() {
   };
 
   const { temp, condition, fetchWeather } = useWeatherStore();
+  const { profile } = useAuthStore();
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -236,7 +249,26 @@ export default function ServicesScreen() {
         setLoadingContributors(false);
       }
     };
+
+    const fetchEvents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('civic_events')
+          .select('*')
+          .order('event_date', { ascending: true })
+          .limit(5);
+        if (!error && data) {
+          setEvents(data);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
     fetchLeaderboard();
+    fetchEvents();
     fetchWeather();
   }, []);
 
@@ -244,21 +276,10 @@ export default function ServicesScreen() {
     Linking.openURL(`tel:${number}`);
   };
 
-  const TABS = [
-    { id: 'emergency' as const, label: t.emergency || 'Emergency', icon: AlertTriangle },
-    { id: 'digital' as const, label: t.digital || 'Digital', icon: Smartphone },
-    { id: 'waste' as const, label: t.waste || 'Waste', icon: Trash2 },
-    { id: 'info' as const, label: 'Info', icon: Info },
-  ];
-
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
-      <View className={`px-5 pt-3.5 pb-3.5 border-b ${theme.headerBgClass}`}>
-        <Text className={`text-[22px] font-black tracking-tight ${theme.textClass}`}>{t.cityServices}</Text>
-        <Text className={`text-[12px] font-medium mt-0.5 ${theme.textMutedClass}`}>Simraungadh Municipality, Bara</Text>
-
-        {/* Search */}
-        <View className={`mt-3 flex-row items-center rounded-xl px-3.5 py-2.5 ${theme.inputClass} border`}>
+      <View className="px-5 pt-3 pb-2 z-10">
+        <View className={`flex-row items-center rounded-2xl px-3.5 py-3 border ${theme.inputClass}`}>
           <Search size={16} color={theme.iconColor} />
           <TextInput
             className={`flex-1 ml-2.5 text-[14px] font-medium ${theme.textClass}`}
@@ -270,36 +291,38 @@ export default function ServicesScreen() {
         </View>
       </View>
 
-      {/* Tabs — Underline style */}
-      <View className={`flex-row border-b ${theme.headerBgClass}`}>
-        {TABS.map(tab => {
-          const IconComp = tab.icon;
-          const isSelected = activeTab === tab.id;
-          return (
-            <TouchableOpacity
-              key={tab.id}
-              onPress={() => setActiveTab(tab.id)}
-              activeOpacity={0.7}
-              className={`flex-1 flex-row items-center justify-center py-3 ${isSelected ? (theme.isDark ? 'border-b-2 border-indigo-400' : 'border-b-2 border-indigo-600') : ''}`}
-            >
-              <IconComp size={14} color={isSelected ? (theme.isDark ? '#818cf8' : '#5b5ef6') : theme.iconColor} />
-              <Text className={`ml-1.5 text-[12px] font-semibold ${isSelected ? (theme.isDark ? 'text-indigo-400' : 'text-indigo-600') : theme.textSecondaryClass}`}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+        
+        {/* Civic Events (Upcoming) */}
+        {!loadingEvents && events.length > 0 && (
+          <View className="mb-8">
+            <View className="px-5 mb-4 flex-row items-center justify-between">
+              <View>
+                <Text className={`font-black text-[18px] tracking-tight ${theme.textClass}`}>Upcoming Events</Text>
+                <Text className={`text-[13px] ${theme.textSecondaryClass}`}>Civic & community gatherings</Text>
+              </View>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+              {events.map((ev, idx) => (
+                <View key={ev.id || idx} className="w-[320px] mr-4">
+                  <EventCard event={ev} />
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
-        {/* EMERGENCY TAB */}
-        {activeTab === 'emergency' && (
-          <View>
+        {/* EMERGENCY SECTION */}
+        <TouchableOpacity onPress={() => toggleSection('emergency')} className={`flex-row items-center justify-between mb-3 px-1 ${theme.sectionHeaderStyle}`}>
+          <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>Emergency Contacts</Text>
+          <ChevronRight size={18} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.emergency ? '90deg' : '0deg' }] }} />
+        </TouchableOpacity>
+        {expandedSections.emergency && (
+          <View className="mb-6">
             <TouchableOpacity 
               onPress={() => handleDial('053411072')} 
               activeOpacity={0.85}
-              className="bg-rose-600 rounded-3xl p-4 mb-5 flex-row items-center"
+              className="bg-rose-600 rounded-[24px] p-4 mb-5 flex-row items-center"
               style={theme.glowShadow('#ef4444')}
             >
               <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center mr-3.5">
@@ -315,10 +338,10 @@ export default function ServicesScreen() {
             {EMERGENCY_CONTACTS.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase())).map((contact) => {
               const IconComp = contact.icon;
               return (
-                <AnimatedCard
-                  key={contact.id}
-                  className={`p-4 mb-2.5 flex-row items-center justify-between ${theme.glassCardClass}`}
-                  style={{ ...theme.glowShadow(contact.color), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+                  <AnimatedCard
+                    key={contact.id}
+                    className={`p-4 mb-2.5 flex-row items-center justify-between border ${theme.isDark ? 'bg-[#0B1120] border-white/5' : 'bg-white border-slate-100'}`}
+                    style={{ ...theme.glowShadow(contact.color), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
                   onPress={() => handleDial(contact.number)}
                 >
                   <View className="flex-row items-center flex-1 mr-3">
@@ -330,7 +353,7 @@ export default function ServicesScreen() {
                     </View>
                     <View className="flex-1">
                       <Text className={`font-bold text-[14px] ${theme.textClass}`}>{contact.title}</Text>
-                      <Text className={`font-extrabold text-[13px] mt-0.5 ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{contact.number}</Text>
+                      <Text className={`font-extrabold text-[13px] mt-0.5 ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>{contact.number}</Text>
                     </View>
                   </View>
                   <View className={`w-9 h-9 rounded-full items-center justify-center ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
@@ -342,12 +365,15 @@ export default function ServicesScreen() {
           </View>
         )}
 
-        {/* DIGITAL SERVICES TAB */}
-        {activeTab === 'digital' && (
-          <View>
-            <Text className={`font-bold text-[15px] mb-3 ${theme.textClass}`}>
-              {language === 'ne' ? 'अनलाइन पोर्टल तथा निवेदनहरू' : 'Online Portals & Forms'}
-            </Text>
+        {/* DIGITAL SERVICES SECTION */}
+        <TouchableOpacity onPress={() => toggleSection('digital')} className={`flex-row items-center justify-between mb-3 px-1 mt-2 ${theme.sectionHeaderStyle}`}>
+          <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>
+            {language === 'ne' ? 'अनलाइन पोर्टल तथा निवेदनहरू' : 'Online Portals & Forms'}
+          </Text>
+          <ChevronRight size={18} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.digital ? '90deg' : '0deg' }] }} />
+        </TouchableOpacity>
+        {expandedSections.digital && (
+          <View className="mb-6">
             <View className="flex-row flex-wrap justify-between">
               {DIGITAL_SERVICES.filter(c => 
                 c.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -357,7 +383,7 @@ export default function ServicesScreen() {
                 return (
                   <View key={service.id} className="w-[48%] mb-3">
                     <AnimatedCard
-                      className={`p-3.5 flex-col justify-between ${theme.glassCardClass}`}
+                      className={`p-3.5 flex-col justify-between border ${theme.isDark ? 'bg-[#0B1120] border-white/5' : 'bg-white border-slate-100'}`}
                       style={{ height: 135, ...theme.glowShadow(service.color) }}
                       onPress={() => {
                         if (['vital', 'social', 'procurement'].includes(service.id)) {
@@ -395,16 +421,19 @@ export default function ServicesScreen() {
           </View>
         )}
 
-        {/* WASTE TAB */}
-        {activeTab === 'waste' && (
-          <View>
-            <Text className={`font-bold text-[15px] mb-3 ${theme.textClass}`}>{t.weeklySchedule}</Text>
+        {/* WASTE SECTION */}
+        <TouchableOpacity onPress={() => toggleSection('waste')} className={`flex-row items-center justify-between mb-3 px-1 mt-2 ${theme.sectionHeaderStyle}`}>
+          <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>{t.weeklySchedule}</Text>
+          <ChevronRight size={18} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.waste ? '90deg' : '0deg' }] }} />
+        </TouchableOpacity>
+        {expandedSections.waste && (
+          <View className="mb-6">
             {WASTE_SCHEDULE.filter(c => c.type.toLowerCase().includes(searchQuery.toLowerCase())).map((item, index) => (
-              <View key={index} className={`p-4 mb-2.5 flex-row items-center ${theme.glassCardClass}`}
+              <View key={index} className={`p-4 mb-2.5 flex-row items-center border ${theme.isDark ? 'bg-[#0B1120] border-white/5' : 'bg-white border-slate-100'}`}
                 style={theme.glowShadow(item.color)}
               >
                 <View className={`w-12 items-center justify-center border-r mr-3.5 pr-3.5 ${theme.borderClass}`}>
-                  <Text className={`${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'} font-bold text-[12px] uppercase tracking-wider mb-1`}>{item.day.substring(0, 3)}</Text>
+                  <Text className={`${theme.isDark ? 'text-primary-400' : 'text-primary'} font-bold text-[12px] uppercase tracking-wider mb-1`}>{item.day.substring(0, 3)}</Text>
                   <Calendar size={18} color={theme.iconColor} />
                 </View>
                 <View className="flex-1">
@@ -420,13 +449,16 @@ export default function ServicesScreen() {
           </View>
         )}
 
-        {/* INFO TAB */}
-        {activeTab === 'info' && (
-          <View>
-            <Text className={`font-bold text-[15px] mb-3 ${theme.textClass}`}>Municipality Info</Text>
-            <View className={`p-5 mb-5 ${theme.glassCardClass}`} style={theme.glowShadow('#5b5ef6')}>
+        {/* INFO SECTION */}
+        <TouchableOpacity onPress={() => toggleSection('info')} className={`flex-row items-center justify-between mb-3 px-1 mt-2 ${theme.sectionHeaderStyle}`}>
+          <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>Municipality Info</Text>
+          <ChevronRight size={18} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.info ? '90deg' : '0deg' }] }} />
+        </TouchableOpacity>
+        {expandedSections.info && (
+          <View className="mb-6">
+            <View className={`p-5 mb-5 border rounded-[24px] ${theme.cardClass}`} style={theme.glowShadow('#5b5ef6')}>
               <View className="items-center mb-5">
-                <View className={`w-16 h-16 rounded-2xl items-center justify-center mb-2.5 ${theme.isDark ? 'bg-indigo-500/12' : 'bg-indigo-50'}`}>
+                <View className={`w-16 h-16 rounded-[24px] items-center justify-center mb-2.5 ${theme.isDark ? 'bg-indigo-500/12' : 'bg-indigo-50'}`}>
                   <Building2 size={30} color={theme.isDark ? '#818cf8' : '#5b5ef6'} />
                 </View>
                 <Text className={`font-black text-xl tracking-tight ${theme.textClass}`}>Simraungadh, Bara</Text>
@@ -457,21 +489,21 @@ export default function ServicesScreen() {
 
                 <View className={`w-full rounded-xl p-3.5 flex-row items-center ${theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
                   <View className={`flex-1 border-r pr-3 ${theme.borderClass}`}>
-                    <Text className={`${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'} font-bold text-[10px] uppercase tracking-wider mb-0.5`}>Mayor</Text>
+                    <Text className={`${theme.isDark ? 'text-primary-400' : 'text-primary'} font-bold text-[10px] uppercase tracking-wider mb-0.5`}>Mayor</Text>
                     <Text className={`font-bold text-[13px] ${theme.textClass}`}>Kishori Prasad Kalawar</Text>
                   </View>
                   <View className="flex-1 pl-3">
-                    <Text className={`${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'} font-bold text-[10px] uppercase tracking-wider mb-0.5`}>Deputy Mayor</Text>
+                    <Text className={`${theme.isDark ? 'text-primary-400' : 'text-primary'} font-bold text-[10px] uppercase tracking-wider mb-0.5`}>Deputy Mayor</Text>
                     <Text className={`font-bold text-[13px] ${theme.textClass}`}>Najmu Sehar</Text>
                   </View>
                 </View>
               </View>
             </View>
 
-            <TouchableOpacity onPress={() => handleDial('053411072')} className={`rounded-2xl p-4 flex-row items-center justify-between ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-600'}`}>
+            <TouchableOpacity onPress={() => handleDial('053411072')} className={`rounded-[24px] p-4 flex-row items-center justify-between ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-600'}`}>
               <View>
                 <Text className={`font-bold text-[15px] mb-0.5 ${theme.isDark ? 'text-indigo-200' : 'text-white'}`}>Contact Municipal Office</Text>
-                <Text className={`text-[12px] font-medium ${theme.isDark ? 'text-indigo-400' : 'text-indigo-200'}`}>simraungadhmun@gmail.com</Text>
+                <Text className={`text-[12px] font-medium ${theme.isDark ? 'text-primary-400' : 'text-indigo-200'}`}>simraungadhmun@gmail.com</Text>
               </View>
               <ArrowRight size={20} color={theme.isDark ? '#818cf8' : '#ffffff'} />
             </TouchableOpacity>
@@ -493,8 +525,8 @@ export default function ServicesScreen() {
             {/* Modal Header */}
             <View className="flex-row items-center justify-between pb-4 border-b border-slate-200/60 dark:border-white/10 mb-4">
               <View className="flex-row items-center flex-1 pr-3">
-                <View className={`w-10 h-10 rounded-2xl items-center justify-center mr-3 ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
-                  {activeModal === 'vital' && <FileText size={22} color="#3b82f6" />}
+                <View className={`w-10 h-10 rounded-[24px] items-center justify-center mr-3 ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
+                  {activeModal === 'vital' && <File size={22} color="#3b82f6" />}
                   {activeModal === 'social' && <Shield size={22} color="#8b5cf6" />}
                   {activeModal === 'charter' && <BookOpen size={22} color="#f59e0b" />}
                   {activeModal === 'forms' && <Edit3 size={22} color="#ef4444" />}
@@ -531,7 +563,7 @@ export default function ServicesScreen() {
               {activeModal === 'vital' && (
                 <View className="gap-3.5">
                   {/* Mode Switcher */}
-                  <View className={`flex-row p-1 rounded-2xl mb-1 ${theme.isDark ? 'bg-white/[0.05]' : 'bg-slate-100'}`}>
+                  <View className={`flex-row p-1 rounded-[24px] mb-1 ${theme.isDark ? 'bg-white/[0.05]' : 'bg-slate-100'}`}>
                     <TouchableOpacity
                       onPress={() => setModalTab('apply')}
                       className={`flex-1 py-2 rounded-xl items-center ${modalTab === 'apply' ? (theme.isDark ? 'bg-indigo-500/20 border border-indigo-500/30' : 'bg-indigo-600') : ''}`}
@@ -554,7 +586,7 @@ export default function ServicesScreen() {
                   {modalTab === 'apply' ? (
                     /* IN-APP ONLINE APPLICATION FORM */
                     <View className="gap-3">
-                      <Text className={`font-extrabold text-[13px] uppercase tracking-wider ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                      <Text className={`font-extrabold text-[13px] uppercase tracking-wider ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>
                         {language === 'ne' ? '१. सेवा / घटना छनोट गर्नुहोस्' : '1. Select Event / NID Service'}
                       </Text>
 
@@ -568,14 +600,14 @@ export default function ServicesScreen() {
                               : (theme.isDark ? 'bg-white/[0.04] border-white/10' : 'bg-slate-50 border-slate-200')
                             }`}
                           >
-                            <Text className={`text-[12px] font-bold ${formEventType === type ? (theme.isDark ? 'text-indigo-300' : 'text-indigo-600') : theme.textSecondaryClass}`}>
+                            <Text className={`text-[12px] font-bold ${formEventType === type ? (theme.isDark ? 'text-indigo-300' : 'text-primary') : theme.textSecondaryClass}`}>
                               {type}
                             </Text>
                           </TouchableOpacity>
                         ))}
                       </ScrollView>
 
-                      <Text className={`font-extrabold text-[13px] uppercase tracking-wider mt-1 ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                      <Text className={`font-extrabold text-[13px] uppercase tracking-wider mt-1 ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>
                         {language === 'ne' ? '२. आवेदक तथा घटना विवरण (Application Details)' : '2. Fill Registration Details'}
                       </Text>
 
@@ -585,7 +617,7 @@ export default function ServicesScreen() {
                           {language === 'ne' ? 'आवेदकको पूरा नाम *' : 'Applicant Full Name *'}
                         </Text>
                         <TextInput
-                          className={`rounded-2xl px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
+                          className={`rounded-[24px] px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
                           placeholder="e.g. Rahul Kushwaha"
                           placeholderTextColor={theme.inputPlaceholder}
                           value={formApplicantName}
@@ -600,7 +632,7 @@ export default function ServicesScreen() {
                             {language === 'ne' ? 'फोन नम्बर *' : 'Phone Number *'}
                           </Text>
                           <TextInput
-                            className={`rounded-2xl px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
+                            className={`rounded-[24px] px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
                             placeholder="e.g. 9800000000"
                             placeholderTextColor={theme.inputPlaceholder}
                             value={formApplicantPhone}
@@ -614,7 +646,7 @@ export default function ServicesScreen() {
                             {language === 'ne' ? 'वडा नं *' : 'Ward No *'}
                           </Text>
                           <TextInput
-                            className={`rounded-2xl px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
+                            className={`rounded-[24px] px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
                             placeholder="1 to 11"
                             placeholderTextColor={theme.inputPlaceholder}
                             value={formWard}
@@ -631,7 +663,7 @@ export default function ServicesScreen() {
                           {language === 'ne' ? 'नागरिकता नं. (Citizenship No)' : 'Citizenship Number'}
                         </Text>
                         <TextInput
-                          className={`rounded-2xl px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
+                          className={`rounded-[24px] px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
                           placeholder="e.g. 33-01-79-12345"
                           placeholderTextColor={theme.inputPlaceholder}
                           value={formCitizenshipNo}
@@ -645,7 +677,7 @@ export default function ServicesScreen() {
                           {language === 'ne' ? 'सम्बन्धित व्यक्तिको नाम (Person/Child Name)' : 'Person / Child Name'}
                         </Text>
                         <TextInput
-                          className={`rounded-2xl px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
+                          className={`rounded-[24px] px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
                           placeholder="e.g. Baby Kushwaha"
                           placeholderTextColor={theme.inputPlaceholder}
                           value={formPersonName}
@@ -660,7 +692,7 @@ export default function ServicesScreen() {
                             {language === 'ne' ? 'बाबुको नाम' : "Father's Name"}
                           </Text>
                           <TextInput
-                            className={`rounded-2xl px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
+                            className={`rounded-[24px] px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
                             placeholder="Father Name"
                             placeholderTextColor={theme.inputPlaceholder}
                             value={formFatherName}
@@ -673,7 +705,7 @@ export default function ServicesScreen() {
                             {language === 'ne' ? 'आमाको नाम' : "Mother's Name"}
                           </Text>
                           <TextInput
-                            className={`rounded-2xl px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
+                            className={`rounded-[24px] px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
                             placeholder="Mother Name"
                             placeholderTextColor={theme.inputPlaceholder}
                             value={formMotherName}
@@ -689,7 +721,7 @@ export default function ServicesScreen() {
                             {language === 'ne' ? 'घटना मिति (BS/AD)' : 'Event Date'}
                           </Text>
                           <TextInput
-                            className={`rounded-2xl px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
+                            className={`rounded-[24px] px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
                             placeholder="2083-04-10"
                             placeholderTextColor={theme.inputPlaceholder}
                             value={formEventDate}
@@ -702,7 +734,7 @@ export default function ServicesScreen() {
                             {language === 'ne' ? 'अतिरिक्त विवरण' : 'Notes'}
                           </Text>
                           <TextInput
-                            className={`rounded-2xl px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
+                            className={`rounded-[24px] px-3.5 h-11 border font-medium text-[13.5px] ${theme.inputClass} ${theme.textClass}`}
                             placeholder="e.g. Ward 3 Tole"
                             placeholderTextColor={theme.inputPlaceholder}
                             value={formNotes}
@@ -715,7 +747,7 @@ export default function ServicesScreen() {
                       <TouchableOpacity
                         onPress={handleSubmitApplication}
                         disabled={submittingForm}
-                        className={`h-12 rounded-2xl items-center justify-center mt-3 ${theme.isDark ? 'bg-indigo-500/30 border border-indigo-500/40' : 'bg-indigo-600'}`}
+                        className={`h-12 rounded-[24px] items-center justify-center mt-3 ${theme.isDark ? 'bg-indigo-500/30 border border-indigo-500/40' : 'bg-indigo-600'}`}
                       >
                         {submittingForm ? (
                           <ActivityIndicator color="#ffffff" />
@@ -729,7 +761,7 @@ export default function ServicesScreen() {
                   ) : (
                     /* REQUIREMENTS GUIDE TAB */
                     <View className="gap-3.5">
-                      <View className={`p-4 rounded-2xl border ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-blue-50/50 border-blue-100'}`}>
+                      <View className={`p-4 rounded-[24px] border ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-primary-50/50 border-blue-100'}`}>
                         <Text className={`font-bold text-[14px] mb-1 ${theme.textClass}`}>
                           {language === 'ne' ? '📌 घटना दर्ता नियम तथा समयसीमा' : '📌 Rules & Timelines'}
                         </Text>
@@ -747,8 +779,8 @@ export default function ServicesScreen() {
                         { title: 'विवाह दर्ता (Marriage Registration)', fee: 'दस्तुर: रु १०० (Fee: NPR 100)', docs: ['श्रीमान र श्रीमतीको नागरिकता प्रतिलिपि', 'संयुक्त राहदानी साइजको फोटो २-२ प्रति', 'वडाध्यक्षको सिफारिस'] },
                         { title: 'बसाइँसराई दर्ता (Migration Registration)', fee: 'दस्तुर: रु २०० (Fee: NPR 200)', docs: ['घरजग्गा धनीपुर्जा प्रतिलिपि', 'साबिक वडाको बसाइँसराई छोडपत्र', 'परिवारका सबै सदस्यको नागरिकता/जन्मदर्ता'] },
                       ].map((evt, i) => (
-                        <View key={i} className={`p-4 mb-2.5 ${theme.glassCardClass}`}>
-                          <Text className={`font-black text-[15px] mb-1 ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>{evt.title}</Text>
+                        <View key={i} className={`p-4 mb-2.5 rounded-[24px] border ${theme.cardClass}`}>
+                          <Text className={`font-black text-[15px] mb-1 ${theme.isDark ? 'text-indigo-300' : 'text-primary'}`}>{evt.title}</Text>
                           <Text className={`text-[11.5px] font-bold mb-2.5 ${theme.textMutedClass}`}>{evt.fee}</Text>
                           <Text className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 ${theme.textClass}`}>आवश्यक कागजातहरू (Required Documents):</Text>
                           {evt.docs.map((doc, j) => (
@@ -767,7 +799,7 @@ export default function ServicesScreen() {
               {/* 2. SOCIAL SECURITY MODAL */}
               {activeModal === 'social' && (
                 <View className="gap-3.5">
-                  <View className={`p-4 rounded-2xl border ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-purple-50/50 border-purple-100'}`}>
+                  <View className={`p-4 rounded-[24px] border ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-purple-50/50 border-purple-100'}`}>
                     <Text className={`font-bold text-[14px] mb-1 ${theme.textClass}`}>
                       {language === 'ne' ? '💳 सामाजिक सुरक्षा भत्ता वर्ग' : '💳 Pension & Allowance Classes'}
                     </Text>
@@ -785,7 +817,7 @@ export default function ServicesScreen() {
                     { title: 'अपाङ्गता भत्ता (Disability Allowance)', rate: 'रु ३,९९० / महिना (NPR 3,990/mo)', req: 'लाल कार्ड (पूर्ण अपाङ्गता) प्राप्त नागरिक' },
                     { title: 'बाल संरक्षण भत्ता (Child Protection)', rate: 'रु ५३२ / महिना (NPR 532/mo)', req: '५ वर्ष मुनिका बालबालिका (अधिकतम २ जना)' },
                   ].map((allow, i) => (
-                    <View key={i} className={`p-4 mb-2.5 ${theme.glassCardClass}`}>
+                    <View key={i} className={`p-4 mb-2.5 rounded-[24px] border ${theme.cardClass}`}>
                       <Text className={`font-black text-[15px] mb-1 ${theme.isDark ? 'text-purple-300' : 'text-purple-700'}`}>{allow.title}</Text>
                       <Text className="text-[14px] font-black text-emerald-600 dark:text-emerald-400 mb-1.5">{allow.rate}</Text>
                       <Text className={`text-[12px] font-medium ${theme.textSecondaryClass}`}>{allow.req}</Text>
@@ -815,7 +847,7 @@ export default function ServicesScreen() {
                         <Text className={`text-[11px] font-medium mt-0.5 ${theme.textMutedClass}`}>जिम्मेवार अधिकारी: {item.officer}</Text>
                       </View>
                       <View className="items-end">
-                        <Text className="font-black text-[13px] text-indigo-600 dark:text-indigo-400">{item.fee}</Text>
+                        <Text className="font-black text-[13px] text-primary dark:text-primary-400">{item.fee}</Text>
                         <Text className={`text-[10px] font-bold uppercase mt-0.5 ${theme.textMutedClass}`}>{item.time}</Text>
                       </View>
                     </View>
@@ -876,7 +908,7 @@ export default function ServicesScreen() {
               {/* 5. TAX & REVENUE MODAL */}
               {activeModal === 'tax' && (
                 <View className="gap-3.5">
-                  <View className={`p-4 rounded-2xl border ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-emerald-50/50 border-emerald-100'}`}>
+                  <View className={`p-4 rounded-[24px] border ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-emerald-50/50 border-emerald-100'}`}>
                     <Text className={`font-bold text-[14px] mb-1 ${theme.textClass}`}>
                       {language === 'ne' ? '🏛️ सिमरौनगढ राजस्व खाता जानकारी' : '🏛️ Municipal Bank Account'}
                     </Text>
@@ -938,7 +970,7 @@ export default function ServicesScreen() {
                   ].map((tnd, i) => (
                     <View key={i} className={`p-4 mb-2.5 ${theme.glassCardClass}`}>
                       <View className="flex-row justify-between items-center mb-1">
-                        <Text className={`text-[10px] font-black uppercase tracking-wider ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{tnd.no}</Text>
+                        <Text className={`text-[10px] font-black uppercase tracking-wider ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>{tnd.no}</Text>
                         <Text className="text-[10px] font-bold text-rose-500">{tnd.date}</Text>
                       </View>
                       <Text className={`font-black text-[14px] mb-2 leading-tight ${theme.textClass}`}>{tnd.title}</Text>

@@ -19,6 +19,13 @@ interface SettingsState {
   
   reducedMotion: boolean;
   setReducedMotion: (val: boolean) => void;
+
+  // Audio & Security
+  inAppSounds: boolean;
+  setInAppSounds: (val: boolean) => void;
+
+  biometricUnlock: boolean;
+  setBiometricUnlock: (val: boolean) => void;
   
   // Data
   dataSaverMode: boolean;
@@ -47,6 +54,12 @@ export const useSettingsStore = create<SettingsState>()(
       
       reducedMotion: false,
       setReducedMotion: (val) => set({ reducedMotion: val }),
+
+      inAppSounds: true,
+      setInAppSounds: (val) => set({ inAppSounds: val }),
+
+      biometricUnlock: false,
+      setBiometricUnlock: (val) => set({ biometricUnlock: val }),
       
       dataSaverMode: false,
       setDataSaverMode: (val) => set({ dataSaverMode: val }),

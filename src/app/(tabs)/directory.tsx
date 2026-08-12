@@ -72,8 +72,8 @@ export default function DirectoryScreen() {
     { id: 'm1', name: 'Shiva Auto & Tractor Works', category: 'Mechanics', phone: '9840000015', details: language === 'ne' ? 'सवारी मर्मत' : 'Vehicle & Tractor Repair', icon: Wrench, ward: 3, address: 'Main Highway', hours: '8 AM - 6 PM' },
   ];
 
-  const filteredData = useMemo(() => {
-    return DIRECTORY_DATA.filter(item => {
+  const sectionedData = useMemo(() => {
+    const rawData = DIRECTORY_DATA.filter(item => {
       const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
 
       let matchesWard = true;
@@ -85,6 +85,25 @@ export default function DirectoryScreen() {
       const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.details.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch && matchesWard;
     });
+
+    // Sort alphabetically
+    rawData.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Group by letter
+    const grouped = new Map<string, typeof rawData>();
+    rawData.forEach(item => {
+      const letter = item.name.charAt(0).toUpperCase();
+      if (!grouped.has(letter)) grouped.set(letter, []);
+      grouped.get(letter)!.push(item);
+    });
+
+    const sections: any[] = [];
+    const sortedKeys = Array.from(grouped.keys()).sort();
+    for (const letter of sortedKeys) {
+      sections.push({ type: 'header', id: `header-${letter}`, letter });
+      sections.push(...grouped.get(letter)!.map(item => ({ type: 'item', ...item })));
+    }
+    return sections;
   }, [activeCategory, activeWard, searchQuery]);
 
   const handleCall = (phone: string) => {
@@ -121,13 +140,9 @@ export default function DirectoryScreen() {
 
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
-      {/* Header */}
-      <View className={`px-5 pt-3.5 pb-3.5 border-b ${theme.headerBgClass}`}>
-        <Text className={`text-[22px] font-black tracking-tight ${theme.textClass}`}>{t.directoryTitle}</Text>
-        <Text className={`text-[12px] font-medium mt-0.5 ${theme.textMutedClass}`}>{t.directorySubhead}</Text>
-
-        {/* Search */}
-        <View className={`mt-3 flex-row items-center rounded-xl px-3.5 py-2.5 border ${theme.inputClass}`}>
+      {/* Search Header */}
+      <View className="px-5 pt-3 pb-2 z-10">
+        <View className={`flex-row items-center rounded-2xl px-3.5 py-3 border ${theme.inputClass}`}>
           <Search size={16} color={theme.iconColor} />
           <TextInput
             className={`flex-1 ml-2.5 text-[14px] font-medium ${theme.textClass}`}
@@ -140,7 +155,7 @@ export default function DirectoryScreen() {
       </View>
 
       {/* Filters */}
-      <View className={`border-b py-2.5 ${theme.headerBgClass}`}>
+      <View className="py-2.5">
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mb-2.5" contentContainerStyle={{ paddingRight: 32 }}>
           {WARDS.map(ward => {
             const isSelected = activeWard === ward;
@@ -152,7 +167,7 @@ export default function DirectoryScreen() {
                   setActiveWard(ward);
                 }}
                 activeOpacity={0.7}
-                className={`px-3.5 py-1.5 rounded-lg mr-1.5 border ${isSelected ? (theme.isDark ? 'bg-indigo-500/20 border-indigo-500/30' : 'bg-indigo-600 border-indigo-600') : 'bg-transparent border-transparent'
+                className={`px-3.5 py-1.5 rounded-lg mr-1.5 ${isSelected ? (theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-600') : 'bg-transparent'
                   }`}
               >
                 <Text className={`text-[11px] font-bold ${isSelected ? (theme.isDark ? 'text-indigo-300' : 'text-white') : theme.textSecondaryClass}`}>
@@ -174,13 +189,13 @@ export default function DirectoryScreen() {
                   setActiveCategory(cat);
                 }}
                 activeOpacity={0.7}
-                className={`px-3.5 py-1.5 rounded-full mr-2 border ${isSelected
-                    ? (theme.isDark ? 'bg-blue-500/20 border-blue-500/50' : 'bg-blue-50 border-blue-500')
+                className={`px-3.5 py-1.5 rounded-full mr-2 ${isSelected
+                    ? (theme.isDark ? 'bg-primary-500/20' : 'bg-primary-50')
                     : (theme.glassCardClass)
                   }`}
-                style={isSelected ? theme.glowShadow('#2563eb') : {}}
+                style={isSelected ? theme.glowShadow('#4f46e5') : {}}
               >
-                <Text className={`text-[12px] font-extrabold ${isSelected ? (theme.isDark ? 'text-blue-300' : 'text-blue-700') : theme.textSecondaryClass
+                <Text className={`text-[12px] font-extrabold ${isSelected ? (theme.isDark ? 'text-primary-300' : 'text-blue-700') : theme.textSecondaryClass
                   }`}>
                   {CATEGORY_NAMES[cat] || cat}
                 </Text>
@@ -193,14 +208,15 @@ export default function DirectoryScreen() {
       {/* List */}
       <View style={{ flex: 1 }}>
         <FlashList
-          data={filteredData}
+          data={sectionedData}
           keyExtractor={(item) => item.id}
           estimatedItemSize={76}
+          getItemType={(item) => item.type}
           contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View className="items-center justify-center py-20 px-6">
-              <View className={`w-16 h-16 rounded-2xl items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+              <View className={`w-16 h-16 rounded-[24px] items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
                 <Search size={28} color={theme.iconColor} />
               </View>
               <Text className={`font-bold text-lg mb-1 ${theme.textClass}`}>No contacts found</Text>
@@ -209,7 +225,16 @@ export default function DirectoryScreen() {
           }
 
 
-          renderItem={({ item: contact }) => {
+          renderItem={({ item }) => {
+            if (item.type === 'header') {
+              return (
+                <View className="mb-2 mt-4 ml-2 border-b pb-1" style={{ borderBottomColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}>
+                  <Text className={`font-black text-[18px] tracking-tight ${theme.textClass}`}>{item.letter}</Text>
+                </View>
+              );
+            }
+
+            const contact = item;
             const IconComp = contact.icon;
             const isExpanded = expandedId === contact.id;
             const isEmergency = contact.category === 'Emergency';
@@ -219,12 +244,11 @@ export default function DirectoryScreen() {
                 key={contact.id}
                 activeOpacity={0.8}
                 onPress={() => toggleExpand(contact.id)}
-                className={`rounded-2xl p-4 mb-2.5 border ${theme.glassCardClass}`}
-                style={isExpanded ? theme.glowShadow(isEmergency ? '#ef4444' : '#2563eb') : theme.cardShadow}
+                className={`rounded-[24px] p-4 mb-2.5 ${theme.glassCardClass}`}
               >
                 <View className="flex-row items-center">
-                  <View className={`w-10 h-10 rounded-xl items-center justify-center mr-3 ${isEmergency ? 'bg-red-500/10' : (theme.isDark ? 'bg-blue-500/12' : 'bg-blue-50')}`}>
-                    <IconComp size={20} color={isEmergency ? (theme.isDark ? '#f87171' : '#ef4444') : (theme.isDark ? '#60a5fa' : '#2563eb')} />
+                  <View className={`w-10 h-10 rounded-xl items-center justify-center mr-3 ${isEmergency ? 'bg-red-500/10' : (theme.isDark ? 'bg-primary-500/12' : 'bg-primary-50')}`}>
+                    <IconComp size={20} color={isEmergency ? (theme.isDark ? '#f87171' : '#ef4444') : (theme.isDark ? '#818cf8' : '#4f46e5')} />
                   </View>
                   <View className="flex-1">
                     <Text className={`font-semibold text-[14px] ${theme.textClass}`}>{contact.name}</Text>
@@ -266,9 +290,9 @@ export default function DirectoryScreen() {
                         <Text className={`font-bold text-[13px] ml-1.5 ${theme.textClass}`}>Share</Text>
                       </TouchableOpacity>
 
-                      <TouchableOpacity onPress={() => handleMap(contact)} activeOpacity={0.7} className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center border ${theme.isDark ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-200'}`}>
-                        <Navigation size={14} color={theme.isDark ? '#60a5fa' : '#2563eb'} />
-                        <Text className={`font-bold text-[13px] ml-1.5 ${theme.isDark ? 'text-blue-400' : 'text-blue-600'}`}>Locate</Text>
+                      <TouchableOpacity onPress={() => handleMap(contact)} activeOpacity={0.7} className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center border ${theme.isDark ? 'bg-primary-500/10 border-primary-500/20' : 'bg-primary-50 border-blue-200'}`}>
+                        <Navigation size={14} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
+                        <Text className={`font-bold text-[13px] ml-1.5 ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>Locate</Text>
                       </TouchableOpacity>
                     </View>
                   </View>

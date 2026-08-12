@@ -13,6 +13,7 @@ import Badge from '../../components/Badge';
 import Skeleton from '../../components/Skeleton';
 import { useAuthStore } from '../../store/authStore';
 import { useTheme } from '../../hooks/use-theme';
+import { UserBadges } from '../../components/UserBadges';
 import { useLangStore } from '../../store/langStore';
 import { translations } from '../../lib/translations';
 import UserListModal from '../../components/UserListModal';
@@ -59,6 +60,7 @@ export default function UserProfileScreen() {
         .select('*, author:profiles!issues_author_id_fkey(id, full_name, avatar_url, role)')
         .eq('author_id', id)
         .eq('is_anonymous', false)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
       if (issuesError) throw issuesError;
@@ -204,27 +206,33 @@ export default function UserProfileScreen() {
           <View className="flex-row items-center justify-between mb-4">
             <TouchableOpacity 
               onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} 
-              className={`w-9 h-9 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}
+              className={`w-10 h-10 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}
             >
-              <ArrowLeft size={18} color={theme.iconColor} />
+              <ArrowLeft size={20} color={theme.iconColor} />
             </TouchableOpacity>
-            <Text className={`font-bold text-[16px] ${theme.textClass}`}>{profile.full_name}</Text>
-            <View className="w-9 h-9" />
+            <View className="w-10 h-10" />
           </View>
 
           {/* Profile Card */}
           <View className="items-center mb-4">
-            <View className={`w-24 h-24 rounded-full items-center justify-center p-1 border-2 mb-3 ${theme.isDark ? 'border-indigo-500/30 bg-indigo-950/20' : 'border-indigo-200 bg-indigo-50/50'}`}>
+            <View className="relative mb-3">
               {profile.avatar_url ? (
-                <Image source={{ uri: profile.avatar_url }} style={{ width: 84, height: 84, borderRadius: 42 }} cachePolicy="memory-disk" transition={200} />
+                <Image source={{ uri: profile.avatar_url }} style={{ width: 72, height: 72, borderRadius: 36 }} cachePolicy="memory-disk" transition={200} />
               ) : (
-                <View className={`w-[84px] h-[84px] rounded-full justify-center items-center ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
-                  <User size={38} color={theme.isDark ? '#818cf8' : '#5b5ef6'} />
+                <View className={`w-[72px] h-[72px] rounded-full justify-center items-center ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
+                  <User size={32} color={theme.isDark ? '#818cf8' : '#5b5ef6'} />
                 </View>
               )}
             </View>
 
-            <Text className={`text-xl font-bold tracking-tight ${theme.textClass}`}>{profile.full_name || 'Citizen'}</Text>
+            <View className="flex-1 items-center">
+              <View className="flex-row items-center mb-1">
+                <Text className={`text-xl font-bold tracking-tight ${theme.textClass}`}>{profile.full_name || 'Citizen'}</Text>
+                <UserBadges badges={profile.badges || (profile.is_verified ? ['verified'] : [])} size={18} />
+              </View>
+              <Text className={`text-[13px] mb-2 ${theme.textSecondaryClass}`}>{profile.tole ? `${profile.tole}, Ward ${profile.home_ward}` : 'Location unknown'}</Text>
+            </View>
+
             <Badge 
               type={profile.role === 'official' ? 'department' : 'general'} 
               text={profile.department || (profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'Citizen')} 
@@ -233,7 +241,7 @@ export default function UserProfileScreen() {
             />
 
             {/* Follow stats */}
-            <View className={`flex-row items-center justify-around mt-5 py-3 px-4 w-full rounded-2xl border ${theme.cardClass}`} style={theme.cardShadow}>
+            <View className={`flex-row items-center justify-around mt-5 py-3 px-4 w-full rounded-[24px] ${theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}>
               <TouchableOpacity 
                 activeOpacity={0.7} 
                 onPress={() => { setUserListTab('followers'); setShowUserList(true); }}
@@ -272,12 +280,12 @@ export default function UserProfileScreen() {
                   className="w-full"
                 >
                   {isFollowing && isFollowedBy ? (
-                    <View className={`h-11 rounded-2xl items-center justify-center flex-row border ${theme.isDark ? 'bg-indigo-900/30 border-indigo-500/30' : 'bg-indigo-50 border-indigo-200'}`}>
+                    <View className={`h-11 rounded-[24px] items-center justify-center flex-row ${theme.isDark ? 'bg-indigo-900/30' : 'bg-indigo-50'}`}>
                       <Users size={16} color={theme.isDark ? '#a78bfa' : '#7c3aed'} />
-                      <Text className={`font-bold text-[14px] ml-2 ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{t.friends || 'Friends 🤝'}</Text>
+                      <Text className={`font-bold text-[14px] ml-2 ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>{t.friends || 'Friends 🤝'}</Text>
                     </View>
                   ) : isFollowing ? (
-                    <View className={`h-11 rounded-2xl items-center justify-center flex-row border ${theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-slate-100 border-slate-200'}`}>
+                    <View className={`h-11 rounded-[24px] items-center justify-center flex-row ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
                       <UserCheck size={16} color={theme.isDark ? '#34d399' : '#059669'} />
                       <Text className={`font-bold text-[14px] ml-2 ${theme.textClass}`}>{t.following}</Text>
                     </View>
@@ -328,7 +336,7 @@ export default function UserProfileScreen() {
         ListEmptyComponent={
           !loading ? (
             <View className="items-center justify-center py-12 px-6">
-              <View className={`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+              <View className={`w-14 h-14 rounded-[24px] items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
                 <Inbox size={24} color={theme.iconColor} />
               </View>
               <Text className={`font-medium text-center text-[13px] ${theme.textSecondaryClass}`}>
@@ -337,7 +345,7 @@ export default function UserProfileScreen() {
             </View>
           ) : (
             <View className="px-4">
-              <Skeleton height={140} className="w-full rounded-2xl mb-3" />
+              <Skeleton height={140} className="w-full rounded-[24px] mb-3" />
             </View>
           )
         }

@@ -8,12 +8,16 @@ import { useRouter } from 'expo-router';
 import { Issue } from '../lib/types';
 import AnimatedCard from './AnimatedCard';
 import IssueImageCarousel from './IssueImageCarousel';
+import FullScreenImageViewer from './FullScreenImageViewer';
 import ActionSheet from './ActionSheet';
 import Badge from './Badge';
+import { UserBadges } from './UserBadges';
 import { useAlert } from './AlertProvider';
 import { useTheme } from '../hooks/use-theme';
 import { useAuthStore } from '../store/authStore';
 import { useLangStore } from '../store/langStore';
+import { useSettingsStore } from '../store/settingsStore';
+import { useBookmarkStore } from '../store/bookmarkStore';
 import { translations } from '../lib/translations';
 import { supabase } from '../lib/supabase';
 import { createNotification } from '../lib/notifications';
@@ -32,22 +36,8 @@ interface FeedCardProps {
   onFollowToggle?: (authorId: string) => void;
   onEdit?: (item: Issue) => void;
   onDelete?: (item: Issue) => void;
+  onStatusChange?: (item: Issue, newStatus: string) => void;
 }
-
-const timeAgo = (dateString: string) => {
-  const seconds = Math.floor((new Date().getTime() - new Date(dateString).getTime()) / 1000);
-  let interval = seconds / 31536000;
-  if (interval >= 1) return Math.floor(interval) + 'y';
-  interval = seconds / 2592000;
-  if (interval >= 1) return Math.floor(interval) + 'mo';
-  interval = seconds / 86400;
-  if (interval >= 1) return Math.floor(interval) + 'd';
-  interval = seconds / 3600;
-  if (interval >= 1) return Math.floor(interval) + 'h';
-  interval = seconds / 60;
-  if (interval >= 1) return Math.floor(interval) + 'm';
-  return 'now';
-};
 
 function FeedCard({
   item,
@@ -60,45 +50,58 @@ function FeedCard({
   isFollowedByAuthor: initialFollowedBy = false,
   onFollowToggle,
   onEdit,
-  onDelete
+  onDelete,
+  onStatusChange
 }: FeedCardProps) {
   const router = useRouter();
   const theme = useTheme();
-  const { profile: currentUser } = useAuthStore();
+  const { profile } = useAuthStore();
+  const { alertOnComments } = useSettingsStore();
+  const { bookmarkedIssueIds, toggleBookmark } = useBookmarkStore();
   const { language } = useLangStore();
   const t = translations[language] || translations.en;
   const { showAlert } = useAlert();
 
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const repostScaleAnim = useRef(new Animated.Value(1)).current;
+  const heartScaleAnim = useRef(new Animated.Value(0)).current;
+  const heartOpacityAnim = useRef(new Animated.Value(0)).current;
+  const commentScaleAnim = useRef(new Animated.Value(1)).current;
+  const shareScaleAnim = useRef(new Animated.Value(1)).current;
 
   const [showOptions, setShowOptions] = useState(false);
-  const { profile } = useAuthStore();
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const isMyPost = profile?.id === item.author_id;
+  const isAdmin = profile?.role === 'admin';
+  const isMod = profile?.role === 'moderator';
+  const canModerate = isAdmin || isMod;
 
   const [expanded, setExpanded] = useState(false);
   const [isFollowing, setIsFollowing] = useState(initialFollowing);
   const [followLoading, setFollowLoading] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarkedLocal, setIsBookmarkedLocal] = useState(bookmarkedIssueIds.includes(item.id));
+  const [isReposted, setIsReposted] = useState(false);
+  const [repostCount, setRepostCount] = useState(0);
 
   React.useEffect(() => {
     setIsFollowing(initialFollowing);
   }, [initialFollowing]);
 
-  // Repost State
-  const [isReposted, setIsReposted] = useState(false);
-  const [repostCount, setRepostCount] = useState(0);
+  React.useEffect(() => {
+    setIsBookmarkedLocal(bookmarkedIssueIds.includes(item.id));
+  }, [bookmarkedIssueIds, item.id]);
 
   const commentCount = item.issue_comments?.[0]?.count || 0;
-  const isLongDescription = item.description && item.description.length > 160;
-  const canFollow = currentUser && !item.is_anonymous && item.author_id && item.author_id !== currentUser.id;
+  const isLongDescription = item.description && item.description.length > 100;
+  const canFollow = profile && !item.is_anonymous && item.author_id && item.author_id !== profile.id;
 
   const isFriends = isFollowing && initialFollowedBy;
 
   const categoryLabel = item.category || (item.title ? item.title.replace(/ Report/i, '').replace(/- Ward \d+/i, '').trim() : 'General');
 
   const handleFollow = useCallback(async () => {
-    if (!currentUser) {
+    if (!profile) {
       router.push('/login');
       return;
     }
@@ -114,16 +117,16 @@ function FeedCard({
         onFollowToggle(item.author_id);
       } else {
         if (!nextState) {
-          await supabase.from('user_follows').delete().match({ follower_id: currentUser.id, following_id: item.author_id });
+          await supabase.from('user_follows').delete().match({ follower_id: profile.id, following_id: item.author_id });
         } else {
-          await supabase.from('user_follows').insert({ follower_id: currentUser.id, following_id: item.author_id });
+          await supabase.from('user_follows').insert({ follower_id: profile.id, following_id: item.author_id });
           try {
             await createNotification({
               userId: item.author_id,
               title: '👤 New Follower',
               body: `${profile?.full_name || 'Someone'} started following you`,
               type: 'new_follow',
-              referenceId: currentUser.id,
+              referenceId: profile.id,
             });
           } catch (notifErr) {
             console.warn('Follow notification error:', notifErr);
@@ -135,7 +138,7 @@ function FeedCard({
     } finally {
       setFollowLoading(false);
     }
-  }, [currentUser, item.author_id, followLoading, isFollowing, onFollowToggle, router]);
+  }, [profile, item.author_id, followLoading, isFollowing, onFollowToggle, router]);
 
   const handleRepost = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -144,8 +147,8 @@ function FeedCard({
 
   const handleBookmark = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setIsBookmarked(prev => !prev);
-  }, []);
+    toggleBookmark(item.id);
+  }, [item.id, toggleBookmark]);
 
   const handleShare = async () => {
     try {
@@ -159,12 +162,8 @@ function FeedCard({
   };
 
   return (
-    <AnimatedCard
-      onPress={() => router.push(`/issue/${item.id}`)}
-      className="mx-1.5 mb-2"
-    >
-      <View className="overflow-hidden rounded-2xl">
-        {/* Repost Banner */}
+    <AnimatedCard className="mb-3">
+      <View className={theme.glassCardClass}>
         {isReposted && (
           <View className={`flex-row items-center px-4 py-1.5 ${theme.isDark ? 'bg-emerald-500/8' : 'bg-emerald-50'}`}>
             <Repeat size={11} color={theme.isDark ? '#34d399' : '#059669'} />
@@ -174,7 +173,6 @@ function FeedCard({
           </View>
         )}
 
-        {/* Header Row — Clean: Avatar | Name + Meta | Menu */}
         <View className="flex-row items-center px-4 pt-3.5 pb-1.5">
           <TouchableOpacity
             className="flex-row items-center flex-1 mr-2"
@@ -185,103 +183,102 @@ function FeedCard({
               }
             }}
           >
-            {/* Avatar */}
             {item.author?.avatar_url && !item.is_anonymous ? (
-              <View className="relative">
-                <Image
-                  source={{ uri: item.author.avatar_url }}
-                  cachePolicy="memory-disk"
-                  style={{ width: 36, height: 36, borderRadius: 18 }}
-                  className={theme.isDark ? 'bg-[#1a2540]' : 'bg-slate-100'}
-                  transition={200}
-                />
-                {item.author?.role === 'official' && (
-                  <View className="absolute -bottom-0.5 -right-0.5 bg-[#5b5ef6] rounded-full p-0.5 border-2 border-[#111a2e]">
-                    <Check size={7} color="#ffffff" strokeWidth={3.5} />
-                  </View>
-                )}
-              </View>
+              <Image
+                source={{ uri: item.author.avatar_url }}
+                cachePolicy="memory-disk"
+                placeholder="LKO2?U%2Tw=w]~RBVZRi};RPxuwH" // Light gray blurhash
+                style={{ width: 44, height: 44, borderRadius: 22 }}
+                transition={200}
+              />
             ) : (
-              <View className={`w-9 h-9 rounded-full items-center justify-center ${theme.isDark ? 'bg-blue-500/12' : 'bg-blue-50'}`}>
-                <User size={17} color={theme.isDark ? '#60a5fa' : '#2563eb'} />
+              <View style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(79,70,229,0.15)' : '#eef2ff' }}>
+                <User size={20} color={theme.accentColor} />
               </View>
             )}
 
-            {/* Name + Meta Line */}
             <View className="ml-2.5 flex-1">
               <View className="flex-row items-center">
-                <Text className={`font-bold text-[13.5px] tracking-tight ${theme.textClass}`} numberOfLines={1}>
+                <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>
                   {item.is_anonymous ? t.anonymous : (item.author?.full_name || t.anonymous)}
                 </Text>
-
-                {item.author?.role === 'official' && !item.is_anonymous && (
-                  <View className={`ml-1 px-1.5 py-0.5 rounded ${theme.isDark ? 'bg-blue-500/15' : 'bg-blue-50'}`}>
-                    <Text className={`text-[9px] font-bold ${theme.isDark ? 'text-blue-400' : 'text-blue-600'}`}>{t.official ? t.official.toUpperCase() : 'OFFICIAL'}</Text>
+                {!item.is_anonymous && item.author && (
+                  <View className="ml-1">
+                    <UserBadges badges={item.author.badges || (item.author.is_verified ? ['verified'] : [])} size={15} />
                   </View>
                 )}
 
-                {/* Follow button inline */}
                 {canFollow && !isFollowing && (
                   <TouchableOpacity
                     onPress={handleFollow}
                     disabled={followLoading}
                     activeOpacity={0.7}
-                    className="ml-1.5"
+                    className="ml-2 bg-indigo-50 dark:bg-indigo-500/20 px-2 py-0.5 rounded-md"
                   >
-                    <Text className={`text-[12px] font-bold ${theme.isDark ? 'text-blue-400' : 'text-blue-600'}`}>· {initialFollowedBy ? (t.followBack || 'Follow Back') : t.follow}</Text>
+                    <Text className={`text-[12px] font-bold ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>{initialFollowedBy ? (t.followBack || 'Follow Back') : t.follow}</Text>
                   </TouchableOpacity>
                 )}
 
-                {/* Mutual / Following indicators */}
                 {!item.is_anonymous && isFollowing && (
-                  <View className="ml-1">
+                  <View className="ml-2 bg-emerald-50 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md">
                     {isFriends ? (
-                      <Users size={11} color={theme.isDark ? '#38bdf8' : '#0284c7'} />
+                      <Users size={12} color={theme.isDark ? '#34d399' : '#059669'} />
                     ) : (
-                      <UserCheck size={11} color={theme.isDark ? '#34d399' : '#059669'} />
+                      <UserCheck size={12} color={theme.isDark ? '#34d399' : '#059669'} />
                     )}
                   </View>
                 )}
               </View>
 
-              {/* Subtitle: Ward · Time · Category */}
-              <View className="flex-row items-center mt-0.5">
-                <MapPin size={9} color={theme.isDark ? '#60a5fa' : '#2563eb'} />
-                <Text className={`text-[11px] font-medium ml-0.5 ${theme.isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+              <View className="flex-row items-center mt-1">
+                <MapPin size={11} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
+                <Text className={`text-[12px] font-medium ml-1 ${theme.isDark ? 'text-primary-300' : 'text-primary'}`}>
                   Ward {item.ward_number || 1}
                 </Text>
-                <Text className={`text-[10px] mx-1 ${theme.textMutedClass}`}>·</Text>
-                <Text className={`text-[10.5px] font-medium ${theme.textMutedClass}`}>
-                  {timeAgo(item.created_at)}
+                <Text className={`text-[10px] mx-1.5 ${theme.textMutedClass}`}>•</Text>
+                <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>
+                  {theme.timeAgo(item.created_at)}
                 </Text>
-                <Text className={`text-[10px] mx-1 ${theme.textMutedClass}`}>·</Text>
-                <Text className={`text-[10.5px] font-medium ${theme.textMutedClass}`}>
+                <Text className={`text-[10px] mx-1.5 ${theme.textMutedClass}`}>•</Text>
+                <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>
                   {categoryLabel}
                 </Text>
               </View>
             </View>
           </TouchableOpacity>
 
-          {/* Right side: Status badge + Menu */}
           <View className="flex-row items-center gap-1.5">
-            {item.status && item.status !== 'pending' && (
+            {item.post_type === 'report' && item.status && (
               <Badge type={item.status as any} text={item.status.replace('_', ' ')} size="sm" />
             )}
+            
+            <TouchableOpacity
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              onPress={handleBookmark}
+              className="w-8 h-8 items-center justify-center rounded-full"
+              activeOpacity={0.6}
+            >
+              <Bookmark size={18} color={isBookmarkedLocal ? theme.accentColor : theme.iconColor} fill={isBookmarkedLocal ? theme.accentColor : 'transparent'} />
+            </TouchableOpacity>
+
             <TouchableOpacity
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               onPress={() => setShowOptions(true)}
-              className="w-7 h-7 items-center justify-center rounded-full"
+              className="w-8 h-8 items-center justify-center rounded-full"
               activeOpacity={0.6}
             >
-              <MoreHorizontal size={16} color={theme.iconColor} />
+              <MoreHorizontal size={18} color={theme.iconColor} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Caption Text */}
-        <View className="px-4 pb-2.5 pt-1">
-          <Text className={`text-[14px] leading-[21px] font-normal ${theme.textClass}`} numberOfLines={expanded ? undefined : 3}>
-            {item.description}
+        <TouchableOpacity 
+          activeOpacity={0.7} 
+          onPress={() => router.push(`/issue/${item.id}`)}
+          className="px-4 pb-4 pt-1.5"
+        >
+          <Text className={`text-[16px] leading-[26px] font-medium tracking-tight ${theme.textClass}`} numberOfLines={expanded ? undefined : 3}>
+            {translationsCache?.[item.id] || item.description}
           </Text>
 
           {isLongDescription && (
@@ -289,141 +286,127 @@ function FeedCard({
               onPress={() => setExpanded(!expanded)}
               className="mt-1 flex-row items-center py-0.5"
             >
-              <Text className={`font-semibold text-[12px] mr-0.5 ${theme.isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+              <Text className={`font-semibold text-[12px] mr-0.5 ${theme.isDark ? 'text-primary-300' : 'text-primary'}`}>
                 {expanded ? 'Show less' : 'Read more'}
               </Text>
-              {expanded ? <ChevronUp size={12} color={theme.isDark ? '#60a5fa' : '#2563eb'} /> : <ChevronDown size={12} color={theme.isDark ? '#60a5fa' : '#2563eb'} />}
+              {expanded ? <ChevronUp size={12} color={theme.isDark ? '#818cf8' : '#4f46e5'} /> : <ChevronDown size={12} color={theme.isDark ? '#818cf8' : '#4f46e5'} />}
             </TouchableOpacity>
           )}
 
-          {/* Translation */}
-          {translationsCache?.[item.id] ? (
-            <View className={`mt-2.5 p-3 rounded-xl ${theme.isDark ? 'bg-blue-500/8' : 'bg-blue-50/80'}`}>
-              <View className="flex-row items-center mb-1">
-                <Globe size={11} color={theme.isDark ? '#60a5fa' : '#2563eb'} />
-                <Text className={`${theme.isDark ? 'text-blue-400' : 'text-blue-600'} text-[10px] font-bold uppercase tracking-widest ml-1`}>Translated</Text>
-              </View>
-              <Text className={`text-[13px] leading-relaxed ${theme.textClass}`}>
-                {translationsCache[item.id]}
-              </Text>
-            </View>
-          ) : (
-            <TouchableOpacity
+          {item.description && onTranslate && translationsCache && translating && (
+            <TouchableOpacity 
               onPress={() => onTranslate(item.id, item.description)}
-              disabled={!!translating?.[item.id]}
-              className="mt-2 flex-row items-center"
-              activeOpacity={0.6}
+              disabled={translating[item.id]}
+              className={`mt-2.5 flex-row items-center self-start px-3 py-1.5 rounded-lg ${theme.isDark ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}
             >
-              {translating?.[item.id] ? (
-                <View className="flex-row items-center">
-                  <ActivityIndicator size="small" color={theme.isDark ? '#60a5fa' : '#2563eb'} style={{ transform: [{ scale: 0.6 }] }} />
-                  <Text className={`${theme.isDark ? 'text-blue-400' : 'text-blue-500'} font-medium text-[11.5px] ml-0.5`}>Translating…</Text>
-                </View>
-              ) : (
-                <View className="flex-row items-center">
-                  <Sparkles size={11} color={theme.isDark ? '#60a5fa' : '#2563eb'} />
-                  <Text className={`${theme.isDark ? 'text-blue-400' : 'text-blue-500'} font-medium text-[11.5px] ml-1`}>Translate</Text>
-                </View>
-              )}
+              <Sparkles size={12} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
+              <Text className={`text-[11.5px] font-bold ml-1.5 ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
+                {translating[item.id] ? 'Translating...' : (translationsCache[item.id] ? 'Show Original' : 'Translate')}
+              </Text>
             </TouchableOpacity>
           )}
-        </View>
+        </TouchableOpacity>
 
-        {/* Photos */}
         {((item.image_urls && item.image_urls.length > 0) || item.image_url) ? (
-          <View className="mx-3.5 mb-2.5 rounded-xl overflow-hidden">
-            <IssueImageCarousel
-              imageUrls={item.image_urls}
-              fallbackUrl={item.image_url}
-              onImagePress={() => router.push(`/issue/${item.id}`)}
-            />
+          <View className="mb-3 px-2 w-full relative">
+            <View className="overflow-hidden rounded-[24px]">
+              <IssueImageCarousel
+                imageUrls={item.image_urls}
+                fallbackUrl={item.image_url}
+                height={320}
+                onImagePress={(index) => {
+                  setSelectedImageIndex(index || 0);
+                  setShowImageViewer(true);
+                }}
+                onDoubleTap={() => {
+                  if (!isLiked) {
+                    onLike(item.id, false);
+                  }
+                  
+                  Animated.sequence([
+                    Animated.parallel([
+                      Animated.spring(heartScaleAnim, { toValue: 1, friction: 5, tension: 80, useNativeDriver: Platform.OS !== 'web' }),
+                      Animated.timing(heartOpacityAnim, { toValue: 1, duration: 100, useNativeDriver: Platform.OS !== 'web' })
+                    ]),
+                    Animated.delay(500),
+                    Animated.parallel([
+                      Animated.timing(heartScaleAnim, { toValue: 1.5, duration: 200, useNativeDriver: Platform.OS !== 'web' }),
+                      Animated.timing(heartOpacityAnim, { toValue: 0, duration: 200, useNativeDriver: Platform.OS !== 'web' })
+                    ])
+                  ]).start(() => {
+                    heartScaleAnim.setValue(0);
+                  });
+                }}
+              />
+            </View>
+            
+            <View style={{ pointerEvents: 'none' }} className="absolute inset-0 items-center justify-center">
+              <Animated.View style={{ 
+                opacity: heartOpacityAnim, 
+                transform: [{ scale: heartScaleAnim }] 
+              }}>
+                <Heart size={100} color="#F43F5E" fill="#F43F5E" />
+              </Animated.View>
+            </View>
           </View>
         ) : null}
 
-        {/* Action Bar — Flat, Threads-inspired */}
-        <View className={`flex-row items-center px-2.5 py-2 border-t ${theme.borderSubtleClass}`}>
-          {/* Like */}
+        <View className="flex-row items-center px-4 pt-2 pb-4 border-t border-slate-100 dark:border-white/5 mt-1">
           <TouchableOpacity
             onPress={() => {
               Animated.sequence([
                 Animated.timing(scaleAnim, { toValue: 1.3, duration: 100, useNativeDriver: Platform.OS !== 'web' }),
-                Animated.spring(scaleAnim, { toValue: 1, friction: 3, tension: 45, useNativeDriver: Platform.OS !== 'web' })
+                Animated.timing(scaleAnim, { toValue: 1, duration: 100, useNativeDriver: Platform.OS !== 'web' }),
               ]).start();
               onLike(item.id, isLiked);
             }}
-            className="flex-row items-center px-3 py-2"
-            activeOpacity={0.6}
+            activeOpacity={0.7}
+            className="flex-row items-center justify-center py-1.5 flex-1"
           >
             <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-              <Heart
-                size={18}
-                color={isLiked ? "#f43f5e" : theme.iconColor}
-                fill={isLiked ? "#f43f5e" : "none"}
-              />
+              <Heart size={22} color={isLiked ? '#F43F5E' : theme.iconColor} fill={isLiked ? '#F43F5E' : 'transparent'} />
             </Animated.View>
-            {item.upvotes_count > 0 && (
-              <Text className={`font-semibold text-[12px] ml-1.5 ${isLiked ? 'text-rose-500' : theme.textMutedClass}`}>
-                {item.upvotes_count}
-              </Text>
-            )}
+            <Text className={`ml-1.5 font-medium text-[14px] ${isLiked ? 'text-rose-500' : theme.textSecondaryClass}`}>
+              {item.upvotes_count || 0}
+            </Text>
           </TouchableOpacity>
 
-          {/* Comment */}
           <TouchableOpacity
-            onPress={() => router.push(`/issue/${item.id}`)}
-            className="flex-row items-center px-3 py-2"
-            activeOpacity={0.6}
+            onPress={() => {
+              Animated.sequence([
+                Animated.timing(commentScaleAnim, { toValue: 1.2, duration: 100, useNativeDriver: Platform.OS !== 'web' }),
+                Animated.timing(commentScaleAnim, { toValue: 1, duration: 100, useNativeDriver: Platform.OS !== 'web' }),
+              ]).start();
+              router.push(`/issue/${item.id}`);
+            }}
+            activeOpacity={0.7}
+            className="flex-row items-center justify-center py-1.5 flex-1 border-l border-slate-100 dark:border-white/5"
           >
-            <MessageSquare size={18} color={theme.iconColor} />
-            {commentCount > 0 && (
-              <Text className={`font-semibold text-[12px] ml-1.5 ${theme.textMutedClass}`}>
-                {commentCount}
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Repost */}
-          <TouchableOpacity
-            onPress={handleRepost}
-            className="flex-row items-center px-3 py-2"
-            activeOpacity={0.6}
-          >
-            <Animated.View style={{ transform: [{ scale: repostScaleAnim }] }}>
-              <Repeat
-                size={18}
-                color={isReposted ? (theme.isDark ? "#34d399" : "#059669") : theme.iconColor}
-              />
+            <Animated.View style={{ transform: [{ scale: commentScaleAnim }] }}>
+              <MessageSquare size={21} color={theme.iconColor} />
             </Animated.View>
-            {repostCount > 0 && (
-              <Text className={`font-semibold text-[12px] ml-1.5 ${isReposted ? (theme.isDark ? 'text-emerald-400' : 'text-emerald-600') : theme.textMutedClass}`}>
-                {repostCount}
-              </Text>
-            )}
+            <Text className={`ml-1.5 font-medium text-[14px] ${theme.textSecondaryClass}`}>
+              {commentCount}
+            </Text>
           </TouchableOpacity>
 
-          {/* Share */}
           <TouchableOpacity
             onPress={handleShare}
-            className="px-3 py-2"
-            activeOpacity={0.6}
+            activeOpacity={0.7}
+            onPressIn={() => {
+              Animated.timing(shareScaleAnim, { toValue: 1.2, duration: 100, useNativeDriver: Platform.OS !== 'web' }).start();
+            }}
+            onPressOut={() => {
+              Animated.timing(shareScaleAnim, { toValue: 1, duration: 100, useNativeDriver: Platform.OS !== 'web' }).start();
+            }}
+            className="flex-row items-center justify-center py-1.5 flex-1 border-l border-slate-100 dark:border-white/5"
           >
-            <Share2 size={17} color={theme.iconColor} />
-          </TouchableOpacity>
-
-          {/* Spacer */}
-          <View className="flex-1" />
-
-          {/* Bookmark */}
-          <TouchableOpacity
-            onPress={handleBookmark}
-            className="px-3 py-2"
-            activeOpacity={0.6}
-          >
-            {isBookmarked ? (
-              <BookmarkCheck size={17} color={theme.isDark ? '#818cf8' : '#5b5ef6'} fill={theme.isDark ? '#818cf8' : '#5b5ef6'} />
-            ) : (
-              <Bookmark size={17} color={theme.iconColor} />
-            )}
+            <Animated.View style={{ transform: [{ scale: shareScaleAnim }] }}>
+              <Share2 size={21} color={theme.iconColor} />
+            </Animated.View>
+            <Text className={`ml-1.5 font-medium text-[14px] ${theme.textSecondaryClass}`}>
+              {t.share}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -456,22 +439,40 @@ function FeedCard({
               }
             },
           },
-          ...(isMyPost ? [
+          ...(isMyPost || canModerate ? [
             {
-              label: 'Edit Post',
+              label: isMyPost ? 'Edit Post' : '⚡ Admin Edit',
               icon: 'edit-3',
               onPress: () => {
                 if (onEdit) onEdit(item);
               }
             },
             {
-              label: 'Delete Post',
+              label: isMyPost ? 'Delete Post' : '⚡ Admin Delete',
               icon: 'trash-2',
               destructive: true,
               onPress: () => {
                 if (onDelete) onDelete(item);
               }
             }
+          ] : []),
+          ...(canModerate && onStatusChange ? [
+            ...(item.post_type === 'report' && item.status !== 'in_progress' ? [{
+              label: '⚡ Mark In Progress',
+              icon: 'loader',
+              onPress: () => onStatusChange(item, 'in_progress'),
+            }] : []),
+            ...(item.post_type === 'report' && item.status !== 'resolved' ? [{
+              label: '⚡ Mark Resolved',
+              icon: 'check-circle',
+              onPress: () => onStatusChange(item, 'resolved'),
+            }] : []),
+            ...(item.post_type === 'report' && item.status !== 'rejected' ? [{
+              label: '⚡ Reject Issue',
+              icon: 'x-circle',
+              destructive: true,
+              onPress: () => onStatusChange(item, 'rejected'),
+            }] : []),
           ] : []),
           ...(!item.is_anonymous && item.author_id ? [{
             label: `View ${item.author?.full_name || 'Author'}'s Profile`,
@@ -489,6 +490,13 @@ function FeedCard({
             },
           },
         ]}
+      />
+
+      <FullScreenImageViewer
+        visible={showImageViewer}
+        images={item.image_urls && item.image_urls.length > 0 ? item.image_urls : (item.image_url ? [item.image_url] : [])}
+        initialIndex={selectedImageIndex}
+        onClose={() => setShowImageViewer(false)}
       />
     </AnimatedCard>
   );

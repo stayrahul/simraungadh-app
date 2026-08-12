@@ -44,11 +44,11 @@ const AnimatedCard = memo(function AnimatedCard({ children, className = '', styl
           animatedStyle,
           theme.cardShadow,
           theme.isDark 
-            ? { backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderRadius: 16 } 
-            : { backgroundColor: '#ffffff', borderColor: 'rgba(226,232,240,0.7)', borderWidth: 1, borderRadius: 16 },
+            ? { backgroundColor: '#1c1c1e', borderWidth: 0, borderRadius: 32 } 
+            : { backgroundColor: '#FFFFFF', borderWidth: 0, borderRadius: 32 },
           style
         ]}
-        className={`rounded-2xl overflow-hidden ${className}`}
+        className={`rounded-3xl overflow-hidden ${className}`}
       >
         {children}
       </Animated.View>

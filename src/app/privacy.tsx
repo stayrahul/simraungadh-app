@@ -13,18 +13,17 @@ export default function PrivacyScreen() {
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
       {/* Header */}
-      <View className={`px-5 py-3.5 border-b flex-row justify-between items-center ${theme.headerBgClass}`}>
-        <TouchableOpacity onPress={() => router.back()} className={`w-9 h-9 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-          <ArrowLeft size={18} color={theme.iconColor} />
+      <View className="px-5 py-3 flex-row justify-between items-center z-10">
+        <TouchableOpacity onPress={() => router.back()} className={`w-10 h-10 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+          <ArrowLeft size={20} color={theme.iconColor} />
         </TouchableOpacity>
-        <Text className={`text-[18px] font-bold ${theme.textClass}`}>Privacy & Data</Text>
-        <View className="w-9 h-9" />
+        <View className="w-10 h-10" />
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
         
         {/* Intro */}
-        <View className={`rounded-2xl p-5 mb-6 border ${theme.cardClass}`} style={theme.cardShadow}>
+        <View className={`rounded-[24px] p-5 mb-6 border ${theme.cardClass}`} style={theme.cardShadow}>
           <View className={`w-12 h-12 rounded-full items-center justify-center mb-4 ${theme.isDark ? 'bg-purple-500/12' : 'bg-purple-50'}`}>
             <Shield size={24} color={theme.isDark ? '#c084fc' : '#9333ea'} />
           </View>
@@ -34,14 +33,14 @@ export default function PrivacyScreen() {
           </Text>
         </View>
 
-        <Text className={`${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'} font-semibold text-[11px] uppercase tracking-wider mb-3 ml-1`}>Key Privacy Principles</Text>
+        <Text className={`${theme.isDark ? 'text-primary-400' : 'text-primary'} font-semibold text-[11px] uppercase tracking-wider mb-3 ml-1`}>Key Privacy Principles</Text>
         
-        <View className={`rounded-2xl border overflow-hidden mb-6 ${theme.cardClass}`} style={theme.cardShadow}>
+        <View className={`rounded-[24px] border overflow-hidden mb-6 ${theme.cardClass}`} style={theme.cardShadow}>
           
           {/* Section 1 */}
           <View className={`p-4 border-b ${theme.borderSubtleClass}`}>
             <View className="flex-row items-center mb-2">
-              <Database size={16} color={theme.isDark ? '#60a5fa' : '#3b82f6'} className="mr-2" />
+              <Database size={16} color={theme.isDark ? '#818cf8' : '#3b82f6'} className="mr-2" />
               <Text className={`font-bold text-[15px] ${theme.textClass}`}>1. Data Collection</Text>
             </View>
             <Text className={`text-[13px] leading-relaxed ${theme.textSecondaryClass}`}>

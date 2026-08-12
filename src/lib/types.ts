@@ -3,7 +3,8 @@
 // Simraungadh Civic Hub — TypeScript Type Definitions
 // ============================================================
 
-export type UserRole = 'citizen' | 'official';
+export type UserRole = 'citizen' | 'official' | 'moderator' | 'admin';
+export type BadgeType = 'none' | 'verified' | 'gold' | 'contributor' | 'leader';
 export type IssueStatus = 'pending' | 'in_progress' | 'resolved' | 'rejected';
 
 export interface Profile {
@@ -12,27 +13,40 @@ export interface Profile {
   avatar_url: string | null;
   role: UserRole;
   department: string | null;
-  civic_points: number;
   phone_number: string | null;
   home_ward: number | null;
   gender?: string | null;
   age?: number | null;
+  tole?: string | null;
   push_token?: string | null;
+  badge_type?: BadgeType | null;
+  badges?: string[];
+  is_verified?: boolean;
+  is_banned?: boolean;
+  civic_points?: number;
   created_at: string;
 }
 
 export interface Issue {
   id: string;
   author_id: string;
-  title: string;
+  title?: string;
   description: string;
   category: string;
   ward_number: number;
   image_url: string | null;
   image_urls?: string[] | null;
   is_anonymous?: boolean;
+  post_type?: string | null;
   status: IssueStatus;
   upvotes_count: number;
+  is_locked?: boolean;
+  is_pinned?: boolean;
+  is_deleted?: boolean;
+  urgency?: string;
+  landmark?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   created_at: string;
   
   // Joined
@@ -49,6 +63,7 @@ export interface IssueComment {
   is_official_response: boolean;
   created_at: string;
   author?: Profile; // Joined data
+  replies?: IssueComment[]; // For threaded display
 }
 
 export interface Notice {
@@ -61,6 +76,7 @@ export interface Notice {
   image_url?: string | null;
   image_urls?: string[] | null;
   is_emergency: boolean;
+  is_deleted?: boolean;
   created_at: string;
   author?: Profile;
 }
@@ -74,4 +90,61 @@ export interface AppNotification {
   reference_id: string | null;
   is_read: boolean;
   created_at: string;
+}
+
+// ============================================================
+// New Feature Types
+// ============================================================
+
+export interface Poll {
+  id: string;
+  author_id: string;
+  question: string;
+  options: string[];
+  votes: Record<string, string>; // userId -> optionIndex
+  category: string;
+  ward_number?: number | null;
+  is_active: boolean;
+  expires_at: string | null;
+  created_at: string;
+  author?: Profile;
+}
+
+export interface CivicEvent {
+  id: string;
+  author_id: string;
+  title: string;
+  description: string | null;
+  location: string | null;
+  event_date: string;
+  end_date: string | null;
+  category: string;
+  image_url: string | null;
+  is_official: boolean;
+  attendees_count: number;
+  created_at: string;
+  author?: Profile;
+}
+
+export interface AuditLog {
+  id: string;
+  admin_id: string;
+  action: string;
+  target_type: string | null;
+  target_id: string | null;
+  details: Record<string, any> | null;
+  created_at: string;
+  admin?: Profile;
+}
+
+export interface Feedback {
+  id: string;
+  user_id: string;
+  category: string;
+  message: string;
+  rating: number;
+  screenshot_url: string | null;
+  status: 'pending' | 'reviewed' | 'resolved';
+  created_at: string;
+  user?: Profile;
 }

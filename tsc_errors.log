@@ -1,0 +1,376 @@
+npm notice run expo-app@1.0.0 npx
+npm notice run 'tsc' --noEmit
+src/app/feedback.tsx(85,7): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(85,8): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(89,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(89,10): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(90,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(90,10): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(93,7): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(93,8): error TS2786: 'KeyboardAvoidingView' cannot be used as a JSX component.
+  Its type 'typeof KeyboardAvoidingView' is not a valid JSX element type.
+    Type 'typeof KeyboardAvoidingView' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'KeyboardAvoidingView' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(94,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(94,10): error TS2786: 'ScrollView' cannot be used as a JSX component.
+  Its type 'typeof ScrollView' is not a valid JSX element type.
+    Type 'typeof ScrollView' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'ScrollView' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(96,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(96,12): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(97,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(97,14): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(100,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(100,14): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(101,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(101,16): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(102,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(102,16): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(107,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(107,12): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(108,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(108,12): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(117,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(117,12): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(118,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(118,12): error TS2786: 'ScrollView' cannot be used as a JSX component.
+  Its type 'typeof ScrollView' is not a valid JSX element type.
+    Type 'typeof ScrollView' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'ScrollView' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(125,17): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(125,18): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(131,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(131,12): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(132,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(132,12): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(133,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(133,14): error TS2786: 'TextInput' cannot be used as a JSX component.
+  Its type 'typeof TextInput' is not a valid JSX element type.
+    Type 'typeof TextInput' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'TextInput' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(145,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(145,12): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(147,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(147,14): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(162,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(162,16): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(174,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(174,16): error TS2786: 'ActivityIndicator' cannot be used as a JSX component.
+  Its type 'typeof ActivityIndicator' is not a valid JSX element type.
+    Type 'typeof ActivityIndicator' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'ActivityIndicator' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/feedback.tsx(177,17): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/feedback.tsx(177,18): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(23,7): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(23,8): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(27,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(27,12): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(29,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(29,14): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(31,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(31,16): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(31,81): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Date'.
+src/components/EventCard.tsx(34,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(34,16): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(35,17): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(35,18): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(40,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(40,12): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(41,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(41,14): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(42,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(42,16): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(45,16): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(46,17): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(46,18): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(47,17): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(47,18): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(47,99): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Date'.
+src/components/EventCard.tsx(51,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(51,16): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(52,17): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(52,18): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(59,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(59,10): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(60,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(60,12): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(62,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(62,14): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(68,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(68,14): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(70,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(70,16): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(76,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(76,10): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(77,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(77,12): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(79,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(79,14): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(84,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(84,12): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/EventCard.tsx(93,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/EventCard.tsx(93,16): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/OfflineIndicator.tsx(40,6): error TS2322: Type '{ children: Element; style: { position: string; top: number; left: number; right: number; transform: { translateY: Value; }[]; zIndex: number; paddingHorizontal: number; }; }' is not assignable to type 'IntrinsicAttributes & AnimatedProps<{}>'.
+  Property 'children' does not exist on type 'IntrinsicAttributes & AnimatedProps<{}>'.
+src/components/OfflineIndicator.tsx(51,7): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/OfflineIndicator.tsx(51,8): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/OfflineIndicator.tsx(68,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/OfflineIndicator.tsx(68,10): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(57,7): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(57,8): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(60,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(60,10): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(61,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(61,12): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(62,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(62,14): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(65,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(65,14): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(66,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(66,16): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(67,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(67,16): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(67,128): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Date'.
+src/components/PollCard.tsx(71,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(71,14): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(72,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(72,16): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(78,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(78,10): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(79,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(79,12): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(83,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(83,10): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(100,19): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(100,20): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(106,17): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(106,18): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(107,19): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(107,20): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(109,21): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(109,22): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(114,21): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(114,22): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(115,23): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(115,24): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(116,23): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(116,24): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(126,9): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(126,10): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(127,11): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(127,12): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(129,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(129,14): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(132,13): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(132,14): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(133,15): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(133,16): error TS2786: 'Text' cannot be used as a JSX component.
+  Its type 'typeof Text' is not a valid JSX element type.
+    Type 'typeof Text' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'Text' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/components/PollCard.tsx(137,17): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/components/PollCard.tsx(137,18): error TS2786: 'View' cannot be used as a JSX component.
+  Its type 'typeof View' is not a valid JSX element type.
+    Type 'typeof View' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'View' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.

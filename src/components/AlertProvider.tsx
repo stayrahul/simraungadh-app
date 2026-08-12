@@ -124,7 +124,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
                       ? (theme.isDark ? 'text-rose-400' : 'text-red-500') 
                       : btn.style === 'cancel' 
                         ? (theme.isDark ? 'text-slate-500' : 'text-slate-400') 
-                        : (theme.isDark ? 'text-indigo-400' : 'text-blue-600')
+                        : (theme.isDark ? 'text-primary-400' : 'text-primary')
                   }`}>
                     {btn.text}
                   </Text>

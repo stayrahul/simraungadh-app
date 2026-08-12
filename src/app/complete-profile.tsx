@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'expo-router';
-import { Shield, User, Phone, MapPin, Calendar, Check, ArrowRight } from 'lucide-react-native';
+import { Shield, User, Phone, MapPin, Calendar, Check, ArrowRight, X } from 'lucide-react-native';
 import { registerForPushNotificationsAsync } from '../lib/notifications';
 import { useAlert } from '../components/AlertProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -137,20 +137,21 @@ export default function CompleteProfileScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header Badge */}
-          <View className="items-center mb-6">
-            <View className={`w-16 h-16 rounded-3xl items-center justify-center mb-3 ${theme.isDark ? 'bg-emerald-500/20' : 'bg-emerald-600'}`}>
+          <View className="items-center mb-6 relative">
+            <TouchableOpacity 
+              onPress={() => router.canGoBack() ? router.back() : router.replace('/')} 
+              className={`absolute right-0 top-0 w-10 h-10 rounded-full items-center justify-center z-10 ${theme.isDark ? 'bg-white/10' : 'bg-slate-100'}`}
+            >
+              <X size={20} color={theme.iconColor} />
+            </TouchableOpacity>
+            
+            <View className={`w-16 h-16 rounded-[24px] items-center justify-center mb-3 ${theme.isDark ? 'bg-emerald-500/20' : 'bg-emerald-600'}`}>
               <Shield size={32} color={theme.isDark ? '#34d399' : '#ffffff'} />
             </View>
-            <Text className={`text-2xl font-black text-center ${theme.textClass}`}>
-              {t.completeProfileTitle}
-            </Text>
-            <Text className={`text-xs text-center mt-1.5 px-4 font-medium leading-5 ${theme.textSecondaryClass}`}>
-              {t.completeProfileSubhead}
-            </Text>
           </View>
 
           {/* Form Card */}
-          <View className={`rounded-3xl p-5 border ${theme.cardClass} gap-5`} style={theme.cardShadow}>
+          <View className={`rounded-[24px] p-5 border ${theme.cardClass} gap-5`} style={theme.cardShadow}>
 
             {/* Ward Selector (Super Easy for Elderly Users) */}
             <View>
@@ -177,7 +178,7 @@ export default function CompleteProfileScreen() {
                       key={wNum}
                       onPress={() => handleSelectWard(wNum)}
                       activeOpacity={0.7}
-                      className={`w-[22%] py-3 rounded-2xl items-center justify-center border ${
+                      className={`w-[22%] py-3 rounded-[24px] items-center justify-center border ${
                         isSelected
                           ? (theme.isDark ? 'bg-emerald-500/25 border-emerald-500/60' : 'bg-emerald-600 border-emerald-700')
                           : (theme.isDark ? 'bg-white/[0.05] border-white/10' : 'bg-slate-50 border-slate-200')
@@ -195,7 +196,7 @@ export default function CompleteProfileScreen() {
               </View>
 
               {/* Custom Ward Input option */}
-              <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+              <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                 <MapPin size={17} color={theme.iconColor} />
                 <TextInput
                   className={`flex-1 ml-2.5 font-medium text-[14px] ${theme.textClass}`}
@@ -213,7 +214,7 @@ export default function CompleteProfileScreen() {
 
             {/* Step 2: Personal Details */}
             <View className="gap-3.5">
-              <Text className={`font-bold text-[13px] ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+              <Text className={`font-bold text-[13px] ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>
                 2. {t.personalDetails}
               </Text>
 
@@ -222,7 +223,7 @@ export default function CompleteProfileScreen() {
                 <Text className={`font-semibold text-[12px] mb-1.5 ml-0.5 ${theme.textSecondaryClass}`}>
                   {t.fullName} *
                 </Text>
-                <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+                <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                   <User size={17} color={theme.iconColor} />
                   <TextInput
                     className={`flex-1 ml-2.5 font-medium text-[14px] ${theme.textClass}`}
@@ -240,7 +241,7 @@ export default function CompleteProfileScreen() {
                 <Text className={`font-semibold text-[12px] mb-1.5 ml-0.5 ${theme.textSecondaryClass}`}>
                   {t.phoneNumber} *
                 </Text>
-                <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+                <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                   <Phone size={17} color={theme.iconColor} />
                   <TextInput
                     className={`flex-1 ml-2.5 font-medium text-[14px] ${theme.textClass}`}
@@ -271,7 +272,7 @@ export default function CompleteProfileScreen() {
                     >
                       <Text className={`text-[13px] font-bold ${
                         gender === g
-                          ? (theme.isDark ? 'text-indigo-300' : 'text-indigo-600')
+                          ? (theme.isDark ? 'text-indigo-300' : 'text-primary')
                           : theme.textSecondaryClass
                       }`}>
                         {g === 'Male' ? t.male : t.female}
@@ -288,7 +289,7 @@ export default function CompleteProfileScreen() {
                   <Text className={`font-semibold text-[12px] mb-1.5 ml-0.5 ${theme.textSecondaryClass}`}>
                     {t.age}
                   </Text>
-                  <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+                  <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                     <Calendar size={17} color={theme.iconColor} />
                     <TextInput
                       className={`flex-1 ml-2 font-medium text-[14px] ${theme.textClass}`}
@@ -307,7 +308,7 @@ export default function CompleteProfileScreen() {
                   <Text className={`font-semibold text-[12px] mb-1.5 ml-0.5 ${theme.textSecondaryClass}`}>
                     {t.toleLocality}
                   </Text>
-                  <View className={`flex-row items-center rounded-2xl px-3.5 h-12 border ${theme.inputClass}`}>
+                  <View className={`flex-row items-center rounded-[24px] px-3.5 h-12 border ${theme.inputClass}`}>
                     <MapPin size={17} color={theme.iconColor} />
                     <TextInput
                       className={`flex-1 ml-2 font-medium text-[14px] ${theme.textClass}`}
@@ -325,7 +326,7 @@ export default function CompleteProfileScreen() {
             <TouchableOpacity
               onPress={handleSaveProfile}
               disabled={loading}
-              className={`h-14 mt-3 rounded-2xl flex-row items-center justify-center ${
+              className={`h-14 mt-3 rounded-[24px] flex-row items-center justify-center ${
                 theme.isDark ? 'bg-emerald-600' : 'bg-emerald-600'
               }`}
               style={{ opacity: loading ? 0.7 : 1 }}

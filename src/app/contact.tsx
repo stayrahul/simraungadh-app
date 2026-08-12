@@ -13,18 +13,17 @@ export default function ContactScreen() {
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
       {/* Header */}
-      <View className={`px-5 py-3.5 border-b flex-row justify-between items-center ${theme.headerBgClass}`}>
-        <TouchableOpacity onPress={() => router.back()} className={`w-9 h-9 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-          <ArrowLeft size={18} color={theme.iconColor} />
+      <View className="px-5 py-3 flex-row justify-between items-center z-10">
+        <TouchableOpacity onPress={() => router.back()} className={`w-10 h-10 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+          <ArrowLeft size={20} color={theme.iconColor} />
         </TouchableOpacity>
-        <Text className={`text-[18px] font-bold ${theme.textClass}`}>Contact Us</Text>
-        <View className="w-9 h-9" />
+        <View className="w-10 h-10" />
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
 
         {/* Intro */}
-        <View className={`rounded-2xl p-5 mb-6 border ${theme.cardClass}`} style={theme.cardShadow}>
+        <View className={`rounded-[24px] p-5 mb-6 border ${theme.cardClass}`} style={theme.cardShadow}>
           <View className={`w-12 h-12 rounded-full items-center justify-center mb-4 ${theme.isDark ? 'bg-teal-500/12' : 'bg-teal-50'}`}>
             <Mail size={24} color={theme.isDark ? '#2dd4bf' : '#0d9488'} />
           </View>
@@ -35,9 +34,9 @@ export default function ContactScreen() {
         </View>
 
         {/* Official Contact Info */}
-        <Text className={`${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'} font-semibold text-[11px] uppercase tracking-wider mb-3 ml-1`}>Municipality Office</Text>
+        <Text className={`${theme.isDark ? 'text-primary-400' : 'text-primary'} font-semibold text-[11px] uppercase tracking-wider mb-3 ml-1`}>Municipality Office</Text>
 
-        <View className={`rounded-2xl border overflow-hidden mb-6 ${theme.cardClass}`} style={theme.cardShadow}>
+        <View className={`rounded-[24px] border overflow-hidden mb-6 ${theme.cardClass}`} style={theme.cardShadow}>
 
           <TouchableOpacity
             activeOpacity={0.7}
@@ -79,8 +78,8 @@ export default function ContactScreen() {
             className={`p-4 border-b flex-row items-center justify-between ${theme.borderSubtleClass}`}
           >
             <View className="flex-row items-center">
-              <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${theme.isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
-                <Globe size={18} color={theme.isDark ? '#60a5fa' : '#3b82f6'} />
+              <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${theme.isDark ? 'bg-primary-500/10' : 'bg-primary-50'}`}>
+                <Globe size={18} color={theme.isDark ? '#818cf8' : '#3b82f6'} />
               </View>
               <View>
                 <Text className={`font-bold text-[15px] ${theme.textClass}`}>Official Website</Text>
@@ -105,9 +104,9 @@ export default function ContactScreen() {
 
 
         {/* Developer Contact */}
-        <Text className={`${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'} font-semibold text-[11px] uppercase tracking-wider mb-3 ml-1`}>Developer Contact</Text>
+        <Text className={`${theme.isDark ? 'text-primary-400' : 'text-primary'} font-semibold text-[11px] uppercase tracking-wider mb-3 ml-1`}>Developer Contact</Text>
 
-        <View className={`rounded-2xl border overflow-hidden mb-6 ${theme.cardClass}`} style={theme.cardShadow}>
+        <View className={`rounded-[24px] border overflow-hidden mb-6 ${theme.cardClass}`} style={theme.cardShadow}>
           
           <TouchableOpacity 
             activeOpacity={0.7}
@@ -149,7 +148,7 @@ export default function ContactScreen() {
             className={`p-4 border-b flex-row items-center justify-between ${theme.borderSubtleClass}`}
           >
             <View className="flex-row items-center">
-              <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${theme.isDark ? 'bg-blue-600/20' : 'bg-blue-50'}`}>
+              <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${theme.isDark ? 'bg-primary/20' : 'bg-primary-50'}`}>
                 <MessageCircle size={18} color={theme.isDark ? '#3b82f6' : '#1d4ed8'} />
               </View>
               <View>

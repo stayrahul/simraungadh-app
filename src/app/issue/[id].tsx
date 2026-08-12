@@ -6,7 +6,8 @@ import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, User, Check, MapPin, MoreHorizontal, Heart, MessageSquare, Share2, Shield, Send, X, Clock, Sparkles, MessageCircle, ThumbsUp, ThumbsDown, CornerUpLeft } from 'lucide-react-native';
+import { ArrowLeft, User, Check, MapPin, MoreHorizontal, Heart, MessageSquare, Share2, Shield, Send, X, Clock, Sparkles, MessageCircle, ThumbsUp, ThumbsDown, CornerUpLeft, Activity } from 'lucide-react-native';
+import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
@@ -264,11 +265,11 @@ export default function IssueDetailScreen() {
   const renderHeader = () => {
     if (!issue) return null;
     return (
-      <View className="mb-2 px-3 pt-2">
-        {/* Main Hero Card Container */}
+      <View className="mb-4 px-4 pt-4">
+        {/* Main Elevated Card Container */}
         <View 
-          className={`rounded-3xl p-4 border ${theme.cardClass}`}
-          style={theme.cardShadow}
+          className={`p-5 border ${theme.cardElevatedClass}`}
+          style={Platform.OS !== 'web' ? theme.cardShadow : undefined}
         >
           {/* Author Row */}
           <View className="flex-row items-center justify-between pb-3.5 border-b border-slate-100 dark:border-white/5">
@@ -290,13 +291,13 @@ export default function IssueDetailScreen() {
               )}
               <View className="ml-3 flex-1">
                 <View className="flex-row items-center flex-wrap gap-1.5">
-                  <Text className={`font-extrabold text-[15.5px] tracking-tight ${theme.textClass}`}>
+                  <Text className={`font-black text-[16px] tracking-tight ${theme.textClass}`}>
                     {issue.is_anonymous ? 'Anonymous Citizen' : (issue.author?.full_name || 'Citizen')}
                   </Text>
                   {issue.author?.role === 'official' && (
-                    <View className="bg-indigo-500/15 px-2 py-0.5 rounded-full flex-row items-center border border-indigo-500/20">
-                      <Shield size={9} color={theme.isDark ? '#818cf8' : '#5b5ef6'} style={{ marginRight: 3 }} />
-                      <Text className={`text-[8.5px] font-black uppercase ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>Official</Text>
+                    <View className="bg-indigo-500/15 px-2.5 py-0.5 rounded-md flex-row items-center border border-indigo-500/20">
+                      <Shield size={10} color={theme.isDark ? '#818cf8' : '#5b5ef6'} style={{ marginRight: 4 }} />
+                      <Text className={`text-[9px] font-black uppercase tracking-widest ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>Official</Text>
                     </View>
                   )}
                 </View>
@@ -320,11 +321,8 @@ export default function IssueDetailScreen() {
           </View>
 
           {/* Description Text */}
-          <View className="pt-3.5 pb-2">
-            {issue.title && !issue.title.match(/Report\s*-\s*Ward\s*\d+/i) && !issue.title.toLowerCase().includes('report - ward') && (
-              <Text className={`font-extrabold text-[17px] mb-2 leading-snug ${theme.textClass}`}>{issue.title}</Text>
-            )}
-            <Text className={`text-[15px] leading-[23px] font-normal ${theme.textClass}`}>{issue.description}</Text>
+          <View className="pt-4 pb-3">
+            <Text className={`text-[15.5px] leading-[24px] font-medium tracking-wide ${theme.textClass}`}>{issue.description}</Text>
           </View>
 
           {/* Photos Carousel */}
@@ -335,25 +333,60 @@ export default function IssueDetailScreen() {
           )}
 
           {/* Integrated Action Row */}
-          <View className={`flex-row items-center mt-2 pt-2 border-t ${theme.borderSubtleClass}`}>
-            <TouchableOpacity onPress={handleLike} className="flex-row items-center px-3 py-2 rounded-xl" activeOpacity={0.7}>
-              <Heart size={18} color={isLiked ? '#ef4444' : theme.iconColor} fill={isLiked ? '#ef4444' : 'none'} />
-              <Text className={`font-bold ml-1.5 text-[13px] ${isLiked ? 'text-rose-500' : theme.textClass}`}>{issue.upvotes_count || 0}</Text>
+          <View className={`flex-row items-center mt-2 pt-3 border-t ${theme.borderSubtleClass}`}>
+            <TouchableOpacity onPress={handleLike} className={`flex-row items-center justify-center flex-1 py-2.5 rounded-xl mr-2 ${isLiked ? (theme.isDark ? 'bg-rose-500/20' : 'bg-rose-50') : (theme.isDark ? 'bg-white/5' : 'bg-slate-50')}`} activeOpacity={0.7}>
+              <Heart size={20} color={isLiked ? '#ef4444' : theme.iconColor} fill={isLiked ? '#ef4444' : 'none'} />
+              {issue.upvotes_count > 0 && <Text className={`font-bold ml-2 text-[14px] ${isLiked ? 'text-rose-500' : theme.textMutedClass}`}>{issue.upvotes_count}</Text>}
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center px-3 py-2 rounded-xl ml-2" activeOpacity={0.7}>
-              <MessageSquare size={18} color={theme.isDark ? '#818cf8' : '#5b5ef6'} />
-              <Text className={`font-bold ml-1.5 text-[13px] ${theme.textClass}`}>{comments.length}</Text>
-            </TouchableOpacity>
+            <View className={`flex-row items-center justify-center flex-1 py-2.5 rounded-xl mr-2 ${theme.isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
+              <MessageSquare size={20} color={theme.iconColor} />
+              {comments.length > 0 && <Text className={`font-bold ml-2 text-[14px] ${theme.textMutedClass}`}>{comments.length}</Text>}
+            </View>
 
-            <View className="flex-1" />
-
-            <TouchableOpacity className="flex-row items-center px-3.5 py-2 rounded-xl" activeOpacity={0.7} onPress={() => setShowOptions(true)}>
-              <Share2 size={17} color={theme.iconColor} />
-              <Text className={`font-bold ml-1.5 text-[12.5px] ${theme.textClass}`}>Share</Text>
+            <TouchableOpacity className={`flex-row items-center justify-center flex-1 py-2.5 rounded-xl ${theme.isDark ? 'bg-white/5' : 'bg-slate-50'}`} activeOpacity={0.7} onPress={() => setShowOptions(true)}>
+              <Share2 size={20} color={theme.iconColor} />
+              <Text className={`font-bold ml-2 text-[14px] ${theme.textMutedClass}`}>Share</Text>
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Status Timeline */}
+        {issue.post_type === 'report' && (
+          <View className={`mt-2 mx-4 p-4 rounded-[20px] border ${theme.cardClass} ${theme.borderSubtleClass}`}>
+            <Text className={`font-black text-[13px] uppercase tracking-wider mb-4 ${theme.textSecondaryClass}`}>Status Timeline</Text>
+            <View className="ml-2 border-l-2 border-slate-200 dark:border-white/10 pl-6 pb-2 relative">
+              
+              {/* Submitted Node */}
+              <View className="absolute -left-[11px] top-0 w-5 h-5 rounded-full items-center justify-center bg-indigo-500 shadow-sm shadow-indigo-500/30">
+                <Check size={12} color="#fff" strokeWidth={3} />
+              </View>
+              <View className="mb-6 -mt-1">
+                <Text className={`font-bold text-[15px] ${theme.textClass}`}>Report Submitted</Text>
+                <Text className={`text-[12px] mt-1 ${theme.textMutedClass}`}>{new Date(issue.created_at).toLocaleString()}</Text>
+              </View>
+
+              {/* In Progress Node */}
+              <View className={`absolute -left-[11px] top-[60px] w-5 h-5 rounded-full items-center justify-center ${(issue.status === 'in_progress' || issue.status === 'resolved') ? 'bg-amber-500 shadow-sm shadow-amber-500/30' : (theme.isDark ? 'bg-white/10' : 'bg-slate-200')}`}>
+                <Activity size={12} color="#fff" strokeWidth={3} />
+              </View>
+              <View className="mb-6">
+                <Text className={`font-bold text-[15px] ${(issue.status === 'in_progress' || issue.status === 'resolved') ? theme.textClass : theme.textMutedClass}`}>In Progress</Text>
+                <Text className={`text-[12px] mt-1 ${theme.textMutedClass}`}>{(issue.status === 'in_progress' || issue.status === 'resolved') ? 'Authorities are working on this' : 'Pending review'}</Text>
+              </View>
+
+              {/* Resolved Node */}
+              <View className={`absolute -left-[11px] top-[120px] w-5 h-5 rounded-full items-center justify-center ${issue.status === 'resolved' ? 'bg-green-500 shadow-sm shadow-green-500/30' : (theme.isDark ? 'bg-white/10' : 'bg-slate-200')}`}>
+                <Check size={12} color="#fff" strokeWidth={3} />
+              </View>
+              <View>
+                <Text className={`font-bold text-[15px] ${issue.status === 'resolved' ? theme.textClass : theme.textMutedClass}`}>Resolved</Text>
+                <Text className={`text-[12px] mt-1 ${theme.textMutedClass}`}>{issue.status === 'resolved' ? 'Issue marked as fixed' : 'Waiting for completion'}</Text>
+              </View>
+
+            </View>
+          </View>
+        )}
 
         {/* Section Header */}
         <View className="px-4 pt-5 pb-2 flex-row items-center justify-between">
@@ -376,9 +409,9 @@ export default function IssueDetailScreen() {
     const dislikesCount = commentDislikeCounts[item.id] || 0;
 
     return (
-      <View className={`px-4 py-3.5 border-b ${theme.borderSubtleClass} ${
+      <View className={`px-5 py-4 border-b ${theme.borderSubtleClass} ${
         item.is_official_response 
-          ? (theme.isDark ? 'bg-indigo-500/[0.08]' : 'bg-indigo-50/50') 
+          ? (theme.isDark ? 'bg-indigo-500/[0.08]' : 'bg-indigo-50/60') 
           : 'bg-transparent'
       } ${item.parent_id ? 'pl-16' : ''}`}>
         <View className="flex-row items-start">
@@ -419,7 +452,7 @@ export default function IssueDetailScreen() {
             </View>
 
             {/* Comment Text with Vertical Breathing Room */}
-            <Text className={`text-[14px] leading-[21px] font-normal mt-0.5 mb-2 ${theme.textClass}`}>
+            <Text className={`text-[14.5px] leading-[22px] font-medium mt-0.5 mb-2.5 ${theme.textClass}`}>
               {item.content}
             </Text>
             {/* Compact Comment Like / Dislike / Reply Bar */}
@@ -498,12 +531,11 @@ export default function IssueDetailScreen() {
       className={`flex-1 ${theme.bgClass}`}
     >
       {/* Navbar */}
-      <View style={[{ paddingTop: insets.top }]} className={`border-b flex-row items-center justify-between px-4 py-3.5 z-10 ${theme.headerBgClass}`}>
-        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/')} className={`w-9 h-9 items-center justify-center rounded-full ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-          <ArrowLeft size={18} color={theme.iconColor} />
+      <View style={[{ paddingTop: insets.top }]} className="px-5 py-3 flex-row justify-between items-center z-10">
+        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/')} className={`w-10 h-10 items-center justify-center rounded-full ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+          <ArrowLeft size={20} color={theme.iconColor} />
         </TouchableOpacity>
-        <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>Report Details</Text>
-        <View className="w-9 h-9" />
+        <View className="w-10 h-10" />
       </View>
 
       <FlashList
@@ -528,46 +560,50 @@ export default function IssueDetailScreen() {
 
       {/* Floating Glassmorphic Input Bar */}
       {profile ? (
-        <View className="border-t border-slate-100 dark:border-white/5">
-          {replyingTo && (
-            <View className={`px-4 py-2 flex-row justify-between items-center ${theme.isDark ? 'bg-[#111827]' : 'bg-indigo-50/70'}`}>
-              <Text className={`text-[12px] font-medium ${theme.textSecondaryClass}`}>
-                Replying to <Text className="font-extrabold">@{replyingTo.name}</Text>
-              </Text>
-              <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                <X size={16} color={theme.iconColor} />
-              </TouchableOpacity>
-            </View>
-          )}
-          <View 
-            style={{ paddingBottom: Math.max(insets.bottom, 12), paddingTop: 10, paddingHorizontal: 14 }} 
-            className={`flex-row items-center ${theme.headerBgClass}`}
-          >
-            {profile?.avatar_url ? (
-              <Image source={{ uri: profile.avatar_url }} style={{ width: 34, height: 34, borderRadius: 17 }} className="bg-slate-800 mr-2.5" transition={200} />
-            ) : (
-              <View className={`w-8.5 h-8.5 rounded-full items-center justify-center mr-2.5 ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50'}`}>
-                <User size={16} color={theme.isDark ? '#818cf8' : '#6366f1'} />
+        <View className="absolute bottom-0 left-0 right-0 w-full">
+          <BlurView intensity={theme.isDark ? 50 : 80} tint={theme.isDark ? 'dark' : 'light'} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+          <View className={`absolute inset-0 ${theme.isDark ? 'bg-[#0A0A0C]/80' : 'bg-white/70'}`} />
+          <View className={`border-t ${theme.borderSubtleClass}`}>
+            {replyingTo && (
+              <View className={`px-5 py-2.5 flex-row justify-between items-center ${theme.isDark ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>
+                <Text className={`text-[12.5px] font-medium ${theme.isDark ? 'text-indigo-200' : 'text-indigo-800'}`}>
+                  Replying to <Text className="font-extrabold">@{replyingTo.name}</Text>
+                </Text>
+                <TouchableOpacity onPress={() => setReplyingTo(null)} className="p-1">
+                  <X size={16} color={theme.isDark ? '#818CF8' : '#4F46E5'} />
+                </TouchableOpacity>
               </View>
             )}
+            <View 
+              style={{ paddingBottom: Math.max(insets.bottom, 16), paddingTop: 12, paddingHorizontal: 16 }} 
+              className="flex-row items-end"
+            >
+              {profile?.avatar_url ? (
+                <Image source={{ uri: profile.avatar_url }} style={{ width: 38, height: 38, borderRadius: 19, marginBottom: 2 }} className="bg-slate-800 mr-3" transition={200} />
+              ) : (
+                <View className={`w-9 h-9 rounded-full items-center justify-center mr-3 mb-1 ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50'}`}>
+                  <User size={18} color={theme.isDark ? '#818cf8' : '#6366f1'} />
+                </View>
+              )}
 
-            <View className={`flex-1 rounded-2xl flex-row items-center px-3.5 py-1.5 border ${theme.inputClass}`}>
-              <TextInput
-                ref={inputRef}
-                className={`flex-1 text-[13.5px] min-h-[36px] max-h-[100px] py-1 ${theme.textClass}`}
-                placeholder="Add a comment..."
-                placeholderTextColor={theme.inputPlaceholder}
-                multiline
-                value={commentText}
-                onChangeText={setCommentText}
-              />
-              <TouchableOpacity
-                onPress={handlePostComment}
-                disabled={!commentText.trim() || posting}
-                className={`p-2 rounded-xl ml-2 ${!commentText.trim() || posting ? (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-200') : (theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600')}`}
-              >
-                <Send size={15} color={!commentText.trim() || posting ? theme.iconColor : '#ffffff'} />
-              </TouchableOpacity>
+              <View className={`flex-1 rounded-[20px] flex-row items-center pl-4 pr-1.5 py-1.5 border ${theme.isDark ? 'bg-black/40 border-white/10' : 'bg-white/80 border-slate-200 shadow-sm'}`}>
+                <TextInput
+                  ref={inputRef}
+                  className={`flex-1 text-[14px] min-h-[38px] max-h-[120px] py-2 font-medium ${theme.textClass}`}
+                  placeholder="Add a comment..."
+                  placeholderTextColor={theme.inputPlaceholder}
+                  multiline
+                  value={commentText}
+                  onChangeText={setCommentText}
+                />
+                <TouchableOpacity
+                  onPress={handlePostComment}
+                  disabled={!commentText.trim() || posting}
+                  className={`w-9 h-9 items-center justify-center rounded-full ml-2 ${!commentText.trim() || posting ? (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100') : (theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600')}`}
+                >
+                  <Send size={15} color={!commentText.trim() || posting ? theme.iconColor : '#ffffff'} style={commentText.trim() && !posting ? { marginLeft: -2 } : {}} />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>

@@ -54,6 +54,7 @@ export default function NoticesScreen() {
       let { data, error } = await supabase
         .from('notices')
         .select(`*, author:profiles!notices_author_id_fkey(*)`)
+        .eq('is_deleted', false)
         .order('is_emergency', { ascending: false })
         .order('created_at', { ascending: false });
 
@@ -61,6 +62,7 @@ export default function NoticesScreen() {
         const fallback = await supabase
           .from('notices')
           .select('*')
+          .eq('is_deleted', false)
           .order('is_emergency', { ascending: false })
           .order('created_at', { ascending: false });
         data = fallback.data;
@@ -152,7 +154,7 @@ export default function NoticesScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            const { error } = await supabase.from('notices').delete().eq('id', notice.id);
+            const { error } = await supabase.from('notices').update({ is_deleted: true }).eq('id', notice.id);
             if (error) throw error;
             setNotices(prev => prev.filter(n => n.id !== notice.id));
             showAlert('Deleted', 'Notice deleted successfully.');
@@ -204,7 +206,7 @@ export default function NoticesScreen() {
   };
 
   const renderSkeleton = useCallback(() => (
-    <View className={`rounded-2xl p-4 mb-3 border ${theme.cardClass}`}>
+    <View className={`rounded-[24px] p-4 mb-3 border ${theme.cardClass}`}>
       <Skeleton height={18} width="60%" className="mb-2" />
       <Skeleton height={12} width="100%" className="mb-1.5" />
       <Skeleton height={12} width="90%" className="mb-3" />
@@ -232,7 +234,7 @@ export default function NoticesScreen() {
 
     return (
       <AnimatedCard 
-        className={`mb-3 rounded-2xl border overflow-hidden ${
+        className={`mb-3 rounded-[24px] border overflow-hidden ${
           item.is_emergency 
             ? (theme.isDark ? 'bg-rose-950/20 border-rose-500/40' : 'bg-rose-50/80 border-rose-300')
             : theme.cardClass
@@ -392,20 +394,20 @@ export default function NoticesScreen() {
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
       {/* Top Header */}
-      <View className={`px-4 pt-3 pb-2.5 border-b ${theme.headerBgClass}`}>
+      <View className="px-5 pt-3 pb-2.5">
         <View className="flex-row items-center justify-between mb-2.5">
           <View className="flex-1 pr-2">
-            <View className="flex-row items-center flex-wrap gap-1.5">
-              <Text className={`text-[21px] font-black tracking-tight ${theme.textClass}`}>
+            <View className="flex-row items-center flex-wrap" style={{ gap: 8 }}>
+              <Text style={{ fontSize: 21, fontWeight: '900', letterSpacing: -0.3, color: theme.textPrimary }}>
                 {t.officialNotices}
               </Text>
               {emergencyCount > 0 && (
-                <View className="px-2 py-0.5 rounded-full bg-rose-600 flex-row items-center">
-                  <Text className="text-white text-[9.5px] font-extrabold uppercase">{emergencyCount} Emergency</Text>
+                <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, backgroundColor: theme.dangerColor }}>
+                  <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800', textTransform: 'uppercase' }}>{emergencyCount} Emergency</Text>
                 </View>
               )}
             </View>
-            <Text className={`text-[11.5px] font-medium ${theme.textMutedClass}`}>
+            <Text style={{ fontSize: 11.5, fontWeight: '500', color: theme.textMuted, marginTop: 2 }}>
               {t.noticesSubhead}
             </Text>
           </View>
@@ -417,21 +419,20 @@ export default function NoticesScreen() {
                 router.push('/publish-notice');
               }}
               activeOpacity={0.85}
-              className="flex-row items-center px-3.5 py-2 rounded-xl bg-indigo-600"
-              style={theme.glowShadow('#4f46e5')}
+              style={[{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: theme.accentColor }, theme.glowShadow(theme.accentColor)]}
             >
               <Plus size={15} color="#ffffff" strokeWidth={2.5} />
-              <Text className="font-bold text-[12px] text-white ml-1">Broadcast</Text>
+              <Text style={{ fontWeight: '700', fontSize: 12, color: '#fff', marginLeft: 4 }}>Broadcast</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {/* Search */}
-        <View className={`flex-row items-center rounded-xl px-3 py-2 border ${theme.inputClass}`}>
+        <View className={`flex-row items-center rounded-2xl px-3.5 py-2.5 border ${theme.inputClass}`}>
           <Search size={15} color={theme.iconColor} />
           <TextInput
-            className={`flex-1 ml-2 text-[13px] font-medium ${theme.textClass}`}
-            placeholder={language === 'ne' ? 'सूचना खोज्नुहोस्...' : 'Search notices by title or content...'}
+            className={`flex-1 ml-2.5 text-[13px] font-medium ${theme.textClass}`}
+            placeholder={language === 'ne' ? 'सूचना खोज्नुहोस्...' : 'Search notices...'}
             placeholderTextColor={theme.inputPlaceholder}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -445,8 +446,8 @@ export default function NoticesScreen() {
       </View>
 
       {/* Categories */}
-      <View className={`border-b py-2 ${theme.headerBgClass}`}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-3" contentContainerStyle={{ paddingRight: 24 }}>
+      <View className="py-2.5 px-4 z-0">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 24, gap: 8 }}>
           {CATEGORIES.map(cat => {
             const isSelected = activeCategory === cat;
             return (
@@ -456,16 +457,10 @@ export default function NoticesScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setActiveCategory(cat);
                 }}
-                activeOpacity={0.75}
-                className={`px-3 py-1 rounded-xl mr-1.5 border ${
-                  isSelected 
-                    ? (theme.isDark ? 'bg-indigo-600 border-indigo-500' : 'bg-indigo-600 border-indigo-600') 
-                    : (theme.isDark ? 'bg-white/[0.04] border-white/10' : 'bg-slate-100/90 border-slate-200/80')
-                }`}
+                activeOpacity={0.8}
+                className={`px-4 py-2 rounded-full border ${isSelected ? theme.pillActiveClass : theme.pillInactiveClass}`}
               >
-                <Text className={`text-[11.5px] font-extrabold ${
-                  isSelected ? 'text-white' : theme.textSecondaryClass
-                }`}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: isSelected ? '#fff' : theme.textSecondaryClass }}>
                   {cat === 'All' ? t.all : (t[cat.toLowerCase() as keyof typeof t] || cat)}
                 </Text>
               </TouchableOpacity>
@@ -482,12 +477,12 @@ export default function NoticesScreen() {
           renderItem={loading ? renderSkeleton : renderItem}
           estimatedItemSize={240}
           contentContainerStyle={{ padding: 14, paddingBottom: 100 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563eb']} tintColor={theme.isDark ? '#60a5fa' : '#2563eb'} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.accentColor]} tintColor={theme.accentColor} />}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             !loading ? (
               <View className="items-center py-16 px-6">
-                <View className={`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+                <View className={`w-14 h-14 rounded-[24px] items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
                   <BellOff size={24} color={theme.iconColor} />
                 </View>
                 <Text className={`font-bold text-base mb-1 text-center ${theme.textClass}`}>{t.noNoticesFound}</Text>

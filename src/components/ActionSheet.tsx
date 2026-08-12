@@ -103,14 +103,14 @@ export default function ActionSheet({ visible, onClose, title, options }: Action
           transform: [{ translateY: slideAnim }]
         }}
       >
-        <View className={`rounded-t-2xl pt-4 px-4 border-t ${theme.cardClass}`} style={{ paddingBottom: Math.max(insets.bottom, 20) }}>
+        <View className={`rounded-t-3xl pt-4 px-4 border-t ${theme.glassCardClass}`} style={{ paddingBottom: Math.max(insets.bottom, 20) }}>
           <View className={`w-10 h-1.5 rounded-full self-center mb-4 ${theme.isDark ? 'bg-white/[0.12]' : 'bg-slate-300'}`} />
 
           {title && (
-            <Text className={`${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'} font-semibold text-[11px] tracking-wider uppercase mb-2 px-1`}>{title}</Text>
+            <Text className={`${theme.isDark ? 'text-primary-300' : 'text-primary'} font-semibold text-[11px] tracking-wider uppercase mb-2 px-1`}>{title}</Text>
           )}
 
-          <View className={`rounded-xl overflow-hidden mb-3 border ${theme.borderSubtleClass}`}>
+          <View className={`rounded-3xl overflow-hidden mb-3 border ${theme.borderSubtleClass}`}>
             {options.map((option, index) => (
               <TouchableOpacity
                 key={option.label}
@@ -131,7 +131,7 @@ export default function ActionSheet({ visible, onClose, title, options }: Action
 
           <TouchableOpacity
             onPress={onClose}
-            className={`rounded-xl py-3.5 items-center border ${theme.cardSubtleClass}`}
+            className={`rounded-full py-3.5 items-center border ${theme.cardSubtleClass}`}
             activeOpacity={0.7}
           >
             <Text className={`font-semibold text-[14.5px] ${theme.textClass}`}>Cancel</Text>
