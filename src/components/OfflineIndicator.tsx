@@ -1,16 +1,18 @@
 // @ts-nocheck
 import React, { useEffect, useState } from 'react';
-import { View, Text, Animated } from 'react-native';
+import { View, Text, Animated, Platform } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { WifiOff } from 'lucide-react-native';
 import { useTheme } from '../hooks/use-theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function OfflineIndicator() {
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const translateY = React.useRef(new Animated.Value(-100)).current;
+
+  // Use a safe fixed top value instead of useSafeAreaInsets() 
+  // which requires SafeAreaProvider context that may not exist at the layout level on native
+  const safeTop = Platform.OS === 'ios' ? 54 : Platform.OS === 'android' ? 40 : 0;
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
@@ -41,7 +43,7 @@ export function OfflineIndicator() {
     <Animated.View
       style={{
         position: 'absolute',
-        top: insets.top,
+        top: safeTop,
         left: 0,
         right: 0,
         transform: [{ translateY }],

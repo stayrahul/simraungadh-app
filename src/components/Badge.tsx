@@ -4,6 +4,9 @@ import { View, Text } from 'react-native';
 import { Clock, Loader2, CheckCircle2, XCircle, Tag, AlertTriangle, Building } from 'lucide-react-native';
 import { useTheme } from '../hooks/use-theme';
 
+import { useLangStore } from '../store/langStore';
+import { translations } from '../lib/translations';
+
 type BadgeType = 'pending' | 'in_progress' | 'resolved' | 'rejected' | 'category' | 'emergency' | 'general' | 'department';
 
 interface BadgeProps {
@@ -88,9 +91,6 @@ const BADGE_CONFIG: Record<BadgeType, { bgDark: string; bgLight: string; textDar
     icon: Building,
   },
 };
-
-import { useLangStore } from '../store/langStore';
-import { translations } from '../lib/translations';
 
 export default function Badge({ type, text, className = '', showIcon = true, size = 'sm' }: BadgeProps) {
   const config = BADGE_CONFIG[type] || BADGE_CONFIG.category;

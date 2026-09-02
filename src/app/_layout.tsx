@@ -1,10 +1,11 @@
 // @ts-nocheck
 import '../../global.css';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState, useRef } from 'react';
 import { Animated, View, Text, Image, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
@@ -42,7 +43,7 @@ try {
 
 export default function Layout() {
   const { setSession } = useAuthStore();
-  const router = useRouter();
+
   const theme = useTheme();
   
   // Splash Screen State
@@ -144,9 +145,9 @@ export default function Layout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
       <View style={{ flex: 1 }}>
         <AlertProvider>
-        <OfflineIndicator />
         <Stack
           screenOptions={{
           headerStyle: { backgroundColor: theme.colors.background },
@@ -172,7 +173,9 @@ export default function Layout() {
         <Stack.Screen name="help" options={{ headerShown: false }} />
         <Stack.Screen name="privacy" options={{ headerShown: false }} />
         <Stack.Screen name="contact" options={{ headerShown: false }} />
+        <Stack.Screen name="feedback" options={{ headerShown: false }} />
       </Stack>
+      <OfflineIndicator />
       <StatusBar style={theme.statusBar} />
       </AlertProvider>
 
@@ -198,6 +201,7 @@ export default function Layout() {
         </Animated.View>
       )}
     </View>
+    </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

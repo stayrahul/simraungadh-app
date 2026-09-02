@@ -488,14 +488,14 @@ export default function FeedScreen() {
   const renderItem = useCallback(({ item, extraData }: any) => {
     if ('question' in item) {
       return (
-        <View className="mb-4 px-4">
+        <View className="mb-1.5 px-3">
           <PollCard poll={item} onVote={handlePollVote} />
         </View>
       );
     }
     
     return (
-      <View className="mb-4 px-4">
+      <View className="mb-0.5 px-3">
         <FeedCard
           item={item}
           isLiked={extraData.likedIssues.has(item.id)}
@@ -531,81 +531,83 @@ export default function FeedScreen() {
 
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
-      {/* Header */}
-      <View className="px-5 pt-3 pb-1 z-10">
+      {/* Threads-Style Top Header */}
+      <View className="px-5 pt-2 pb-1 z-10">
         <View className="flex-row items-center justify-between">
-          {/* Left: Avatar + Greeting */}
-          <View className="flex-row items-center flex-1">
-            <TouchableOpacity
-              onPress={() => router.push('/profile')}
-              activeOpacity={0.8}
-              style={{ marginRight: 14 }}
-            >
-              {profile?.avatar_url ? (
-                <Image source={{ uri: profile.avatar_url }} style={{ width: 44, height: 44, borderRadius: 22 }} transition={200} />
-              ) : (
-                <View style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(99,102,241,0.15)' : '#eef2ff' }}>
-                  <User size={20} color={theme.accentColor} strokeWidth={2.2} />
-                </View>
-              )}
-            </TouchableOpacity>
-            <View className="flex-1">
-              <View className="flex-row items-center">
-                <Text className={`font-black text-[22px] tracking-tight ${theme.textClass}`}>
-                  {profile?.full_name?.split(' ')[0] || 'Citizen'}
-                </Text>
-                <RNAnimated.Text style={{ transform: [{ rotate: waveAnim.interpolate({ inputRange: [-1, 1], outputRange: ['-15deg', '15deg'] }) }], fontSize: 22, marginLeft: 8 }}>
-                  👋
-                </RNAnimated.Text>
-              </View>
-              <View className="flex-row items-center mt-0.5">
-                <Calendar size={11} color={theme.textMuted} />
-                <Text style={{ fontSize: 11, fontWeight: '500', color: theme.textMuted, marginLeft: 4 }}>{formattedDate.split(',')[0]}</Text>
-                {!weatherLoading && temp !== null && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8, backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 }}>
-                    <WeatherIcon size={11} color={weatherColor} />
-                    <Text style={{ fontSize: 11, fontWeight: '600', color: weatherColor, marginLeft: 4 }}>{temp}°C</Text>
-                  </View>
-                )}
-              </View>
-            </View>
+          {/* Left spacer for perfect centering */}
+          <View className="w-10" />
+
+          {/* Center: Threads-style Brand Logo */}
+          <View className="flex-1 items-center">
+            <Text className={`font-black text-[22px] tracking-tight ${theme.textClass}`}>
+              @simraungadh
+            </Text>
           </View>
 
           {/* Right: Actions */}
-          <View className="flex-row items-center gap-2.5">
+          <View className="w-10 items-end">
             <TouchableOpacity
               onPress={() => { Haptics.selectionAsync(); router.push('/search'); }}
               activeOpacity={0.7}
-              style={[{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }]}
+              className={`w-9 h-9 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/5' : 'bg-slate-100'}`}
             >
-              <Search size={20} color={theme.iconColor} strokeWidth={2} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => { Haptics.selectionAsync(); router.push('/notifications'); }}
-              activeOpacity={0.7}
-              style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }}
-            >
-              <Bell size={20} color={theme.iconColor} strokeWidth={2.2} />
-              {hasUnread && (
-                <View style={{ position: 'absolute', top: 10, right: 10, width: 9, height: 9, borderRadius: 4.5, backgroundColor: theme.dangerColor, borderWidth: 2, borderColor: theme.isDark ? '#000' : '#f1f5f9' }} />
-              )}
+              <Search size={18} color={theme.iconColor} strokeWidth={2} />
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
+      {/* Threads-Style "What's new?" Quick Post Bar */}
+      <View className="px-4 pt-1.5 pb-1">
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/report');
+          }}
+          activeOpacity={0.85}
+          className={`px-4 py-3 rounded-2xl border flex-row items-center justify-between ${
+            theme.isDark ? 'bg-white/[0.04] border-white/5' : 'bg-white border-slate-200/70'
+          }`}
+        >
+          <View className="flex-row items-center flex-1 mr-3">
+            {profile?.avatar_url ? (
+              <Image source={{ uri: profile.avatar_url }} style={{ width: 34, height: 34, borderRadius: 17 }} />
+            ) : (
+              <View className={`w-8 h-8 rounded-full items-center justify-center ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
+                <User size={16} color={theme.accentColor} />
+              </View>
+            )}
+            <View className="ml-3 flex-1">
+              <Text className={`text-[14px] font-medium ${theme.textMutedClass}`}>
+                {profile ? `${profile.full_name?.split(' ')[0] || 'Citizen'}, what's new?` : "What's new in Simraungadh?"}
+              </Text>
+            </View>
+          </View>
+          <View className={`px-3.5 py-1.5 rounded-full ${theme.isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
+            <Text className={`text-[12px] font-bold ${theme.isDark ? 'text-white' : 'text-slate-700'}`}>Post</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
       {/* Category Chips */}
-      <View className="pl-4 pb-2 pt-2 z-0">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 10, paddingRight: 20 }}>
+      <View className="pl-4 pb-2 pt-1 z-0">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 6, paddingRight: 20 }}>
           {/* Following Chip */}
           <TouchableOpacity
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setFeedTab(feedTab === 'following' ? 'all' : 'following'); setActiveCategory('All'); }}
             activeOpacity={0.8}
-            className={`flex-row items-center px-4 py-2 mr-2 rounded-full border ${feedTab === 'following' ? theme.pillActiveClass : theme.pillInactiveClass}`}
+            className={`flex-row items-center px-4 py-2 mr-2 rounded-full border ${
+              feedTab === 'following' 
+                ? (theme.isDark ? 'bg-white border-white' : 'bg-black border-black')
+                : (theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-slate-100 border-slate-200')
+            }`}
           >
-            <Users size={14} color={feedTab === 'following' ? '#ffffff' : theme.iconColor} strokeWidth={2.4} />
-            <Text className={`ml-2 font-bold text-[13px] ${feedTab === 'following' ? 'text-white' : theme.textSecondaryClass}`}>
+            <Users size={14} color={feedTab === 'following' ? (theme.isDark ? '#000000' : '#ffffff') : theme.iconColor} strokeWidth={2.4} />
+            <Text className={`ml-2 font-bold text-[13px] ${
+              feedTab === 'following' 
+                ? (theme.isDark ? 'text-black' : 'text-white')
+                : theme.textSecondaryClass
+            }`}>
               Following
             </Text>
           </TouchableOpacity>
@@ -620,10 +622,18 @@ export default function FeedScreen() {
                 key={cat.name}
                 onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setFeedTab('all'); setActiveCategory(cat.name); }}
                 activeOpacity={0.8}
-                className={`flex-row items-center px-4 py-2 mr-2 rounded-full border ${isActive ? theme.pillActiveClass : theme.pillInactiveClass}`}
+                className={`flex-row items-center px-4 py-2 mr-2 rounded-full border ${
+                  isActive 
+                    ? (theme.isDark ? 'bg-white border-white' : 'bg-black border-black')
+                    : (theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-slate-100 border-slate-200')
+                }`}
               >
-                <IconComp size={14} color={isActive ? '#ffffff' : theme.iconColor} strokeWidth={isActive ? 2.4 : 2} />
-                <Text className={`ml-2 font-bold text-[13px] ${isActive ? 'text-white' : theme.textSecondaryClass}`}>
+                <IconComp size={14} color={isActive ? (theme.isDark ? '#000000' : '#ffffff') : theme.iconColor} strokeWidth={isActive ? 2.4 : 2} />
+                <Text className={`ml-2 font-bold text-[13px] ${
+                  isActive 
+                    ? (theme.isDark ? 'text-black' : 'text-white')
+                    : theme.textSecondaryClass
+                }`}>
                   {cat.name}
                 </Text>
               </TouchableOpacity>

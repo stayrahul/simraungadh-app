@@ -45,7 +45,7 @@ export default function HelpScreen() {
               <Text className={`font-bold text-[15px] ${theme.textClass}`}>How do I report an issue?</Text>
             </View>
             <Text className={`text-[13px] leading-relaxed ${theme.textSecondaryClass}`}>
-              Navigate to the home screen and tap the floating "+" button at the bottom right. You can describe the issue, take photos, and choose the correct category (e.g. Road, Water, Electricity). Once submitted, the local authorities will be notified immediately.
+              Navigate to the home screen and tap the floating &quot;+&quot; button at the bottom right. You can describe the issue, take photos, and choose the correct category (e.g. Road, Water, Electricity). Once submitted, the local authorities will be notified immediately.
             </Text>
           </View>
 
@@ -56,7 +56,7 @@ export default function HelpScreen() {
               <Text className={`font-bold text-[15px] ${theme.textClass}`}>How do I track my reports?</Text>
             </View>
             <Text className={`text-[13px] leading-relaxed ${theme.textSecondaryClass}`}>
-              You can track the status of all your submitted reports directly from your Profile tab under "Activity History". Each post will have a colored badge indicating if it's Pending, In Progress, or Resolved by the municipality officials.
+              You can track the status of all your submitted reports directly from your Profile tab under &quot;Activity History&quot;. Each post will have a colored badge indicating if it&apos;s Pending, In Progress, or Resolved by the municipality officials.
             </Text>
           </View>
 

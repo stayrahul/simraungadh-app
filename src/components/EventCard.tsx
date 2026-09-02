@@ -27,7 +27,7 @@ export default function EventCard({ event }: { event: CivicEvent }) {
 
   return (
     <AnimatedCard>
-      <View className={`rounded-[24px] overflow-hidden mb-4 border ${theme.cardClass} ${theme.borderSubtleClass}`} style={theme.cardElevatedClass}>
+      <View className={`overflow-hidden mb-4 ${theme.cardClass} ${theme.borderSubtleClass}`} style={theme.cardElevatedClass}>
         
         {/* Image / Header */}
         {event.image_url ? (
@@ -38,7 +38,7 @@ export default function EventCard({ event }: { event: CivicEvent }) {
               <Text className="text-white text-[12px] font-bold">{getNepaliDate(event.event_date)}</Text>
             </View>
             {event.is_official && (
-              <View className="absolute top-3 right-3 px-2 py-1 rounded-full bg-blue-500 shadow-sm">
+              <View className="absolute top-3 right-3 px-2 py-1 rounded-full bg-blue-500">
                 <Text className="text-white text-[10px] font-bold uppercase tracking-wider">Official</Text>
               </View>
             )}

@@ -55,7 +55,7 @@ export default function PollCard({ poll, onVote }: { poll: Poll, onVote: (pollId
 
   return (
     <AnimatedCard>
-      <View className={`rounded-[24px] overflow-hidden border ${theme.cardClass} ${theme.borderSubtleClass}`} style={theme.cardElevatedClass}>
+      <View className={`overflow-hidden ${theme.cardClass} ${theme.borderSubtleClass}`} style={theme.cardElevatedClass}>
         
         {/* Header */}
         <View className="px-5 pt-5 pb-3 flex-row items-center justify-between">

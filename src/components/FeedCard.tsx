@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useRef, useState, memo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Share, Animated, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Share, Animated, Platform, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { User, Check, MapPin, MoreHorizontal, Globe, Heart, MessageSquare, Share2, Sparkles, ChevronDown, ChevronUp, Repeat, UserPlus, UserCheck, Users, Bookmark, BookmarkCheck } from 'lucide-react-native';
@@ -162,10 +162,13 @@ function FeedCard({
   };
 
   return (
-    <AnimatedCard className="mb-3">
-      <View className={theme.glassCardClass}>
+    <AnimatedCard className="mb-0">
+      <Pressable
+        onPress={() => router.push(`/issue/${item.id}`)}
+        className={theme.glassCardClass}
+      >
         {isReposted && (
-          <View className={`flex-row items-center px-4 py-1.5 ${theme.isDark ? 'bg-emerald-500/8' : 'bg-emerald-50'}`}>
+          <View className="flex-row items-center px-3 py-1">
             <Repeat size={11} color={theme.isDark ? '#34d399' : '#059669'} />
             <Text className={`${theme.isDark ? 'text-emerald-400' : 'text-emerald-600'} font-bold text-[10.5px] ml-1.5`}>
               You Reposted
@@ -173,35 +176,45 @@ function FeedCard({
           </View>
         )}
 
-        <View className="flex-row items-center px-4 pt-3.5 pb-1.5">
-          <TouchableOpacity
-            className="flex-row items-center flex-1 mr-2"
-            activeOpacity={item.is_anonymous ? 1 : 0.7}
-            onPress={() => {
-              if (!item.is_anonymous && item.author_id) {
-                router.push(`/user/${item.author_id}`);
-              }
-            }}
-          >
-            {item.author?.avatar_url && !item.is_anonymous ? (
-              <Image
-                source={{ uri: item.author.avatar_url }}
-                cachePolicy="memory-disk"
-                placeholder="LKO2?U%2Tw=w]~RBVZRi};RPxuwH" // Light gray blurhash
-                style={{ width: 44, height: 44, borderRadius: 22 }}
-                transition={200}
-              />
-            ) : (
-              <View style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(79,70,229,0.15)' : '#eef2ff' }}>
-                <User size={20} color={theme.accentColor} />
-              </View>
-            )}
+        <View className="flex-row items-center px-2.5 pt-2 pb-0.5">
+          <View className="flex-row items-center flex-1 mr-2">
+            <TouchableOpacity
+              activeOpacity={item.is_anonymous ? 1 : 0.7}
+              onPress={() => {
+                if (!item.is_anonymous && item.author_id) {
+                  router.push(`/user/${item.author_id}`);
+                }
+              }}
+            >
+              {item.author?.avatar_url && !item.is_anonymous ? (
+                <Image
+                  source={{ uri: item.author.avatar_url }}
+                  cachePolicy="memory-disk"
+                  placeholder="LKO2?U%2Tw=w]~RBVZRi};RPxuwH" // Light gray blurhash
+                  style={{ width: 36, height: 36, borderRadius: 18 }}
+                  transition={200}
+                />
+              ) : (
+                <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(79,70,229,0.15)' : '#eef2ff' }}>
+                  <User size={18} color={theme.accentColor} />
+                </View>
+              )}
+            </TouchableOpacity>
 
             <View className="ml-2.5 flex-1">
               <View className="flex-row items-center">
-                <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>
-                  {item.is_anonymous ? t.anonymous : (item.author?.full_name || t.anonymous)}
-                </Text>
+                <TouchableOpacity
+                  activeOpacity={item.is_anonymous ? 1 : 0.7}
+                  onPress={() => {
+                    if (!item.is_anonymous && item.author_id) {
+                      router.push(`/user/${item.author_id}`);
+                    }
+                  }}
+                >
+                  <Text className={`font-bold text-[15px] tracking-tight ${theme.textClass}`}>
+                    {item.is_anonymous ? t.anonymous : (item.author?.full_name || t.anonymous)}
+                  </Text>
+                </TouchableOpacity>
                 {!item.is_anonymous && item.author && (
                   <View className="ml-1">
                     <UserBadges badges={item.author.badges || (item.author.is_verified ? ['verified'] : [])} size={15} />
@@ -213,14 +226,14 @@ function FeedCard({
                     onPress={handleFollow}
                     disabled={followLoading}
                     activeOpacity={0.7}
-                    className="ml-2 bg-indigo-50 dark:bg-indigo-500/20 px-2 py-0.5 rounded-md"
+                    className="ml-2 py-0.5"
                   >
                     <Text className={`text-[12px] font-bold ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>{initialFollowedBy ? (t.followBack || 'Follow Back') : t.follow}</Text>
                   </TouchableOpacity>
                 )}
 
                 {!item.is_anonymous && isFollowing && (
-                  <View className="ml-2 bg-emerald-50 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-md">
+                  <View className="ml-2 py-0.5">
                     {isFriends ? (
                       <Users size={12} color={theme.isDark ? '#34d399' : '#059669'} />
                     ) : (
@@ -230,28 +243,28 @@ function FeedCard({
                 )}
               </View>
 
-              <View className="flex-row items-center mt-1">
-                <MapPin size={11} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
-                <Text className={`text-[12px] font-medium ml-1 ${theme.isDark ? 'text-primary-300' : 'text-primary'}`}>
+              <View className="flex-row items-center mt-0.5">
+                <MapPin size={9} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
+                <Text className={`text-[9px] font-medium ml-0.5 ${theme.isDark ? 'text-primary-300' : 'text-primary'}`}>
                   Ward {item.ward_number || 1}
                 </Text>
-                <Text className={`text-[10px] mx-1.5 ${theme.textMutedClass}`}>•</Text>
-                <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>
+                <Text className={`text-[8px] mx-1 ${theme.textMutedClass}`}>•</Text>
+                <Text className={`text-[9px] font-medium ${theme.textMutedClass}`}>
                   {theme.timeAgo(item.created_at)}
                 </Text>
-                <Text className={`text-[10px] mx-1.5 ${theme.textMutedClass}`}>•</Text>
-                <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>
+                <Text className={`text-[8px] mx-1 ${theme.textMutedClass}`}>•</Text>
+                <Text className={`text-[9px] font-medium ${theme.textMutedClass}`}>
                   {categoryLabel}
                 </Text>
               </View>
             </View>
-          </TouchableOpacity>
+          </View>
 
           <View className="flex-row items-center gap-1.5">
             {item.post_type === 'report' && item.status && (
               <Badge type={item.status as any} text={item.status.replace('_', ' ')} size="sm" />
             )}
-            
+
             <TouchableOpacity
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               onPress={handleBookmark}
@@ -272,12 +285,8 @@ function FeedCard({
           </View>
         </View>
 
-        <TouchableOpacity 
-          activeOpacity={0.7} 
-          onPress={() => router.push(`/issue/${item.id}`)}
-          className="px-4 pb-4 pt-1.5"
-        >
-          <Text className={`text-[16px] leading-[26px] font-medium tracking-tight ${theme.textClass}`} numberOfLines={expanded ? undefined : 3}>
+        <View className="px-2.5 pb-1.5 pt-0.5">
+          <Text className={`text-[12px] leading-[16px] font-medium tracking-tight ${theme.textClass}`} numberOfLines={expanded ? undefined : 3}>
             {translationsCache?.[item.id] || item.description}
           </Text>
 
@@ -294,10 +303,10 @@ function FeedCard({
           )}
 
           {item.description && onTranslate && translationsCache && translating && (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => onTranslate(item.id, item.description)}
               disabled={translating[item.id]}
-              className={`mt-2.5 flex-row items-center self-start px-3 py-1.5 rounded-lg ${theme.isDark ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}
+              className="mt-2 flex-row items-center self-start py-1"
             >
               <Sparkles size={12} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
               <Text className={`text-[11.5px] font-bold ml-1.5 ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
@@ -305,24 +314,23 @@ function FeedCard({
               </Text>
             </TouchableOpacity>
           )}
-        </TouchableOpacity>
+        </View>
 
         {((item.image_urls && item.image_urls.length > 0) || item.image_url) ? (
-          <View className="mb-3 px-2 w-full relative">
-            <View className="overflow-hidden rounded-[24px]">
+          <View className="mb-1 w-full relative">
+            <View className="overflow-hidden">
               <IssueImageCarousel
                 imageUrls={item.image_urls}
                 fallbackUrl={item.image_url}
-                height={320}
-                onImagePress={(index) => {
-                  setSelectedImageIndex(index || 0);
-                  setShowImageViewer(true);
+                height={400}
+                onImagePress={() => {
+                  router.push(`/issue/${item.id}`);
                 }}
                 onDoubleTap={() => {
                   if (!isLiked) {
                     onLike(item.id, false);
                   }
-                  
+
                   Animated.sequence([
                     Animated.parallel([
                       Animated.spring(heartScaleAnim, { toValue: 1, friction: 5, tension: 80, useNativeDriver: Platform.OS !== 'web' }),
@@ -339,11 +347,11 @@ function FeedCard({
                 }}
               />
             </View>
-            
+
             <View style={{ pointerEvents: 'none' }} className="absolute inset-0 items-center justify-center">
-              <Animated.View style={{ 
-                opacity: heartOpacityAnim, 
-                transform: [{ scale: heartScaleAnim }] 
+              <Animated.View style={{
+                opacity: heartOpacityAnim,
+                transform: [{ scale: heartScaleAnim }]
               }}>
                 <Heart size={100} color="#F43F5E" fill="#F43F5E" />
               </Animated.View>
@@ -351,7 +359,7 @@ function FeedCard({
           </View>
         ) : null}
 
-        <View className="flex-row items-center px-4 pt-2 pb-4 border-t border-slate-100 dark:border-white/5 mt-1">
+        <View className="flex-row items-center px-2 pt-1 pb-1 border-t border-slate-100 dark:border-white/5 mt-0.5">
           <TouchableOpacity
             onPress={() => {
               Animated.sequence([
@@ -364,9 +372,9 @@ function FeedCard({
             className="flex-row items-center justify-center py-1.5 flex-1"
           >
             <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-              <Heart size={22} color={isLiked ? '#F43F5E' : theme.iconColor} fill={isLiked ? '#F43F5E' : 'transparent'} />
+              <Heart size={18} color={isLiked ? '#F43F5E' : theme.iconColor} fill={isLiked ? '#F43F5E' : 'transparent'} />
             </Animated.View>
-            <Text className={`ml-1.5 font-medium text-[14px] ${isLiked ? 'text-rose-500' : theme.textSecondaryClass}`}>
+            <Text className={`ml-1 font-medium text-[12px] ${isLiked ? 'text-rose-500' : theme.textSecondaryClass}`}>
               {item.upvotes_count || 0}
             </Text>
           </TouchableOpacity>
@@ -383,9 +391,9 @@ function FeedCard({
             className="flex-row items-center justify-center py-1.5 flex-1 border-l border-slate-100 dark:border-white/5"
           >
             <Animated.View style={{ transform: [{ scale: commentScaleAnim }] }}>
-              <MessageSquare size={21} color={theme.iconColor} />
+              <MessageSquare size={18} color={theme.iconColor} />
             </Animated.View>
-            <Text className={`ml-1.5 font-medium text-[14px] ${theme.textSecondaryClass}`}>
+            <Text className={`ml-1 font-medium text-[12px] ${theme.textSecondaryClass}`}>
               {commentCount}
             </Text>
           </TouchableOpacity>
@@ -402,14 +410,14 @@ function FeedCard({
             className="flex-row items-center justify-center py-1.5 flex-1 border-l border-slate-100 dark:border-white/5"
           >
             <Animated.View style={{ transform: [{ scale: shareScaleAnim }] }}>
-              <Share2 size={21} color={theme.iconColor} />
+              <Share2 size={18} color={theme.iconColor} />
             </Animated.View>
-            <Text className={`ml-1.5 font-medium text-[14px] ${theme.textSecondaryClass}`}>
+            <Text className={`ml-1 font-medium text-[12px] ${theme.textSecondaryClass}`}>
               {t.share}
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Pressable>
 
       <ActionSheet
         visible={showOptions}

@@ -9,6 +9,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ArrowLeft, User, Check, MapPin, MoreHorizontal, Heart, MessageSquare, Share2, Shield, Send, X, Clock, Sparkles, MessageCircle, ThumbsUp, ThumbsDown, CornerUpLeft, Activity } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
+import ImageViewer from 'react-native-image-zoom-viewer';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Issue, IssueComment } from '../../lib/types';
@@ -51,6 +52,13 @@ export default function IssueDetailScreen() {
   const [fullScreenImageIndex, setFullScreenImageIndex] = useState<number | null>(null);
 
   // Comment Like/Dislike & Reply state
+  const [isLikingComment, setIsLikingComment] = useState<Record<string, boolean>>({});
+  const [visibleReplies, setVisibleReplies] = useState<Set<string>>(new Set());
+
+  const visibleComments = React.useMemo(() => {
+    return comments.filter(c => !c.parent_id || visibleReplies.has(c.parent_id));
+  }, [comments, visibleReplies]);
+
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
   const [dislikedComments, setDislikedComments] = useState<Set<string>>(new Set());
   const [commentLikeCounts, setCommentLikeCounts] = useState<Record<string, number>>({});
@@ -124,7 +132,11 @@ export default function IssueDetailScreen() {
   }, [fetchIssueDetails]);
 
   const handleLike = async () => {
-    if (!profile || !issue) return;
+    if (!profile) {
+      router.push('/login');
+      return;
+    }
+    if (!issue) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     const currentlyLiked = isLiked;
@@ -358,7 +370,7 @@ export default function IssueDetailScreen() {
             <View className="ml-2 border-l-2 border-slate-200 dark:border-white/10 pl-6 pb-2 relative">
               
               {/* Submitted Node */}
-              <View className="absolute -left-[11px] top-0 w-5 h-5 rounded-full items-center justify-center bg-indigo-500 shadow-sm shadow-indigo-500/30">
+              <View className="absolute -left-[11px] top-0 w-5 h-5 rounded-full items-center justify-center bg-indigo-500">
                 <Check size={12} color="#fff" strokeWidth={3} />
               </View>
               <View className="mb-6 -mt-1">
@@ -367,7 +379,7 @@ export default function IssueDetailScreen() {
               </View>
 
               {/* In Progress Node */}
-              <View className={`absolute -left-[11px] top-[60px] w-5 h-5 rounded-full items-center justify-center ${(issue.status === 'in_progress' || issue.status === 'resolved') ? 'bg-amber-500 shadow-sm shadow-amber-500/30' : (theme.isDark ? 'bg-white/10' : 'bg-slate-200')}`}>
+              <View className={`absolute -left-[11px] top-[60px] w-5 h-5 rounded-full items-center justify-center ${(issue.status === 'in_progress' || issue.status === 'resolved') ? 'bg-amber-500' : (theme.isDark ? 'bg-white/10' : 'bg-slate-200')}`}>
                 <Activity size={12} color="#fff" strokeWidth={3} />
               </View>
               <View className="mb-6">
@@ -376,7 +388,7 @@ export default function IssueDetailScreen() {
               </View>
 
               {/* Resolved Node */}
-              <View className={`absolute -left-[11px] top-[120px] w-5 h-5 rounded-full items-center justify-center ${issue.status === 'resolved' ? 'bg-green-500 shadow-sm shadow-green-500/30' : (theme.isDark ? 'bg-white/10' : 'bg-slate-200')}`}>
+              <View className={`absolute -left-[11px] top-[120px] w-5 h-5 rounded-full items-center justify-center ${issue.status === 'resolved' ? 'bg-green-500' : (theme.isDark ? 'bg-white/10' : 'bg-slate-200')}`}>
                 <Check size={12} color="#fff" strokeWidth={3} />
               </View>
               <View>
@@ -402,11 +414,14 @@ export default function IssueDetailScreen() {
   };
 
   const renderComment = ({ item }: { item: IssueComment }) => {
+
     const isMe = profile && item.author_id === profile.id;
     const isCommentLiked = likedComments.has(item.id);
     const isCommentDisliked = dislikedComments.has(item.id);
     const likesCount = commentLikeCounts[item.id] || 0;
     const dislikesCount = commentDislikeCounts[item.id] || 0;
+    const repliesCount = comments.filter(c => c.parent_id === item.id).length;
+    const isRepliesVisible = visibleReplies.has(item.id);
 
     return (
       <View className={`px-5 py-4 border-b ${theme.borderSubtleClass} ${
@@ -508,6 +523,26 @@ export default function IssueDetailScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* Show/Hide Replies Toggle */}
+            {!item.parent_id && repliesCount > 0 && (
+              <TouchableOpacity
+                onPress={() => {
+                  setVisibleReplies(prev => {
+                    const next = new Set(prev);
+                    if (next.has(item.id)) next.delete(item.id);
+                    else next.add(item.id);
+                    return next;
+                  });
+                }}
+                className="mt-3 flex-row items-center"
+              >
+                <View className="w-6 h-[1px] bg-slate-300 dark:bg-slate-600 mr-2" />
+                <Text className={`text-[11.5px] font-bold ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                  {isRepliesVisible ? 'Hide replies' : `Show ${repliesCount} repl${repliesCount === 1 ? 'y' : 'ies'}`}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -526,7 +561,7 @@ export default function IssueDetailScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       className={`flex-1 ${theme.bgClass}`}
     >
@@ -538,34 +573,33 @@ export default function IssueDetailScreen() {
         <View className="w-10 h-10" />
       </View>
 
-      <FlashList
-        ref={flatListRef}
-        data={comments}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderHeader()}
-        renderItem={renderComment}
-        contentContainerStyle={{ paddingBottom: 110 }}
-        estimatedItemSize={120}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View className="items-center justify-center py-12 px-5">
-            <View className={`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-              <MessageCircle size={26} color={theme.iconColor} />
+      <View style={{ flex: 1 }}>
+        <FlashList
+          ref={flatListRef}
+          data={visibleComments}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader()}
+          renderItem={renderComment}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          estimatedItemSize={120}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View className="items-center justify-center py-12 px-5">
+              <View className={`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+                <MessageCircle size={26} color={theme.iconColor} />
+              </View>
+              <Text className={`font-bold text-[15px] mb-1 text-center ${theme.textClass}`}>No comments yet</Text>
+              <Text className={`font-medium text-center text-[12.5px] ${theme.textSecondaryClass}`}>Be the first citizen to leave a comment on this report!</Text>
             </View>
-            <Text className={`font-bold text-[15px] mb-1 text-center ${theme.textClass}`}>No comments yet</Text>
-            <Text className={`font-medium text-center text-[12.5px] ${theme.textSecondaryClass}`}>Be the first citizen to leave a comment on this report!</Text>
-          </View>
-        }
-      />
+          }
+        />
+      </View>
 
-      {/* Floating Glassmorphic Input Bar */}
-      {profile ? (
-        <View className="absolute bottom-0 left-0 right-0 w-full">
-          <BlurView intensity={theme.isDark ? 50 : 80} tint={theme.isDark ? 'dark' : 'light'} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-          <View className={`absolute inset-0 ${theme.isDark ? 'bg-[#0A0A0C]/80' : 'bg-white/70'}`} />
-          <View className={`border-t ${theme.borderSubtleClass}`}>
+      {profile && (
+        <View className="w-full px-5 py-4 pt-2 border-t border-slate-200/50 dark:border-white/5 bg-transparent">
+          <View className={`border rounded-[24px] ${theme.isDark ? 'bg-[#0A0A0C]/80 border-white/10' : 'bg-white border-slate-200'}`}>
             {replyingTo && (
-              <View className={`px-5 py-2.5 flex-row justify-between items-center ${theme.isDark ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>
+              <View className={`px-4 py-2.5 flex-row justify-between items-center rounded-t-[24px] ${theme.isDark ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>
                 <Text className={`text-[12.5px] font-medium ${theme.isDark ? 'text-indigo-200' : 'text-indigo-800'}`}>
                   Replying to <Text className="font-extrabold">@{replyingTo.name}</Text>
                 </Text>
@@ -574,22 +608,19 @@ export default function IssueDetailScreen() {
                 </TouchableOpacity>
               </View>
             )}
-            <View 
-              style={{ paddingBottom: Math.max(insets.bottom, 16), paddingTop: 12, paddingHorizontal: 16 }} 
-              className="flex-row items-end"
-            >
+            <View className="px-4 py-3 flex-row items-end">
               {profile?.avatar_url ? (
-                <Image source={{ uri: profile.avatar_url }} style={{ width: 38, height: 38, borderRadius: 19, marginBottom: 2 }} className="bg-slate-800 mr-3" transition={200} />
+                <Image source={{ uri: profile.avatar_url }} style={{ width: 34, height: 34, borderRadius: 17, marginBottom: 2 }} className="bg-slate-800 mr-3" transition={200} />
               ) : (
-                <View className={`w-9 h-9 rounded-full items-center justify-center mr-3 mb-1 ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50'}`}>
-                  <User size={18} color={theme.isDark ? '#818cf8' : '#6366f1'} />
+                <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 mb-1 ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50'}`}>
+                  <User size={16} color={theme.isDark ? '#818cf8' : '#6366f1'} />
                 </View>
               )}
 
-              <View className={`flex-1 rounded-[20px] flex-row items-center pl-4 pr-1.5 py-1.5 border ${theme.isDark ? 'bg-black/40 border-white/10' : 'bg-white/80 border-slate-200 shadow-sm'}`}>
+              <View className="flex-1 flex-row items-center">
                 <TextInput
                   ref={inputRef}
-                  className={`flex-1 text-[14px] min-h-[38px] max-h-[120px] py-2 font-medium ${theme.textClass}`}
+                  className={`flex-1 text-[14px] min-h-[36px] max-h-[120px] py-1.5 font-medium ${theme.textClass}`}
                   placeholder="Add a comment..."
                   placeholderTextColor={theme.inputPlaceholder}
                   multiline
@@ -599,15 +630,15 @@ export default function IssueDetailScreen() {
                 <TouchableOpacity
                   onPress={handlePostComment}
                   disabled={!commentText.trim() || posting}
-                  className={`w-9 h-9 items-center justify-center rounded-full ml-2 ${!commentText.trim() || posting ? (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100') : (theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600')}`}
+                  className={`w-8 h-8 items-center justify-center rounded-full ml-2 ${!commentText.trim() || posting ? (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100') : (theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600')}`}
                 >
-                  <Send size={15} color={!commentText.trim() || posting ? theme.iconColor : '#ffffff'} style={commentText.trim() && !posting ? { marginLeft: -2 } : {}} />
+                  <Send size={14} color={!commentText.trim() || posting ? theme.iconColor : '#ffffff'} style={commentText.trim() && !posting ? { marginLeft: -2 } : {}} />
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         </View>
-      ) : null}
+      )}
 
       <ActionSheet
         visible={showOptions}
@@ -663,35 +694,23 @@ export default function IssueDetailScreen() {
       />
 
       <Modal visible={fullScreenImageIndex !== null} transparent={true} animationType="fade" onRequestClose={() => setFullScreenImageIndex(null)}>
-        <View className="flex-1 bg-black/95 justify-center items-center">
-          <SafeAreaView className="absolute top-0 w-full z-10">
+        <View className="flex-1 bg-black/95">
+          <SafeAreaView className="absolute top-0 w-full z-10" edges={['top']}>
             <View className="flex-row justify-end p-4">
-              <TouchableOpacity onPress={() => setFullScreenImageIndex(null)} className="w-10 h-10 bg-white/20 rounded-full items-center justify-center">
+              <TouchableOpacity onPress={() => setFullScreenImageIndex(null)} className="w-10 h-10 bg-white/20 rounded-full items-center justify-center z-50">
                 <X size={22} color="#fff" />
               </TouchableOpacity>
             </View>
           </SafeAreaView>
           
-          {(issue?.image_urls && issue.image_urls.length > 0) || issue?.image_url ? (
-            <FlashList
-              data={issue?.image_urls && issue.image_urls.length > 0 ? issue.image_urls : issue?.image_url ? [issue.image_url] : []}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              initialScrollIndex={fullScreenImageIndex !== null ? fullScreenImageIndex : 0}
-              getItemLayout={(data, index) => ({ length: Dimensions.get('window').width, offset: Dimensions.get('window').width * index, index })}
-              keyExtractor={(_, idx) => idx.toString()}
-              renderItem={({ item }) => (
-                <View style={{ width: Dimensions.get('window').width, height: '100%', justifyContent: 'center' }}>
-                  <Image 
-                    source={{ uri: item }} 
-                    style={{ width: '100%', height: '100%' }} 
-                    contentFit="contain" 
-                  />
-                </View>
-              )}
-            />
-          ) : null}
+          <ImageViewer 
+            imageUrls={(issue?.image_urls && issue.image_urls.length > 0 ? issue.image_urls : issue?.image_url ? [issue.image_url] : []).map(url => ({ url }))}
+            index={fullScreenImageIndex || 0}
+            enableSwipeDown
+            onSwipeDown={() => setFullScreenImageIndex(null)}
+            renderIndicator={() => <View />}
+            backgroundColor="transparent"
+          />
         </View>
       </Modal>
     </KeyboardAvoidingView>

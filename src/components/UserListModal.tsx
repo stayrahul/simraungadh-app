@@ -12,6 +12,8 @@ import { useLangStore } from '../store/langStore';
 import { translations } from '../lib/translations';
 import Badge from './Badge';
 
+import { createNotification } from '../lib/notifications';
+
 interface UserListModalProps {
   visible: boolean;
   onClose: () => void;
@@ -19,8 +21,6 @@ interface UserListModalProps {
   userName?: string;
   initialTab?: 'followers' | 'following';
 }
-
-import { createNotification } from '../lib/notifications';
 
 export default function UserListModal({
   visible,

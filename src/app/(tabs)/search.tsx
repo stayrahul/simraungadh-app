@@ -1,17 +1,19 @@
 // @ts-nocheck
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Linking, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Search, ArrowLeft, X, User, Megaphone, AlertCircle, Phone, Shield, ChevronRight, Clock, TrendingUp, Users, Flame, UserCheck, UserPlus, Sparkles, PhoneCall, Building2, Activity, ShieldAlert, Crosshair, Wrench, Zap, Star } from 'lucide-react-native';
+import { Search, X, User, Megaphone, AlertCircle, Phone, Shield, ChevronRight, Clock, TrendingUp, Users, UserPlus, UserCheck, Flame, Sparkles, PhoneCall, Building2, Activity, ShieldAlert, Crosshair, Wrench, Zap, Star } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { supabase } from '../lib/supabase';
-import { Profile, Issue, Notice } from '../lib/types';
-import { useTheme } from '../hooks/use-theme';
-import { useAuthStore } from '../store/authStore';
-import { UserBadges } from '../components/UserBadges';
+import { supabase } from '../../lib/supabase';
+import { Profile, Issue, Notice } from '../../lib/types';
+import { useTheme } from '../../hooks/use-theme';
+import { useAuthStore } from '../../store/authStore';
+import { useLangStore } from '../../store/langStore';
+import { translations } from '../../lib/translations';
+import { UserBadges } from '../../components/UserBadges';
 
 const TABS = ['All', 'People', 'Reports', 'Notices', 'Directory'];
 
@@ -40,7 +42,7 @@ const DIRECTORY_DATA = [
   { id: 'm1', name: 'Shiva Auto & Tractor Works', category: 'Directory', phone: '9840000015', details: 'Vehicle & Tractor Repair', icon: Wrench, ward: 'Ward 3', address: 'Main Highway', hours: '8 AM - 6 PM' },
 ];
 
-export default function GlobalSearchScreen() {
+export default function TabSearchScreen() {
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState('All');
   const [loading, setLoading] = useState(false);
@@ -52,11 +54,13 @@ export default function GlobalSearchScreen() {
   const [suggestedPeople, setSuggestedPeople] = useState<Profile[]>([]);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const TRENDING = ['Mayor', 'Ward Chairman', 'Water Supply', 'Road Repair', 'Electricity', 'Kankali Temple', 'Hospital'];
+  const TRENDING = ['Ward Chairman', 'Water Supply', 'Road Repair', 'Mayor', 'Electricity', 'Kankali Temple', 'Hospital'];
 
   const router = useRouter();
   const theme = useTheme();
   const { profile } = useAuthStore();
+  const { language } = useLangStore();
+  const t = translations[language] || translations.en;
 
   useEffect(() => {
     const loadHistoryAndSuggestions = async () => {
@@ -64,12 +68,12 @@ export default function GlobalSearchScreen() {
         const history = await AsyncStorage.getItem('@search_history');
         if (history) setRecentSearches(JSON.parse(history));
 
-        // Fetch suggested citizens & officials to discover immediately
+        // Fetch suggested active citizens / officials to follow
         const { data: usersData } = await supabase
           .from('profiles')
           .select('id, full_name, avatar_url, role, badges, is_verified, home_ward, department')
           .neq('id', profile?.id || '00000000-0000-0000-0000-000000000000')
-          .limit(10);
+          .limit(8);
 
         if (usersData) setSuggestedPeople(usersData);
 
@@ -136,7 +140,7 @@ export default function GlobalSearchScreen() {
     const lowerTrimmed = trimmed.toLowerCase();
 
     try {
-      // 1. Search Directory items
+      // 1. Search Directory Items locally
       const filteredDirectory = DIRECTORY_DATA.filter(item => 
         item.name.toLowerCase().includes(lowerTrimmed) ||
         item.details.toLowerCase().includes(lowerTrimmed) ||
@@ -153,7 +157,7 @@ export default function GlobalSearchScreen() {
           .from('profiles')
           .select('id, full_name, avatar_url, role, badges, is_verified, home_ward, department, phone_number')
           .ilike('full_name', searchTerm)
-          .limit(20);
+          .limit(15);
         if (!error && data) {
           peopleData = data;
         }
@@ -161,14 +165,14 @@ export default function GlobalSearchScreen() {
         console.error('People search error:', err);
       }
 
-      // 3. Search Issues / Reports
+      // 3. Search Issues / Civic Reports
       let issuesData: Issue[] = [];
       try {
         const { data, error } = await supabase
           .from('issues')
           .select('id, title, description, category, status, ward_number, created_at')
           .or(`title.ilike.${searchTerm},description.ilike.${searchTerm},category.ilike.${searchTerm}`)
-          .limit(20);
+          .limit(15);
         if (!error && data) {
           issuesData = data;
         }
@@ -183,7 +187,7 @@ export default function GlobalSearchScreen() {
           .from('notices')
           .select('*')
           .or(`title.ilike.${searchTerm},content.ilike.${searchTerm},category.ilike.${searchTerm}`)
-          .limit(20);
+          .limit(15);
         if (!error && data) {
           noticesData = data;
         }
@@ -237,36 +241,32 @@ export default function GlobalSearchScreen() {
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
       {/* Search Header Bar */}
-      <View className="px-4 pt-3 pb-2 z-10">
-        <View className="flex-row items-center gap-3">
-          <TouchableOpacity
-            onPress={() => router.canGoBack() ? router.back() : router.replace('/')}
-            style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }}
-          >
-            <ArrowLeft size={18} color={theme.iconColor} />
-          </TouchableOpacity>
-
-          <View className={`flex-1 flex-row items-center rounded-2xl px-4 py-2.5 border ${theme.isDark ? 'bg-white/5 border-white/5' : 'bg-slate-100 border-slate-200/60'}`}>
-            <Search size={17} color={theme.iconColor} strokeWidth={2.2} />
-            <TextInput
-              autoFocus
-              className={`flex-1 ml-3 text-[14.5px] font-medium ${theme.textClass}`}
-              placeholder="Search citizens, reports, notices, contacts..."
-              placeholderTextColor={theme.inputPlaceholder}
-              value={query}
-              onChangeText={handleSearch}
-              onSubmitEditing={() => executeSearch(query)}
-              returnKeyType="search"
-            />
-            {query.length > 0 && (
-              <TouchableOpacity onPress={() => handleSearch('')} className="p-1">
-                <X size={15} color={theme.iconColor} />
-              </TouchableOpacity>
-            )}
-          </View>
+      <View className="px-5 pt-3 pb-2 z-10">
+        <View className="flex-row items-center justify-between mb-3">
+          <Text className={`font-black text-[28px] tracking-tight ${theme.textClass}`}>
+            Search
+          </Text>
         </View>
 
-        {/* Category Tabs */}
+        <View className={`flex-row items-center rounded-2xl px-4 py-3 border ${theme.isDark ? 'bg-white/5 border-white/5' : 'bg-slate-100 border-slate-200/60'}`}>
+          <Search size={18} color={theme.iconColor} strokeWidth={2.2} />
+          <TextInput
+            className={`flex-1 ml-3 text-[15px] font-medium ${theme.textClass}`}
+            placeholder="Search citizens, reports, notices, contacts..."
+            placeholderTextColor={theme.inputPlaceholder}
+            value={query}
+            onChangeText={handleSearch}
+            onSubmitEditing={() => executeSearch(query)}
+            returnKeyType="search"
+          />
+          {query.length > 0 && (
+            <TouchableOpacity onPress={() => handleSearch('')} className="p-1">
+              <X size={16} color={theme.iconColor} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Category Filter Chips */}
         {query.trim().length > 0 && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ paddingRight: 10 }}>
             {TABS.map(tab => {
@@ -279,11 +279,11 @@ export default function GlobalSearchScreen() {
                     setActiveTab(tab);
                   }}
                   activeOpacity={0.8}
-                  className={`px-4 py-1.5 mr-2 rounded-full border ${
+                  className={`px-4 py-2 mr-2 rounded-full border ${
                     isSelected ? theme.pillActiveClass : theme.pillInactiveClass
                   }`}
                 >
-                  <Text className={`font-bold text-[12px] ${isSelected ? 'text-white' : theme.textSecondaryClass}`}>
+                  <Text className={`font-bold text-[13px] ${isSelected ? 'text-white' : theme.textSecondaryClass}`}>
                     {tab}
                   </Text>
                 </TouchableOpacity>
@@ -294,7 +294,7 @@ export default function GlobalSearchScreen() {
       </View>
 
       {/* Main Content Area */}
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 18, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 18, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         {loading && (
           <View className="py-12 items-center">
             <ActivityIndicator size="small" color={theme.accentColor} />
@@ -305,9 +305,9 @@ export default function GlobalSearchScreen() {
         {/* Suggested People & Trending when Query is Empty */}
         {!loading && query.trim().length === 0 && (
           <View>
-            {/* Recent Search */}
+            {/* Recent Searches */}
             {recentSearches.length > 0 && (
-              <View className="mb-5">
+              <View className="mb-6">
                 <View className="flex-row items-center justify-between mb-3">
                   <View className="flex-row items-center">
                     <Clock size={14} color={theme.iconColor} />
@@ -338,7 +338,7 @@ export default function GlobalSearchScreen() {
               <View className="flex-row items-center mb-3">
                 <TrendingUp size={14} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
                 <Text className={`font-bold text-[12px] uppercase tracking-wider ml-1.5 ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
-                  Trending Topics
+                  Trending in Simraungadh
                 </Text>
               </View>
 
@@ -356,13 +356,13 @@ export default function GlobalSearchScreen() {
               </View>
             </View>
 
-            {/* Citizens & Officials to Follow */}
+            {/* Suggested Citizens / Officials to Follow */}
             {suggestedPeople.length > 0 && (
               <View>
                 <View className="flex-row items-center mb-3">
                   <Users size={14} color={theme.iconColor} />
                   <Text className={`font-bold text-[12px] uppercase tracking-wider ml-1.5 ${theme.textMutedClass}`}>
-                    Citizens & Officials
+                    Citizens & Officials to follow
                   </Text>
                 </View>
 
@@ -440,13 +440,12 @@ export default function GlobalSearchScreen() {
               </View>
             ) : (
               <>
-                {/* 1. PEOPLE RESULTS */}
+                {/* 1. PEOPLE / CITIZENS & OFFICIALS */}
                 {(activeTab === 'All' || activeTab === 'People') && people.length > 0 && (
                   <View className="mb-5">
                     <Text className={`font-bold text-[12px] uppercase tracking-wider mb-2.5 ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
-                      People ({people.length})
+                      Citizens & Officials ({people.length})
                     </Text>
-
                     {people.map(p => {
                       const isFollowing = followingIds.has(p.id);
                       return (
@@ -462,7 +461,7 @@ export default function GlobalSearchScreen() {
                             className="flex-row items-center flex-1 mr-3"
                           >
                             {p.avatar_url ? (
-                              <Image source={{ uri: p.avatar_url }} style={{ width: 42, height: 42, borderRadius: 21 }} />
+                              <Image source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} />
                             ) : (
                               <View className={`w-10 h-10 rounded-full items-center justify-center ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
                                 <User size={18} color={theme.accentColor} />
@@ -470,7 +469,7 @@ export default function GlobalSearchScreen() {
                             )}
                             <View className="ml-3 flex-1">
                               <View className="flex-row items-center">
-                                <Text className={`font-bold text-[14.5px] ${theme.textClass}`}>{p.full_name || 'Citizen'}</Text>
+                                <Text className={`font-bold text-[14px] ${theme.textClass}`}>{p.full_name || 'Citizen'}</Text>
                                 {p.is_verified && (
                                   <View className="ml-1">
                                     <UserBadges badges={p.badges || ['verified']} size={13} />
@@ -478,7 +477,7 @@ export default function GlobalSearchScreen() {
                                 )}
                               </View>
                               <Text className={`text-[12px] font-medium mt-0.5 ${theme.textMutedClass}`}>
-                                {p.role === 'official' || p.role === 'admin' ? (p.department ? `${p.department} Official` : 'Official') : p.home_ward ? `Ward ${p.home_ward}` : 'Citizen'}
+                                {p.role === 'admin' || p.role === 'official' ? (p.department ? `${p.department} Official` : 'Municipality Official') : p.home_ward ? `Ward ${p.home_ward} Resident` : 'Citizen'}
                               </Text>
                             </View>
                           </TouchableOpacity>
@@ -508,11 +507,11 @@ export default function GlobalSearchScreen() {
                   </View>
                 )}
 
-                {/* 2. DIRECTORY RESULTS */}
+                {/* 2. DIRECTORY & CONTACTS */}
                 {(activeTab === 'All' || activeTab === 'Directory') && directoryItems.length > 0 && (
                   <View className="mb-5">
                     <Text className={`font-bold text-[12px] uppercase tracking-wider mb-2.5 ${theme.isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                      Directory & Contacts ({directoryItems.length})
+                      Directory & Emergency Contacts ({directoryItems.length})
                     </Text>
                     {directoryItems.map(item => (
                       <View
@@ -556,16 +555,15 @@ export default function GlobalSearchScreen() {
                     <Text className={`font-bold text-[12px] uppercase tracking-wider mb-2.5 ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
                       Civic Reports ({issues.length})
                     </Text>
-
                     {issues.map(item => (
                       <TouchableOpacity
                         key={item.id}
                         onPress={() => router.push(`/issue/${item.id}`)}
-                        className={`p-4 mb-2.5 rounded-2xl border ${
+                        className={`p-3.5 mb-2 rounded-2xl border ${
                           theme.isDark ? 'bg-white/[0.03] border-white/5' : 'bg-white border-slate-200/60'
                         }`}
                       >
-                        <Text className={`font-bold text-[14.5px] ${theme.textClass}`}>{item.title}</Text>
+                        <Text className={`font-bold text-[14px] ${theme.textClass}`}>{item.title}</Text>
                         <Text className={`text-[12.5px] font-medium mt-1 leading-relaxed ${theme.textSecondaryClass}`} numberOfLines={2}>{item.description}</Text>
                         <View className="flex-row items-center justify-between mt-2.5">
                           <Text className={`text-[11px] font-bold ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
@@ -582,14 +580,13 @@ export default function GlobalSearchScreen() {
                 {(activeTab === 'All' || activeTab === 'Notices') && notices.length > 0 && (
                   <View className="mb-5">
                     <Text className={`font-bold text-[12px] uppercase tracking-wider mb-2.5 ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
-                      Official Notices ({notices.length})
+                      Notices & Circulars ({notices.length})
                     </Text>
-
                     {notices.map(n => (
                       <TouchableOpacity
                         key={n.id}
                         onPress={() => router.push('/notifications')}
-                        className={`p-4 mb-2.5 rounded-2xl border ${
+                        className={`p-3.5 mb-2 rounded-2xl border ${
                           theme.isDark ? 'bg-white/[0.03] border-white/5' : 'bg-white border-slate-200/60'
                         }`}
                       >

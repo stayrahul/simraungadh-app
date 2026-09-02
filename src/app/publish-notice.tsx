@@ -4,7 +4,7 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvo
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, AlertTriangle, Send, Camera, ImagePlus, Trash2, CheckCircle2, Megaphone } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { decode } from 'base64-arraybuffer';
@@ -25,7 +25,7 @@ export default function PublishNoticeModal() {
   const [images, setImages] = useState<{ uri: string; base64: string }[]>([]);
   const [loading, setLoading] = useState(false);
   
-  const router = useRouter();
+
   const { profile } = useAuthStore();
   const { showAlert } = useAlert();
   const theme = useTheme();
@@ -166,7 +166,7 @@ export default function PublishNoticeModal() {
       }
 
       showAlert('Official Notice Broadcast! 📢', 'Your official notice has been broadcasted successfully.', [
-        { text: 'OK', onPress: () => router.canGoBack() ? router.back() : router.replace('/') }
+        { text: 'OK', onPress: () => { try { router.back(); } catch (e) { router.replace('/'); } } }
       ]);
     } catch (e: unknown) {
       const errMsg = getErrorMessage(e);
@@ -183,7 +183,7 @@ export default function PublishNoticeModal() {
       {/* Top Header */}
       <View className="px-5 py-3 flex-row items-center justify-between z-10">
         <TouchableOpacity 
-          onPress={() => router.canGoBack() ? router.back() : router.replace('/')} 
+          onPress={() => { try { router.back(); } catch (e) { router.replace('/'); } }} 
           className={`w-10 h-10 items-center justify-center rounded-full ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}
         >
           <X size={20} color={theme.iconColor} />
@@ -194,7 +194,7 @@ export default function PublishNoticeModal() {
           className={`px-5 py-2.5 rounded-[20px] flex-row items-center ${
             !isFormValid || loading 
               ? (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-200') 
-              : (theme.isDark ? 'bg-indigo-500 shadow-sm shadow-indigo-500/20' : 'bg-indigo-600 shadow-sm shadow-indigo-600/20')
+              : (theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600')
           }`}
         >
           {loading ? (
@@ -237,7 +237,7 @@ export default function PublishNoticeModal() {
                     onPress={() => setCategory(cat)}
                     className={`px-5 py-3.5 rounded-full items-center mr-1 ${
                       isActive 
-                        ? (theme.isDark ? 'bg-indigo-500 shadow-sm shadow-indigo-500/20' : 'bg-indigo-600 shadow-sm shadow-indigo-600/20')
+                        ? (theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600')
                         : 'bg-transparent'
                     }`}
                   >

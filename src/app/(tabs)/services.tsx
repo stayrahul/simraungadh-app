@@ -1,8 +1,9 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Linking, TextInput, Modal, Clipboard, Platform } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Linking, TextInput, Modal, Clipboard, Platform, ActivityIndicator, Share, LayoutAnimation, UIManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PhoneCall, Shield, AlertTriangle, Activity, File, BookOpen, Edit3, CreditCard, Briefcase, Search, Smartphone, Trash2, Info, Phone, Calendar, MapPin, Users, LayoutGrid, Sun, CloudRain, Cloud, Maximize2, ArrowRight, Building2, ExternalLink, X, CheckCircle2, ChevronRight, Copy, Check, Globe, Award, Navigation } from 'lucide-react-native';
+import { PhoneCall, Shield, AlertTriangle, Activity, File, BookOpen, Edit3, CreditCard, Briefcase, Search, Smartphone, Trash2, Info, Phone, Calendar, MapPin, Users, LayoutGrid, Sun, CloudRain, Cloud, Maximize2, ArrowRight, Building2, ExternalLink, X, CheckCircle2, ChevronRight, Copy, Check, Globe, Award, Navigation, Star, UserCheck, Crosshair, Wrench, Zap, Share2, ShieldAlert } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { useLangStore } from '../../store/langStore';
 import { translations } from '../../lib/translations';
 import { supabase } from '../../lib/supabase';
@@ -128,10 +129,47 @@ const DIGITAL_SERVICES = [
   },
 ];
 
+const DIRECTORY_CATEGORIES = ['All', 'Emergency', 'Administration', 'Ward Members', 'Hospitals', 'Mechanics', 'Electricians', 'Plumbers'];
+const WARDS = ['All Wards', 'Ward 1', 'Ward 2', 'Ward 3', 'Ward 4', 'Ward 5', 'Ward 6', 'Ward 7', 'Ward 8', 'Ward 9', 'Ward 10', 'Ward 11'];
+
+const DIRECTORY_DATA = [
+  { id: 'e1', name: 'Nepal Police - Simraungadh', category: 'Emergency', phone: '100', details: 'Emergency Police Station (प्रहरी हेल्पलाइन)', icon: ShieldAlert, ward: 'All', address: 'Simraungadh Police Station', hours: '24/7' },
+  { id: 'e2', name: 'Simraungadh Ambulance Service', category: 'Emergency', phone: '102', details: 'Emergency Medical Transport (एम्बुलेन्स सेवा)', icon: AlertTriangle, ward: 'All', address: 'City Hospital', hours: '24/7' },
+  { id: 'e3', name: 'Fire Brigade (दमकल सेवा)', category: 'Emergency', phone: '101', details: 'Municipal Fire & Disaster Relief', icon: ShieldAlert, ward: 'All', address: 'Simraungadh Fire Control', hours: '24/7' },
+  { id: '1', name: 'Kishori Prasad Kalawar', category: 'Administration', phone: '053-411072', details: 'Mayor (नगर प्रमुख)', icon: Star, ward: 'All', address: 'Municipality Office', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: '2', name: 'Najmu Sehar', category: 'Administration', phone: '053-411072', details: 'Deputy Mayor (उप-प्रमुख)', icon: Star, ward: 'All', address: 'Municipality Office', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w1', name: 'Ward 1 Secretariat (वडा १ कार्यालय)', category: 'Ward Members', phone: '9840000001', details: 'Ward 1 Chairman & Secretary', icon: UserCheck, ward: 1, address: 'Kankali Chowk, Ward 1', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w2', name: 'Ward 2 Secretariat (वडा २ कार्यालय)', category: 'Ward Members', phone: '9840000002', details: 'Ward 2 Chairman & Secretary', icon: UserCheck, ward: 2, address: 'Bhagwanpur, Ward 2', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w3', name: 'Ward 3 Secretariat (वडा ३ कार्यालय)', category: 'Ward Members', phone: '9840000003', details: 'Ward 3 Chairman & Secretary', icon: UserCheck, ward: 3, address: 'Nayanpur, Ward 3', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w4', name: 'Ward 4 Secretariat (वडा ४ कार्यालय)', category: 'Ward Members', phone: '9840000004', details: 'Ward 4 Chairman & Secretary', icon: UserCheck, ward: 4, address: 'Hariharpur, Ward 4', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w5', name: 'Ward 5 Secretariat (वडा ५ कार्यालय)', category: 'Ward Members', phone: '9840000005', details: 'Ward 5 Chairman & Secretary', icon: UserCheck, ward: 5, address: 'Ward 5 Secretariat', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w6', name: 'Ward 6 Secretariat (वडा ६ कार्यालय)', category: 'Ward Members', phone: '9840000006', details: 'Ward 6 Chairman & Secretary', icon: UserCheck, ward: 6, address: 'Ward 6 Secretariat', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w7', name: 'Ward 7 Secretariat (वडा ७ कार्यालय)', category: 'Ward Members', phone: '9840000007', details: 'Ward 7 Chairman & Secretary', icon: UserCheck, ward: 7, address: 'Ward 7 Secretariat', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w8', name: 'Ward 8 Secretariat (वडा ८ कार्यालय)', category: 'Ward Members', phone: '9840000008', details: 'Ward 8 Chairman & Secretary', icon: UserCheck, ward: 8, address: 'Ward 8 Secretariat', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w9', name: 'Ward 9 Secretariat (वडा ९ कार्यालय)', category: 'Ward Members', phone: '9840000009', details: 'Ward 9 Chairman & Secretary', icon: UserCheck, ward: 9, address: 'Ward 9 Secretariat', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w10', name: 'Ward 10 Secretariat (वडा १० कार्यालय)', category: 'Ward Members', phone: '9840000010', details: 'Ward 10 Chairman & Secretary', icon: UserCheck, ward: 10, address: 'Ward 10 Secretariat', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'w11', name: 'Ward 11 Secretariat (वडा ११ कार्यालय)', category: 'Ward Members', phone: '9840000011', details: 'Ward 11 Chairman & Secretary', icon: UserCheck, ward: 11, address: 'Ward 11 Secretariat', hours: 'Sun-Fri, 10 AM - 5 PM' },
+  { id: 'h1', name: 'Simraungadh Primary Hospital', category: 'Hospitals', phone: '053-411075', details: 'Emergency 24/7 Medical Care', icon: Activity, ward: 'All', address: 'Main Hospital Road', hours: '24/7' },
+  { id: 'h2', name: 'Kankali Medical & Pharmacy', category: 'Hospitals', phone: '9840000012', details: 'Pharmacy & Specialist Clinic', icon: Crosshair, ward: 2, address: 'Near Kankali Temple', hours: '6 AM - 10 PM' },
+  { id: 'ag1', name: 'Simraungadh Agricultural Service Center', category: 'Administration', phone: '053-411080', details: 'Farming Support & Fertilizer', icon: Star, ward: 'All', address: 'Agri Center, Simraungadh', hours: 'Sun-Fri, 10 AM - 4 PM' },
+  { id: 'p1', name: 'Raju Plumbing & Sanitation', category: 'Plumbers', phone: '9840000013', details: 'Sanitation & pipe repair', icon: Wrench, ward: 1, address: 'Kankali Chowk', hours: 'On Call' },
+  { id: 'el1', name: 'Bishnu Electrician & Solar', category: 'Electricians', phone: '9840000014', details: 'Power & Wiring Expert', icon: Zap, ward: 7, address: 'Ward 7 Center', hours: 'On Call' },
+  { id: 'm1', name: 'Shiva Auto & Tractor Works', category: 'Mechanics', phone: '9840000015', details: 'Vehicle & Tractor Repair', icon: Wrench, ward: 3, address: 'Main Highway', hours: '8 AM - 6 PM' },
+];
+
 export default function ServicesScreen() {
   const { language } = useLangStore();
-  const t = translations[language];
+  const t = translations[language] || translations.en;
   const theme = useTheme();
+  const { profile } = useAuthStore();
+  const { temp, condition, fetchWeather } = useWeatherStore();
+  const [activeTab, setActiveTab] = useState<'services' | 'directory'>('services');
+
+  // Directory Filter States
+  const [dirCategory, setDirCategory] = useState('All');
+  const [dirWard, setDirWard] = useState('All Wards');
+  const [expandedDirId, setExpandedDirId] = useState<string | null>(null);
+
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     emergency: true,
     digital: true,
@@ -188,7 +226,7 @@ export default function ServicesScreen() {
 
     setSubmittingForm(true);
     try {
-      const appId = `SIM-${Math.floor(100000 + Math.random() * 900000)}`;
+      const appId = `SIM-${Date.now().toString().slice(-6)}`;
       const { error } = await supabase.from('service_applications').insert({
         user_id: profile.id,
         service_type: activeModal || 'general',
@@ -218,8 +256,7 @@ export default function ServicesScreen() {
     }
   };
 
-  const { temp, condition, fetchWeather } = useWeatherStore();
-  const { profile } = useAuthStore();
+
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -272,26 +309,304 @@ export default function ServicesScreen() {
     fetchWeather();
   }, []);
 
+  const CATEGORY_NAMES: Record<string, string> = {
+    'All': t.all || 'All',
+    'Emergency': language === 'ne' ? 'आपतकालीन' : 'Emergency',
+    'Administration': language === 'ne' ? 'प्रशासन' : 'Administration',
+    'Ward Members': language === 'ne' ? 'वडा सदस्यहरू' : 'Ward Members',
+    'Hospitals': language === 'ne' ? 'अस्पतालहरू' : 'Hospitals',
+    'Mechanics': language === 'ne' ? 'मेकानिक्स' : 'Mechanics',
+    'Electricians': language === 'ne' ? 'इलेक्ट्रीशियनहरू' : 'Electricians',
+    'Plumbers': language === 'ne' ? 'प्लम्बरहरू' : 'Plumbers',
+  };
+
+  const getWardLabel = (w: string) => {
+    if (w === 'All Wards') return t.allWards || 'All Wards';
+    if (language === 'ne') return w.replace('Ward ', 'वडा ');
+    return w;
+  };
+
+  const filteredDirectory = useMemo(() => {
+    return DIRECTORY_DATA.filter(item => {
+      const matchesCategory = dirCategory === 'All' || item.category === dirCategory;
+      let matchesWard = true;
+      if (dirWard !== 'All Wards') {
+        const wardNum = parseInt(dirWard.replace('Ward ', ''));
+        matchesWard = item.ward === 'All' || item.ward === wardNum;
+      }
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = !q || item.name.toLowerCase().includes(q) || item.details.toLowerCase().includes(q) || (item.address && item.address.toLowerCase().includes(q));
+      return matchesCategory && matchesSearch && matchesWard;
+    });
+  }, [dirCategory, dirWard, searchQuery]);
+
+  const handleShareContact = async (contact: any) => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Share.share({
+        message: `${contact.name}\n${contact.details}\n📞 ${contact.phone}\n📍 ${contact.address}\n\nShared via Simraungadh Civic App`
+      });
+    } catch (e) {}
+  };
+
+  const handleMapLocate = (contact: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const query = contact.ward === 'All' ? `Simraungadh, Nepal` : `Simraungadh Ward ${contact.ward}, Nepal`;
+    const url = Platform.select({
+      ios: `maps:0,0?q=${query}`,
+      android: `geo:0,0?q=${query}`
+    });
+    Linking.openURL(url!);
+  };
+
   const handleDial = (number: string) => {
     Linking.openURL(`tel:${number}`);
   };
 
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
-      <View className="px-5 pt-3 pb-2 z-10">
+      {/* SEARCH HEADER */}
+      <View className="px-5 pt-3 pb-1 z-10">
         <View className={`flex-row items-center rounded-2xl px-3.5 py-3 border ${theme.inputClass}`}>
           <Search size={16} color={theme.iconColor} />
           <TextInput
             className={`flex-1 ml-2.5 text-[14px] font-medium ${theme.textClass}`}
-            placeholder="Search services, contacts..."
+            placeholder={activeTab === 'directory' ? "Search officers, emergency, technicians..." : "Search services, portals, forms..."}
             placeholderTextColor={theme.inputPlaceholder}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} className="p-1">
+              <X size={14} color={theme.iconColor} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* SEGMENTED SWITCH: E-Services vs Directory */}
+      <View className="px-5 pt-2 pb-2">
+        <View className={`flex-row p-1 rounded-2xl border ${theme.isDark ? 'bg-white/5 border-white/5' : 'bg-slate-100 border-slate-200/60'}`}>
+          <TouchableOpacity
+            onPress={() => { Haptics.selectionAsync(); setActiveTab('services'); }}
+            activeOpacity={0.8}
+            className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl ${
+              activeTab === 'services'
+                ? theme.isDark ? 'bg-white/10' : 'bg-white'
+                : 'bg-transparent'
+            }`}
+          >
+            <LayoutGrid size={15} color={activeTab === 'services' ? (theme.isDark ? '#818cf8' : '#4f46e5') : theme.iconColor} />
+            <Text className={`font-bold text-[13px] ml-2 ${activeTab === 'services' ? (theme.isDark ? 'text-indigo-300' : 'text-indigo-600') : theme.textMutedClass}`}>
+              E-Services
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => { Haptics.selectionAsync(); setActiveTab('directory'); }}
+            activeOpacity={0.8}
+            className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl ${
+              activeTab === 'directory'
+                ? theme.isDark ? 'bg-white/10' : 'bg-white'
+                : 'bg-transparent'
+            }`}
+          >
+            <BookOpen size={15} color={activeTab === 'directory' ? (theme.isDark ? '#818cf8' : '#4f46e5') : theme.iconColor} />
+            <Text className={`font-bold text-[13px] ml-2 ${activeTab === 'directory' ? (theme.isDark ? 'text-indigo-300' : 'text-indigo-600') : theme.textMutedClass}`}>
+              Directory
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+        
+        {/* DIRECTORY VIEW */}
+        {activeTab === 'directory' && (
+          <View>
+            {/* Wards Horizontal Filter */}
+            <View className="mb-3">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 20 }}>
+                {WARDS.map(w => {
+                  const isSelected = dirWard === w;
+                  return (
+                    <TouchableOpacity
+                      key={w}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        setDirWard(w);
+                      }}
+                      activeOpacity={0.7}
+                      className={`px-3.5 py-1.5 rounded-xl mr-2 border ${
+                        isSelected 
+                          ? (theme.isDark ? 'bg-indigo-600/30 border-indigo-500' : 'bg-indigo-600 border-indigo-600')
+                          : (theme.isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-200/80')
+                      }`}
+                    >
+                      <Text className={`text-[12px] font-bold ${
+                        isSelected 
+                          ? (theme.isDark ? 'text-indigo-300' : 'text-white')
+                          : theme.textSecondaryClass
+                      }`}>
+                        {getWardLabel(w)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* Categories Horizontal Filter */}
+            <View className="mb-4">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 20 }}>
+                {DIRECTORY_CATEGORIES.map(cat => {
+                  const isSelected = dirCategory === cat;
+                  return (
+                    <TouchableOpacity
+                      key={cat}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        setDirCategory(cat);
+                      }}
+                      activeOpacity={0.7}
+                      className={`px-3.5 py-1.5 rounded-full mr-2 border ${
+                        isSelected 
+                          ? (theme.isDark ? 'bg-primary-500/20 border-primary-400' : 'bg-blue-50 border-blue-400')
+                          : (theme.isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-200/80')
+                      }`}
+                    >
+                      <Text className={`text-[12px] font-bold ${
+                        isSelected 
+                          ? (theme.isDark ? 'text-primary-300' : 'text-blue-700')
+                          : theme.textSecondaryClass
+                      }`}>
+                        {CATEGORY_NAMES[cat] || cat}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* Contacts Count & Header */}
+            <View className="flex-row items-center justify-between mb-3 px-1">
+              <Text className={`font-bold text-[12px] uppercase tracking-wider ${theme.textMutedClass}`}>
+                {filteredDirectory.length} Contacts Found
+              </Text>
+              {(dirWard !== 'All Wards' || dirCategory !== 'All' || searchQuery) && (
+                <TouchableOpacity onPress={() => { setDirWard('All Wards'); setDirCategory('All'); setSearchQuery(''); }}>
+                  <Text className="text-[12px] font-bold text-rose-500">Reset Filters</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Contacts List */}
+            {filteredDirectory.length === 0 ? (
+              <View className="items-center justify-center py-16 px-6">
+                <View className={`w-16 h-16 rounded-[24px] items-center justify-center mb-3 ${theme.isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
+                  <Search size={28} color={theme.iconColor} />
+                </View>
+                <Text className={`font-bold text-base mb-1 ${theme.textClass}`}>No contacts found</Text>
+                <Text className={`text-center text-[13px] ${theme.textMutedClass}`}>Try selecting a different ward or category.</Text>
+              </View>
+            ) : (
+              filteredDirectory.map(contact => {
+                const isExpanded = expandedDirId === contact.id;
+                const IconComp = contact.icon || Phone;
+                const isEmergency = contact.category === 'Emergency';
+
+                return (
+                  <TouchableOpacity
+                    key={contact.id}
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      setExpandedDirId(prev => prev === contact.id ? null : contact.id);
+                    }}
+                    className={`rounded-[24px] p-4 mb-3 border ${theme.isDark ? 'bg-white/[0.03] border-white/5' : 'bg-white border-slate-100'}`}
+                  >
+                    <View className="flex-row items-center">
+                      <View className={`w-11 h-11 rounded-2xl items-center justify-center mr-3.5 ${
+                        isEmergency 
+                          ? 'bg-rose-500/10' 
+                          : (theme.isDark ? 'bg-primary-500/15' : 'bg-primary-50')
+                      }`}>
+                        <IconComp size={20} color={isEmergency ? (theme.isDark ? '#f87171' : '#ef4444') : (theme.isDark ? '#818cf8' : '#4f46e5')} />
+                      </View>
+                      <View className="flex-1 mr-2">
+                        <Text className={`font-bold text-[15px] ${theme.textClass}`}>{contact.name}</Text>
+                        <Text className={`font-medium text-[12.5px] mt-0.5 ${theme.textSecondaryClass}`}>{contact.details}</Text>
+                        <View className="flex-row items-center mt-1">
+                          <MapPin size={11} color={theme.iconColor} />
+                          <Text className={`text-[11.5px] ml-1 font-medium ${theme.textMutedClass}`}>
+                            {contact.ward === 'All' ? 'All Wards' : `Ward ${contact.ward}`}
+                          </Text>
+                        </View>
+                      </View>
+                      <TouchableOpacity 
+                        onPress={() => handleDial(contact.phone)} 
+                        className={`w-10 h-10 rounded-full items-center justify-center ${theme.isDark ? 'bg-emerald-500/15' : 'bg-emerald-50'}`}
+                      >
+                        <PhoneCall size={18} color={theme.isDark ? '#34d399' : '#059669'} />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Expandable Action Drawer */}
+                    {isExpanded && (
+                      <View className="mt-4 pt-3 border-t border-slate-200/40 dark:border-white/5">
+                        <View className="mb-3 px-1">
+                          {contact.address && (
+                            <Text className={`text-[12px] font-medium mb-0.5 ${theme.textMutedClass}`}>
+                              <Text className={`font-bold ${theme.textSecondaryClass}`}>Address: </Text>{contact.address}
+                            </Text>
+                          )}
+                          {contact.hours && (
+                            <Text className={`text-[12px] font-medium ${theme.textMutedClass}`}>
+                              <Text className={`font-bold ${theme.textSecondaryClass}`}>Hours: </Text>{contact.hours}
+                            </Text>
+                          )}
+                        </View>
+
+                        <View className="flex-row gap-2">
+                          <TouchableOpacity 
+                            onPress={() => handleDial(contact.phone)} 
+                            activeOpacity={0.7} 
+                            className="flex-1 bg-emerald-500/10 py-2.5 rounded-xl flex-row items-center justify-center border border-emerald-500/20"
+                          >
+                            <PhoneCall size={14} color={theme.isDark ? '#34d399' : '#059669'} />
+                            <Text className={`font-bold text-[13px] ml-1.5 ${theme.isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Call</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity 
+                            onPress={() => handleShareContact(contact)} 
+                            activeOpacity={0.7} 
+                            className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center border ${theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'}`}
+                          >
+                            <Share2 size={14} color={theme.textClass} />
+                            <Text className={`font-bold text-[13px] ml-1.5 ${theme.textClass}`}>Share</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity 
+                            onPress={() => handleMapLocate(contact)} 
+                            activeOpacity={0.7} 
+                            className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center border ${theme.isDark ? 'bg-primary-500/10 border-primary-500/20' : 'bg-primary-50 border-blue-200'}`}
+                          >
+                            <Navigation size={14} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
+                            <Text className={`font-bold text-[13px] ml-1.5 ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>Locate</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </View>
+        )}
+
+        {/* E-SERVICES VIEW */}
+        {activeTab === 'services' && (
+          <View>
         
         {/* Civic Events (Upcoming) */}
         {!loadingEvents && events.length > 0 && (
@@ -456,7 +771,7 @@ export default function ServicesScreen() {
         </TouchableOpacity>
         {expandedSections.info && (
           <View className="mb-6">
-            <View className={`p-5 mb-5 border rounded-[24px] ${theme.cardClass}`} style={theme.glowShadow('#5b5ef6')}>
+            <View className={`p-5 mb-5 ${theme.cardClass}`} style={theme.glowShadow('#5b5ef6')}>
               <View className="items-center mb-5">
                 <View className={`w-16 h-16 rounded-[24px] items-center justify-center mb-2.5 ${theme.isDark ? 'bg-indigo-500/12' : 'bg-indigo-50'}`}>
                   <Building2 size={30} color={theme.isDark ? '#818cf8' : '#5b5ef6'} />
@@ -507,6 +822,9 @@ export default function ServicesScreen() {
               </View>
               <ArrowRight size={20} color={theme.isDark ? '#818cf8' : '#ffffff'} />
             </TouchableOpacity>
+          </View>
+        )}
+
           </View>
         )}
 
@@ -761,7 +1079,7 @@ export default function ServicesScreen() {
                   ) : (
                     /* REQUIREMENTS GUIDE TAB */
                     <View className="gap-3.5">
-                      <View className={`p-4 rounded-[24px] border ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-primary-50/50 border-blue-100'}`}>
+                      <View className={`p-4 ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-primary-50/50 border-blue-100'} ${theme.cardClass}`}>
                         <Text className={`font-bold text-[14px] mb-1 ${theme.textClass}`}>
                           {language === 'ne' ? '📌 घटना दर्ता नियम तथा समयसीमा' : '📌 Rules & Timelines'}
                         </Text>
@@ -779,7 +1097,7 @@ export default function ServicesScreen() {
                         { title: 'विवाह दर्ता (Marriage Registration)', fee: 'दस्तुर: रु १०० (Fee: NPR 100)', docs: ['श्रीमान र श्रीमतीको नागरिकता प्रतिलिपि', 'संयुक्त राहदानी साइजको फोटो २-२ प्रति', 'वडाध्यक्षको सिफारिस'] },
                         { title: 'बसाइँसराई दर्ता (Migration Registration)', fee: 'दस्तुर: रु २०० (Fee: NPR 200)', docs: ['घरजग्गा धनीपुर्जा प्रतिलिपि', 'साबिक वडाको बसाइँसराई छोडपत्र', 'परिवारका सबै सदस्यको नागरिकता/जन्मदर्ता'] },
                       ].map((evt, i) => (
-                        <View key={i} className={`p-4 mb-2.5 rounded-[24px] border ${theme.cardClass}`}>
+                        <View key={i} className={`p-4 mb-2.5 ${theme.cardClass}`}>
                           <Text className={`font-black text-[15px] mb-1 ${theme.isDark ? 'text-indigo-300' : 'text-primary'}`}>{evt.title}</Text>
                           <Text className={`text-[11.5px] font-bold mb-2.5 ${theme.textMutedClass}`}>{evt.fee}</Text>
                           <Text className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 ${theme.textClass}`}>आवश्यक कागजातहरू (Required Documents):</Text>
@@ -799,7 +1117,7 @@ export default function ServicesScreen() {
               {/* 2. SOCIAL SECURITY MODAL */}
               {activeModal === 'social' && (
                 <View className="gap-3.5">
-                  <View className={`p-4 rounded-[24px] border ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-purple-50/50 border-purple-100'}`}>
+                  <View className={`p-4 ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-purple-50/50 border-purple-100'} ${theme.cardClass}`}>
                     <Text className={`font-bold text-[14px] mb-1 ${theme.textClass}`}>
                       {language === 'ne' ? '💳 सामाजिक सुरक्षा भत्ता वर्ग' : '💳 Pension & Allowance Classes'}
                     </Text>
@@ -908,7 +1226,7 @@ export default function ServicesScreen() {
               {/* 5. TAX & REVENUE MODAL */}
               {activeModal === 'tax' && (
                 <View className="gap-3.5">
-                  <View className={`p-4 rounded-[24px] border ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-emerald-50/50 border-emerald-100'}`}>
+                  <View className={`p-4 ${theme.isDark ? 'bg-white/[0.03] border-white/10' : 'bg-emerald-50/50 border-emerald-100'} ${theme.cardClass}`}>
                     <Text className={`font-bold text-[14px] mb-1 ${theme.textClass}`}>
                       {language === 'ne' ? '🏛️ सिमरौनगढ राजस्व खाता जानकारी' : '🏛️ Municipal Bank Account'}
                     </Text>

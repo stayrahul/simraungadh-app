@@ -462,7 +462,7 @@ export default function SettingsScreen() {
 
           {/* Version & Developer Mark */}
           <View className="items-center mt-2 mb-10">
-            <View className={`flex-row items-center px-5 py-2.5 rounded-full border mb-4 shadow-sm ${theme.isDark ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-white border-indigo-100'}`} style={theme.cardShadow}>
+            <View className={`flex-row items-center px-5 py-2.5 rounded-full border mb-4 ${theme.isDark ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-white border-indigo-100'}`} style={theme.cardShadow}>
               <Code2 size={14} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
               <Text className={`text-[11.5px] font-semibold ml-2.5 flex-wrap text-center ${theme.textSecondaryClass}`}>
                 Designed & Handled by <Text className={`font-black ${theme.isDark ? 'text-indigo-300' : 'text-primary'}`}>Rahul</Text> and idea by <Text className={`font-black ${theme.isDark ? 'text-indigo-300' : 'text-primary'}`}>Adarsh</Text>

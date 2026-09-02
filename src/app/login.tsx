@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { supabase } from '../lib/supabase';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { ChevronLeft, Shield, User, Mail, Lock, Eye, EyeOff, Phone, Calendar, MapPin } from 'lucide-react-native';
 import { useAlert } from '../components/AlertProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,7 +24,7 @@ export default function LoginScreen() {
   const { language } = useLangStore();
   const t = translations[language] || translations.en;
 
-  const router = useRouter();
+
   const insets = useSafeAreaInsets();
   const { showAlert } = useAlert();
 
@@ -35,9 +35,9 @@ export default function LoginScreen() {
       if (isIncomplete) {
         router.replace('/complete-profile');
       } else {
-        if (router.canGoBack()) {
+        try {
           router.back();
-        } else {
+        } catch (e) {
           router.replace('/(tabs)');
         }
       }
@@ -101,11 +101,7 @@ export default function LoginScreen() {
         if (isIncomplete) {
           router.replace('/complete-profile');
         } else {
-          if (router.canGoBack()) {
-            router.back();
-          } else {
-            router.replace('/(tabs)');
-          }
+          try { router.back(); } catch (e) { router.replace('/(tabs)'); }
         }
       }
     } catch (e: any) {
@@ -227,11 +223,7 @@ export default function LoginScreen() {
           if (isIncomplete) {
             router.replace('/complete-profile');
           } else {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace('/(tabs)');
-            }
+            try { router.back(); } catch (e) { router.replace('/(tabs)'); }
           }
         }
       } else {
@@ -326,11 +318,7 @@ export default function LoginScreen() {
       }
 
       await fetchUserProfile();
-      if (router.canGoBack()) {
-        router.back();
-      } else {
-        router.replace('/(tabs)');
-      }
+      try { router.back(); } catch (e) { router.replace('/(tabs)'); }
     } catch (e: any) {
       console.error('Quick demo error:', e);
       showAlert('Demo Login', e?.message || 'Failed to log in with Demo account.');
@@ -349,7 +337,9 @@ export default function LoginScreen() {
 
       {/* Back button */}
       <TouchableOpacity
-        onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')}
+        onPress={() => {
+          try { router.back(); } catch (e) { router.replace('/(tabs)'); }
+        }}
         style={{ top: Math.max(insets.top, 20) }}
         className={`absolute left-5 z-20 w-10 h-10 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}
       >

@@ -240,8 +240,7 @@ export default function UserProfileScreen() {
               size="md" 
             />
 
-            {/* Follow stats */}
-            <View className={`flex-row items-center justify-around mt-5 py-3 px-4 w-full rounded-[24px] ${theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}>
+            <View className={`flex-row items-center justify-around mt-5 py-3 px-4 w-full ${theme.glassCardClass}`} style={theme.cardShadow}>
               <TouchableOpacity 
                 activeOpacity={0.7} 
                 onPress={() => { setUserListTab('followers'); setShowUserList(true); }}

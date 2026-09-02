@@ -36,8 +36,16 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
 
   const nativeDriver = Platform.OS !== 'web';
 
-  const showAlert = (title: string, message?: string, buttons?: AlertButton[]) => {
-    setOptions({ title, message, buttons });
+  const showAlert = (titleOrOptions: string | AlertOptions | any, message?: string, buttons?: AlertButton[]) => {
+    if (typeof titleOrOptions === 'object' && titleOrOptions !== null) {
+      setOptions({
+        title: titleOrOptions.title || '',
+        message: titleOrOptions.message || '',
+        buttons: titleOrOptions.buttons,
+      });
+    } else {
+      setOptions({ title: String(titleOrOptions || ''), message, buttons });
+    }
     setVisible(true);
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: nativeDriver }),

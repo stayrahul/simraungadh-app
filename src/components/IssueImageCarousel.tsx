@@ -31,7 +31,7 @@ export default function IssueImageCarousel({ imageUrls, fallbackUrl, onImagePres
     setActiveIndex(index);
   };
 
-  const bgStyle = theme.isDark ? '#0f1728' : '#f3f5f8';
+  const bgStyle = theme.isDark ? '#121212' : '#f3f5f8';
 
   const renderImage = (url: string, index: number, width: number | `${number}%`) => {
     const imageElement = (
@@ -45,6 +45,11 @@ export default function IssueImageCarousel({ imageUrls, fallbackUrl, onImagePres
     );
 
     const handleTap = () => {
+      if (!onDoubleTap) {
+        if (onImagePress) onImagePress(url, index);
+        return;
+      }
+      
       const time = new Date().getTime();
       const delta = time - lastTap;
       

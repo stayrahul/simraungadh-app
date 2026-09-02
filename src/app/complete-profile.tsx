@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { supabase } from '../lib/supabase';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { Shield, User, Phone, MapPin, Calendar, Check, ArrowRight, X } from 'lucide-react-native';
 import { registerForPushNotificationsAsync } from '../lib/notifications';
 import { useAlert } from '../components/AlertProvider';
@@ -19,7 +19,7 @@ export default function CompleteProfileScreen() {
   const { user, profile, fetchUserProfile } = useAuthStore();
   const { language } = useLangStore();
   const t = translations[language] || translations.en;
-  const router = useRouter();
+
   const insets = useSafeAreaInsets();
   const { showAlert } = useAlert();
 
@@ -139,7 +139,7 @@ export default function CompleteProfileScreen() {
           {/* Header Badge */}
           <View className="items-center mb-6 relative">
             <TouchableOpacity 
-              onPress={() => router.canGoBack() ? router.back() : router.replace('/')} 
+              onPress={() => { try { router.back(); } catch (e) { router.replace('/'); } }} 
               className={`absolute right-0 top-0 w-10 h-10 rounded-full items-center justify-center z-10 ${theme.isDark ? 'bg-white/10' : 'bg-slate-100'}`}
             >
               <X size={20} color={theme.iconColor} />

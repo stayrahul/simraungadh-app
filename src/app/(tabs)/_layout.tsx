@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { View, Platform, Text, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Home, Bell, Plus, LayoutGrid, BookOpen, User } from 'lucide-react-native';
+import { Home, Bell, Plus, LayoutGrid, BookOpen, User, Search } from 'lucide-react-native';
 import { useTheme } from '../../hooks/use-theme';
 import { useLangStore } from '../../store/langStore';
 import { translations } from '../../lib/translations';
@@ -297,27 +297,34 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 5. Directory Tab */}
-      <Tabs.Screen
-        name="directory"
-        options={{
-          title: 'Directory',
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon icon={BookOpen} label="Directory" focused={focused} color={color} theme={theme} />
-          ),
-        }}
-      />
-
-      {/* 6. Profile Tab (Hidden) */}
+      {/* 5. Profile Tab */}
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          href: null,
-          tabBarItemStyle: { display: 'none' },
           tabBarIcon: ({ color, focused }) => (
             <TabIcon icon={User} label="Profile" focused={focused} color={color} theme={theme} />
           ),
+        }}
+      />
+
+      {/* 6. Search Tab (Hidden from Tab Bar) */}
+      <Tabs.Screen
+        name="search"
+        options={{
+          title: 'Search',
+          href: null,
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+
+      {/* 7. Directory Tab (Redirect / Hidden) */}
+      <Tabs.Screen
+        name="directory"
+        options={{
+          title: 'Directory',
+          href: null,
+          tabBarItemStyle: { display: 'none' },
         }}
       />
     </Tabs>

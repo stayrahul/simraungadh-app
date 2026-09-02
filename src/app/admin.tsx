@@ -21,6 +21,53 @@ import { UserBadges } from '../components/UserBadges';
 // Segmented Control Tabs
 type AdminTab = 'analytics' | 'users' | 'moderation' | 'services' | 'directory' | 'notices' | 'settings' | 'polls' | 'events' | 'logs';
 
+const AVAILABLE_BADGES = [
+  {
+    id: 'verified',
+    label: 'Verified Citizen',
+    description: 'Official identity verified badge',
+    icon: BadgeCheck,
+    color: '#3b82f6',
+    bgColorLight: 'bg-blue-50',
+    bgColorDark: 'bg-blue-500/20',
+    activeBgLight: 'bg-blue-50/70',
+    activeBgDark: 'bg-blue-900/20',
+  },
+  {
+    id: 'gold',
+    label: 'Gold Member',
+    description: 'Top civic contributor badge',
+    icon: Crown,
+    color: '#eab308',
+    bgColorLight: 'bg-yellow-50',
+    bgColorDark: 'bg-yellow-500/20',
+    activeBgLight: 'bg-yellow-50/70',
+    activeBgDark: 'bg-yellow-900/20',
+  },
+  {
+    id: 'contributor',
+    label: 'Civic Contributor',
+    description: 'Active community reporter badge',
+    icon: Star,
+    color: '#a855f7',
+    bgColorLight: 'bg-purple-50',
+    bgColorDark: 'bg-purple-500/20',
+    activeBgLight: 'bg-purple-50/70',
+    activeBgDark: 'bg-purple-900/20',
+  },
+  {
+    id: 'leader',
+    label: 'Community Leader',
+    description: 'Ward leader or community hero',
+    icon: ShieldCheck,
+    color: '#6366f1',
+    bgColorLight: 'bg-indigo-50',
+    bgColorDark: 'bg-indigo-500/20',
+    activeBgLight: 'bg-indigo-50/70',
+    activeBgDark: 'bg-indigo-900/20',
+  },
+];
+
 export default function AdminDashboardScreen() {
   const router = useRouter();
   const { profile } = useAuthStore();
@@ -58,6 +105,7 @@ export default function AdminDashboardScreen() {
   
   // Broadcast State
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+  const [weekAgo] = useState(() => new Date(Date.now() - 7 * 86400000).toISOString());
   const [broadcastTitle, setBroadcastTitle] = useState('');
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [broadcastImage, setBroadcastImage] = useState('');
@@ -341,22 +389,29 @@ export default function AdminDashboardScreen() {
     setEditingDepartment(user.department || '');
     setEditingPoints(user.civic_points?.toString() || '0');
     
-    // Safely parse badges if they come back as a Postgres string
+    // Safely parse badges
     let parsedBadges: string[] = [];
     if (Array.isArray(user.badges)) {
-      parsedBadges = user.badges;
-    } else if (typeof user.badges === 'string') {
+      parsedBadges = [...user.badges];
+    } else if (typeof user.badges === 'string' && user.badges.trim()) {
       if (user.badges.startsWith('{') && user.badges.endsWith('}')) {
         parsedBadges = user.badges.slice(1, -1).split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
       } else {
-        try { parsedBadges = JSON.parse(user.badges); } 
-        catch (e) { parsedBadges = user.badges.split(',').map(s => s.trim()).filter(Boolean); }
+        try { 
+          const parsed = JSON.parse(user.badges);
+          parsedBadges = Array.isArray(parsed) ? parsed : [];
+        } catch (e) { 
+          parsedBadges = user.badges.split(',').map(s => s.trim()).filter(Boolean); 
+        }
       }
-    } else if (user.is_verified) {
-      parsedBadges = ['verified'];
+    }
+    if (user.is_verified && !parsedBadges.includes('verified')) {
+      parsedBadges.push('verified');
+    }
+    if (parsedBadges.length > 1) {
+      parsedBadges = [parsedBadges[0]];
     }
     setEditingBadges(parsedBadges);
-    
     setEditingBanned(user.is_banned || false);
   };
 
@@ -375,6 +430,9 @@ export default function AdminDashboardScreen() {
       };
       const { error } = await supabase.from('profiles').update(payload).eq('id', selectedUser.id);
       if (error) throw error;
+      
+      // Update local state immediately so user list updates without requiring manual refresh
+      setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, ...payload } : u));
       setSelectedUser(null);
       showAlert('Success', 'User profile updated');
     } catch (e: any) {
@@ -537,7 +595,6 @@ export default function AdminDashboardScreen() {
             const maxWardCount = Math.max(...wards.map(w => w[1]), 1);
 
             // New users this week
-            const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
             const newUsersThisWeek = users.filter(u => u.created_at && u.created_at >= weekAgo).length;
 
             return (
@@ -587,22 +644,22 @@ export default function AdminDashboardScreen() {
 
               {/* Secondary Stats Row */}
               <View className="flex-row mb-4" style={{ gap: 10 }}>
-                <View className={`flex-1 p-4 rounded-[20px] border ${theme.cardClass}`} style={theme.cardShadow}>
+                <View className={`flex-1 p-4 rounded-[20px] border ${theme.glassCardClass}`} style={theme.cardShadow}>
                   <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1, color: theme.textMuted }}>POSTS TODAY</Text>
                   <Text style={{ fontSize: 26, fontWeight: '900', color: theme.accentColor, marginTop: 4 }}>{postsToday}</Text>
                 </View>
-                <View className={`flex-1 p-4 rounded-[20px] border ${theme.cardClass}`} style={theme.cardShadow}>
+                <View className={`flex-1 p-4 rounded-[20px] border ${theme.glassCardClass}`} style={theme.cardShadow}>
                   <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1, color: theme.textMuted }}>RESOLUTION RATE</Text>
                   <Text style={{ fontSize: 26, fontWeight: '900', color: theme.successColor, marginTop: 4 }}>{resolutionRate}%</Text>
                 </View>
-                <View className={`flex-1 p-4 rounded-[20px] border ${theme.cardClass}`} style={theme.cardShadow}>
+                <View className={`flex-1 p-4 rounded-[20px] border ${theme.glassCardClass}`} style={theme.cardShadow}>
                   <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1, color: theme.textMuted }}>NEW THIS WEEK</Text>
                   <Text style={{ fontSize: 26, fontWeight: '900', color: theme.warningColor, marginTop: 4 }}>{newUsersThisWeek}</Text>
                 </View>
               </View>
 
               {/* Status Pipeline */}
-              <View className={`p-4 rounded-[20px] border mb-4 ${theme.cardClass}`} style={theme.cardShadow}>
+              <View className={`p-4 rounded-[20px] border mb-4 ${theme.glassCardClass}`} style={theme.cardShadow}>
                 <Text style={{ fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2, color: theme.textMuted, marginBottom: 12 }}>Issue Pipeline</Text>
                 <View className="flex-row" style={{ gap: 10 }}>
                   {[
@@ -620,7 +677,7 @@ export default function AdminDashboardScreen() {
 
               {/* Top Contributors */}
               {topContributors.length > 0 && (
-                <View className={`p-4 rounded-[20px] border mb-4 ${theme.cardClass}`} style={theme.cardShadow}>
+                <View className={`p-4 rounded-[20px] border mb-4 ${theme.glassCardClass}`} style={theme.cardShadow}>
                   <Text style={{ fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2, color: theme.textMuted, marginBottom: 12 }}>Top Contributors</Text>
                   {topContributors.map((c, idx) => (
                     <View key={idx} className="flex-row items-center mb-3" style={{ opacity: 1 - idx * 0.1 }}>
@@ -643,7 +700,7 @@ export default function AdminDashboardScreen() {
 
               {/* Category Breakdown */}
               {categories.length > 0 && (
-                <View className={`p-4 rounded-[20px] border mb-4 ${theme.cardClass}`} style={theme.cardShadow}>
+                <View className={`p-4 rounded-[20px] border mb-4 ${theme.glassCardClass}`} style={theme.cardShadow}>
                   <Text style={{ fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2, color: theme.textMuted, marginBottom: 12 }}>Category Breakdown</Text>
                   {categories.map(([cat, count], idx) => (
                     <View key={idx} className="mb-3">
@@ -661,7 +718,7 @@ export default function AdminDashboardScreen() {
 
               {/* Ward Distribution */}
               {wards.length > 0 && (
-                <View className={`p-4 rounded-[20px] border mb-4 ${theme.cardClass}`} style={theme.cardShadow}>
+                <View className={`p-4 rounded-[20px] border mb-4 ${theme.glassCardClass}`} style={theme.cardShadow}>
                   <Text style={{ fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2, color: theme.textMuted, marginBottom: 12 }}>Ward-wise Issues</Text>
                   <View className="flex-row items-end" style={{ height: 100, gap: 6 }}>
                     {wards.map(([ward, count], idx) => (
@@ -676,7 +733,7 @@ export default function AdminDashboardScreen() {
               )}
 
               {/* Quick Admin Shortcuts */}
-              <View className={`p-4 rounded-[20px] border mb-6 ${theme.cardClass}`} style={theme.cardShadow}>
+              <View className={`p-4 rounded-[20px] border mb-6 ${theme.glassCardClass}`} style={theme.cardShadow}>
                 <Text style={{ fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2, color: theme.textMuted, marginBottom: 12 }}>Quick Actions</Text>
                 <View className="flex-row flex-wrap" style={{ gap: 10 }}>
                   {[
@@ -756,7 +813,7 @@ export default function AdminDashboardScreen() {
                 </View>
 
                 {filteredUsers.length === 0 ? (
-                  <View className={`rounded-[28px] border py-12 items-center justify-center ${theme.cardClass}`}>
+                  <View className={`rounded-[28px] border py-12 items-center justify-center ${theme.glassCardClass}`}>
                     <Users size={32} color="#94a3b8" />
                     <Text className={`mt-4 font-bold text-[14px] ${theme.textMutedClass}`}>No users found.</Text>
                   </View>
@@ -837,7 +894,7 @@ export default function AdminDashboardScreen() {
                 </View>
 
                 {displayedIssues.length === 0 ? (
-                <View className={`rounded-[28px] border py-16 items-center justify-center ${theme.cardClass}`}>
+                <View className={`rounded-[28px] border py-16 items-center justify-center ${theme.glassCardClass}`}>
                   <CheckCircle size={40} color={theme.isDark ? '#34d399' : '#10b981'} opacity={0.8} />
                   <Text className={`mt-4 font-bold text-[15px] ${theme.textClass}`}>Inbox Zero!</Text>
                   <Text className={`mt-1 text-[13px] ${theme.textMutedClass}`}>No issues pending moderation.</Text>
@@ -895,7 +952,7 @@ export default function AdminDashboardScreen() {
             <View className="px-4 pt-4">
                <Text className={`font-bold text-[12px] uppercase tracking-widest mb-4 ml-1 ${theme.textSecondaryClass}`}>Service Applications ({serviceApps.length})</Text>
                {serviceApps.length === 0 ? (
-                 <View className={`rounded-[28px] border py-16 items-center justify-center ${theme.cardClass}`}>
+                 <View className={`rounded-[28px] border py-16 items-center justify-center ${theme.glassCardClass}`}>
                    <Layers size={32} color="#94a3b8" />
                    <Text className={`mt-4 font-bold text-[14px] ${theme.textMutedClass}`}>No service applications.</Text>
                  </View>
@@ -972,7 +1029,7 @@ export default function AdminDashboardScreen() {
               </View>
               <View className="gap-y-4">
               {noticesList.length === 0 ? (
-                <View className={`rounded-[28px] border py-16 items-center justify-center ${theme.cardClass}`}>
+                <View className={`rounded-[28px] border py-16 items-center justify-center ${theme.glassCardClass}`}>
                   <Megaphone size={32} color="#94a3b8" />
                   <Text className={`mt-4 font-bold text-[14px] ${theme.textMutedClass}`}>No active notices.</Text>
                 </View>
@@ -1020,7 +1077,7 @@ export default function AdminDashboardScreen() {
                 </TouchableOpacity>
               </View>
               {adminPolls.map(poll => (
-                <View key={poll.id} className={`p-4 rounded-[24px] mb-3 border ${theme.cardClass} ${theme.borderSubtleClass}`}>
+                <View key={poll.id} className={`p-4 rounded-[24px] mb-3 border ${theme.glassCardClass} ${theme.borderSubtleClass}`}>
                   <Text className={`font-bold text-[15px] ${theme.textClass}`}>{poll.question}</Text>
                   <Text className={`text-[12px] mt-1 ${theme.textMutedClass}`}>Votes: {Object.keys(poll.votes || {}).length} | Status: {poll.is_active ? 'Active' : 'Closed'}</Text>
                 </View>
@@ -1038,7 +1095,7 @@ export default function AdminDashboardScreen() {
                 </TouchableOpacity>
               </View>
               {adminEvents.map(event => (
-                <View key={event.id} className={`p-4 rounded-[24px] mb-3 border ${theme.cardClass} ${theme.borderSubtleClass}`}>
+                <View key={event.id} className={`p-4 rounded-[24px] mb-3 border ${theme.glassCardClass} ${theme.borderSubtleClass}`}>
                   <Text className={`font-bold text-[15px] ${theme.textClass}`}>{event.title}</Text>
                   <Text className={`text-[12px] mt-1 ${theme.textMutedClass}`}>Location: {event.location} | Date: {new Date(event.event_date).toLocaleDateString()}</Text>
                 </View>
@@ -1051,7 +1108,7 @@ export default function AdminDashboardScreen() {
             <View className="px-5 mt-4">
               <Text className={`text-[18px] font-black tracking-tight mb-4 ${theme.textClass}`}>Audit Logs</Text>
               {adminLogs.map(log => (
-                <View key={log.id} className={`p-4 rounded-[24px] mb-3 border ${theme.cardClass} ${theme.borderSubtleClass}`}>
+                <View key={log.id} className={`p-4 rounded-[24px] mb-3 border ${theme.glassCardClass} ${theme.borderSubtleClass}`}>
                   <View className="flex-row items-center mb-1">
                     <Text className={`font-bold text-[14px] flex-1 ${theme.textClass}`}>{log.action}</Text>
                     <Text className={`text-[11px] ${theme.textMutedClass}`}>{new Date(log.created_at).toLocaleString()}</Text>
@@ -1068,7 +1125,7 @@ export default function AdminDashboardScreen() {
             <View className="px-4 pt-4">
               <Text className={`font-bold text-[12px] uppercase tracking-widest mb-4 ml-1 ${theme.textSecondaryClass}`}>App Configuration</Text>
               
-              <View className={`rounded-[24px] border p-5 mb-4 ${theme.cardClass}`}>
+              <View className={`rounded-[24px] border p-5 mb-4 ${theme.glassCardClass}`}>
                 <View className="flex-row items-center justify-between mb-2">
                   <View className="flex-row items-center flex-1">
                     <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${maintenanceMode ? 'bg-amber-500/20' : (theme.isDark ? 'bg-white/5' : 'bg-slate-100')}`}>
@@ -1091,7 +1148,7 @@ export default function AdminDashboardScreen() {
                 )}
               </View>
 
-              <View className={`rounded-[24px] border p-5 mb-4 ${theme.cardClass}`}>
+              <View className={`rounded-[24px] border p-5 mb-4 ${theme.glassCardClass}`}>
                 <View className="flex-row items-center justify-between mb-2">
                   <View className="flex-row items-center flex-1">
                     <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${forceUpdate ? 'bg-rose-500/20' : (theme.isDark ? 'bg-white/5' : 'bg-slate-100')}`}>
@@ -1271,7 +1328,7 @@ export default function AdminDashboardScreen() {
               {selectedUser && (
                 <ScrollView showsVerticalScrollIndicator={false}>
                   {/* Unified Header Profile Section */}
-                  <View className={`p-5 rounded-[24px] border ${theme.cardClass} mb-8`}>
+                  <View className={`p-5 rounded-[24px] border ${theme.glassCardClass} mb-8`}>
                      {/* Top Row: Avatar & Name */}
                      <View className="flex-row items-center mb-5">
                        <View className="relative">
@@ -1324,7 +1381,7 @@ export default function AdminDashboardScreen() {
 
                   <View className="mb-8">
                     <Text className={`font-bold text-[12px] uppercase tracking-widest mb-3 ml-2 ${theme.textSecondaryClass}`}>Account Access Level</Text>
-                    <View className={`rounded-[24px] border overflow-hidden ${theme.cardClass}`}>
+                    <View className={`rounded-[24px] border overflow-hidden ${theme.glassCardClass}`}>
                       {(['citizen', 'official', 'moderator', 'admin'] as UserRole[]).map((role, idx) => (
                         <TouchableOpacity 
                           key={role} 
@@ -1353,46 +1410,55 @@ export default function AdminDashboardScreen() {
                     </View>
                   </View>
                   
+                  {/* VERIFICATION BADGES */}
                   <View className="mb-8">
-                    <Text className={`font-bold text-[12px] uppercase tracking-widest mb-3 ml-2 ${theme.textSecondaryClass}`}>Verification Badges</Text>
-                    <View className={`rounded-[24px] border overflow-hidden ${theme.cardClass}`}>
-                      
-                      {/* Badge: Verified */}
-                      <TouchableOpacity onPress={() => { Haptics.selectionAsync(); setEditingBadges(prev => prev.includes('verified') ? prev.filter(b => b !== 'verified') : [...prev, 'verified']) }} className={`flex-row items-center px-5 py-4 border-b ${theme.isDark ? 'border-white/5' : 'border-slate-100'} ${editingBadges.includes('verified') ? (theme.isDark ? 'bg-blue-900/10' : 'bg-[#f0f9ff]/50') : ''}`}>
-                        <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${theme.isDark ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
-                          <BadgeCheck size={16} color="#3b82f6" fill={theme.isDark ? '#3b82f640' : '#3b82f620'} />
-                        </View>
-                        <Text className={`font-bold text-[16px] flex-1 ${theme.textClass}`}>Verified</Text>
-                        {editingBadges.includes('verified') && <View className="w-6 h-6 rounded-full border border-blue-500 items-center justify-center"><CheckCircle size={14} color="#3b82f6" /></View>}
-                      </TouchableOpacity>
-
-                      {/* Badge: Gold */}
-                      <TouchableOpacity onPress={() => { Haptics.selectionAsync(); setEditingBadges(prev => prev.includes('gold') ? prev.filter(b => b !== 'gold') : [...prev, 'gold']) }} className={`flex-row items-center px-5 py-4 border-b ${theme.isDark ? 'border-white/5' : 'border-slate-100'} ${editingBadges.includes('gold') ? (theme.isDark ? 'bg-yellow-900/10' : 'bg-yellow-50/50') : ''}`}>
-                        <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${theme.isDark ? 'bg-yellow-500/20' : 'bg-yellow-50'}`}>
-                          <Crown size={16} color="#eab308" fill={theme.isDark ? '#eab30840' : '#eab30820'} />
-                        </View>
-                        <Text className={`font-bold text-[16px] flex-1 ${theme.textClass}`}>Gold</Text>
-                        {editingBadges.includes('gold') && <View className="w-6 h-6 rounded-full border border-blue-500 items-center justify-center"><CheckCircle size={14} color="#3b82f6" /></View>}
-                      </TouchableOpacity>
-
-                      {/* Badge: Contributor */}
-                      <TouchableOpacity onPress={() => { Haptics.selectionAsync(); setEditingBadges(prev => prev.includes('contributor') ? prev.filter(b => b !== 'contributor') : [...prev, 'contributor']) }} className={`flex-row items-center px-5 py-4 border-b ${theme.isDark ? 'border-white/5' : 'border-slate-100'} ${editingBadges.includes('contributor') ? (theme.isDark ? 'bg-purple-900/10' : 'bg-purple-50/50') : ''}`}>
-                        <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${theme.isDark ? 'bg-purple-500/20' : 'bg-purple-50'}`}>
-                          <Star size={16} color="#a855f7" fill={theme.isDark ? '#a855f740' : '#a855f720'} />
-                        </View>
-                        <Text className={`font-bold text-[16px] flex-1 ${theme.textClass}`}>Contributor</Text>
-                        {editingBadges.includes('contributor') && <View className="w-6 h-6 rounded-full border border-blue-500 items-center justify-center"><CheckCircle size={14} color="#3b82f6" /></View>}
-                      </TouchableOpacity>
-
-                      {/* Badge: Leader */}
-                      <TouchableOpacity onPress={() => { Haptics.selectionAsync(); setEditingBadges(prev => prev.includes('leader') ? prev.filter(b => b !== 'leader') : [...prev, 'leader']) }} className={`flex-row items-center px-5 py-4 ${editingBadges.includes('leader') ? (theme.isDark ? 'bg-indigo-900/10' : 'bg-indigo-50/50') : ''}`}>
-                        <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
-                          <ShieldCheck size={16} color="#6366f1" fill={theme.isDark ? '#6366f140' : '#6366f120'} />
-                        </View>
-                        <Text className={`font-bold text-[16px] flex-1 ${theme.textClass}`}>Leader</Text>
-                        {editingBadges.includes('leader') && <View className="w-6 h-6 rounded-full border border-blue-500 items-center justify-center"><CheckCircle size={14} color="#3b82f6" /></View>}
-                      </TouchableOpacity>
-                      
+                    <View className="flex-row items-center justify-between mb-3 px-2">
+                      <Text className={`font-bold text-[12px] uppercase tracking-widest ${theme.textSecondaryClass}`}>Verification Badges</Text>
+                      {editingBadges.length > 0 && (
+                        <TouchableOpacity onPress={() => { Haptics.selectionAsync(); setEditingBadges([]); }}>
+                          <Text className="text-[11px] font-bold text-rose-500">Clear All</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    <View className={`rounded-[24px] border overflow-hidden ${theme.glassCardClass}`}>
+                      {AVAILABLE_BADGES.map((badge, idx) => {
+                        const isSelected = editingBadges.includes(badge.id);
+                        const IconComponent = badge.icon;
+                        return (
+                          <TouchableOpacity
+                            key={badge.id}
+                            onPress={() => {
+                              Haptics.selectionAsync();
+                              setEditingBadges(prev => 
+                                prev.includes(badge.id) ? [] : [badge.id]
+                              );
+                            }}
+                            activeOpacity={0.7}
+                            className={`flex-row items-center px-5 py-3.5 ${
+                              idx < AVAILABLE_BADGES.length - 1 ? `border-b ${theme.isDark ? 'border-white/5' : 'border-slate-100'}` : ''
+                            } ${isSelected ? (theme.isDark ? badge.activeBgDark : badge.activeBgLight) : ''}`}
+                          >
+                            <View 
+                              className={`w-9 h-9 rounded-xl items-center justify-center mr-3.5 ${theme.isDark ? badge.bgColorDark : badge.bgColorLight}`}
+                              style={isSelected ? { borderWidth: 1, borderColor: badge.color + '60' } : undefined}
+                            >
+                              <IconComponent size={18} color={badge.color} fill={theme.isDark ? badge.color + '40' : badge.color + '20'} />
+                            </View>
+                            <View className="flex-1 mr-2">
+                              <Text className={`font-bold text-[15px] ${theme.textClass}`}>{badge.label}</Text>
+                              <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>{badge.description}</Text>
+                            </View>
+                            <View 
+                              className={`w-6 h-6 rounded-full items-center justify-center border-2 ${
+                                isSelected ? 'border-transparent' : theme.isDark ? 'border-white/20 bg-white/5' : 'border-slate-300 bg-white'
+                              }`}
+                              style={isSelected ? { backgroundColor: badge.color } : undefined}
+                            >
+                              {isSelected && <Check size={13} color="#ffffff" strokeWidth={3} />}
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
                     </View>
                   </View>
 
