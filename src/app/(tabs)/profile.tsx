@@ -674,7 +674,7 @@ export default function ProfileScreen() {
             <View className="flex-row items-center">
               <View className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 mr-2">
                 <Text className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
-                  Ward {item.ward_number || 1} • {item.category || 'General'}
+                  {item.category || 'General'}
                 </Text>
               </View>
               <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>

@@ -119,10 +119,6 @@ export default function ReportScreen() {
     let wardNum = parseInt(ward) || 1;
 
     if (postType === 'report') {
-      if (!landmark.trim()) {
-        showAlert('Hold on!', 'Please provide a specific landmark location for this official report.');
-        return;
-      }
       if (isNaN(wardNum) || wardNum < 1 || wardNum > 11) {
         showAlert('Hold on!', 'Please select a valid Ward number.');
         return;
@@ -147,10 +143,7 @@ export default function ReportScreen() {
       }
 
       const generatedTitle = `${category} Report - Ward ${wardNum}`;
-      const priorityLabel = postType === 'report' ? ` [Priority: ${urgency.toUpperCase()}]` : '';
-      const formattedDescription = postType === 'report' 
-        ? `📍 Location: ${landmark.trim()}${priorityLabel}\n\n${description.trim()}` 
-        : description.trim();
+      const formattedDescription = description.trim();
 
       const basePayload = {
         title: postType === 'report' ? generatedTitle : (description.trim().substring(0, 40) || 'Community Post'),
@@ -167,8 +160,6 @@ export default function ReportScreen() {
       const fullPayload = {
         ...basePayload,
         post_type: postType,
-        latitude: location?.latitude || null,
-        longitude: location?.longitude || null,
       };
 
       let { error } = await supabase.from('issues').insert([fullPayload]);
@@ -351,42 +342,6 @@ export default function ReportScreen() {
                 </View>
               </ScrollView>
 
-              <Text className={`font-bold text-[12px] uppercase tracking-wider mb-3 ml-1 ${theme.textMutedClass}`}>Location Details</Text>
-              
-              {/* GPS Button */}
-              <Pressable 
-                onPress={handleGetLocation} 
-                disabled={isGettingLocation}
-                className={`flex-row items-center justify-center py-3.5 rounded-2xl mb-3 border ${
-                  location 
-                    ? (theme.isDark ? 'bg-green-500/15 border-green-500/30' : 'bg-green-50 border-green-200')
-                    : (theme.isDark ? 'bg-indigo-500/15 border-indigo-500/30' : 'bg-indigo-50 border-indigo-200')
-                }`}
-              >
-                {isGettingLocation ? (
-                  <ActivityIndicator size="small" color={theme.isDark ? '#818cf8' : '#4f46e5'} />
-                ) : (
-                  <>
-                    <MapPin size={18} color={location ? '#22c55e' : (theme.isDark ? '#818cf8' : '#4f46e5')} />
-                    <Text className={`ml-2 font-bold text-[14px] ${location ? 'text-green-600 dark:text-green-400' : (theme.isDark ? 'text-indigo-300' : 'text-indigo-700')}`}>
-                      {location ? 'GPS Location Attached' : 'Attach Current GPS Location'}
-                    </Text>
-                  </>
-                )}
-              </Pressable>
-
-              {/* Landmark Input */}
-              <View className={`p-4 rounded-2xl mb-5 flex-row items-center border ${theme.isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100'}`}>
-                <MapPin size={16} color={theme.textMuted} style={{ marginRight: 8 }} />
-                <TextInput
-                  className={`flex-1 text-[15px] font-medium ${theme.textClass}`}
-                  placeholder="e.g. Near Central Park Gate"
-                  placeholderTextColor={theme.inputPlaceholder}
-                  value={landmark}
-                  onChangeText={setLandmark}
-                />
-              </View>
-
               <Text className={`font-bold text-[12px] uppercase tracking-wider mb-3 ml-1 ${theme.textMutedClass}`}>Ward Number</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-5 -mx-4 px-4">
                 <View className="flex-row gap-2">
@@ -411,20 +366,6 @@ export default function ReportScreen() {
                   })}
                 </View>
               </ScrollView>
-              
-              <Text className={`font-bold text-[12px] uppercase tracking-wider mb-3 ml-1 ${theme.textMutedClass}`}>Priority</Text>
-              <View className={`flex-row mb-6 p-1.5 rounded-2xl ${theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}>
-                <Pressable onPress={() => setUrgency('low')} className={`flex-1 py-2.5 rounded-xl items-center ${urgency === 'low' ? 'bg-emerald-500' : ''}`}>
-                  <Text className={`font-bold text-[13px] ${urgency === 'low' ? 'text-white' : theme.textMutedClass}`}>Low</Text>
-                </Pressable>
-                <Pressable onPress={() => setUrgency('medium')} className={`flex-1 py-2.5 rounded-xl items-center ${urgency === 'medium' ? 'bg-amber-500' : ''}`}>
-                  <Text className={`font-bold text-[13px] ${urgency === 'medium' ? 'text-white' : theme.textMutedClass}`}>Medium</Text>
-                </Pressable>
-                <Pressable onPress={() => setUrgency('high')} className={`flex-1 py-2.5 rounded-xl items-center ${urgency === 'high' ? 'bg-rose-500' : ''}`}>
-                  <Text className={`font-bold text-[13px] ${urgency === 'high' ? 'text-white' : theme.textMutedClass}`}>High</Text>
-                </Pressable>
-              </View>
-
             </View>
           )}
 

@@ -548,13 +548,10 @@ export default function FeedScreen() {
                   <Text className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">सिम्रौनगढ</Text>
                 </View>
               </View>
-              <Text className={`text-[11px] font-semibold ${theme.textMutedClass}`}>
-                {formattedDate}
-              </Text>
             </View>
           </View>
 
-          {/* Right: Actions (Language toggle, Search, Notification Bell) */}
+          {/* Right: Actions (Language toggle, Search) */}
           <View className="flex-row items-center gap-2">
             {/* Language Switcher */}
             <TouchableOpacity
@@ -583,93 +580,8 @@ export default function FeedScreen() {
             >
               <Search size={16} color={theme.iconColor} strokeWidth={2.2} />
             </TouchableOpacity>
-
-            {/* Notification Bell */}
-            <TouchableOpacity
-              onPress={() => { Haptics.selectionAsync(); router.push('/notifications'); }}
-              activeOpacity={0.75}
-              className={`w-9 h-9 rounded-full items-center justify-center border relative ${
-                theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
-              }`}
-            >
-              <Bell size={16} color={theme.iconColor} strokeWidth={2.2} />
-              {hasUnread && (
-                <View className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border border-white" />
-              )}
-            </TouchableOpacity>
           </View>
         </View>
-      </View>
-
-      {/* Weather & Civic Status Card (Stitch Civic Modern) */}
-      <View className="px-4 pb-2">
-        <TouchableOpacity
-          onPress={() => {
-            fetchWeather();
-            Haptics.selectionAsync();
-          }}
-          activeOpacity={0.9}
-          className={`p-3.5 rounded-[24px] border flex-row items-center justify-between ${
-            theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'
-          }`}
-          style={theme.cardShadow}
-        >
-          <View className="flex-row items-center flex-1 mr-2">
-            <View className={`w-10 h-10 rounded-2xl items-center justify-center mr-3 ${
-              theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'
-            }`}>
-              <WeatherIcon size={22} color={weatherColor} />
-            </View>
-            <View className="flex-1">
-              <View className="flex-row items-center">
-                <MapPin size={12} color={theme.accentColor} />
-                <Text className={`font-bold text-[13.5px] ml-1 ${theme.textClass}`}>
-                  Simraungadh {profile?.home_ward ? `• Ward ${profile.home_ward}` : ''}
-                </Text>
-              </View>
-              <Text className={`text-[12px] font-medium ${theme.textMutedClass} mt-0.5`}>
-                {condition || 'Partly Cloudy'} • {formattedDate}
-              </Text>
-            </View>
-          </View>
-          <View className="items-end">
-            <Text className="font-extrabold text-[20px] text-indigo-600 dark:text-indigo-400">
-              {temp ? `${temp}°C` : '28°C'}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {/* Quick Civic Post Bar */}
-      <View className="px-4 pb-2">
-        <TouchableOpacity
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push('/report');
-          }}
-          activeOpacity={0.85}
-          className={`px-4 py-3 rounded-2xl border flex-row items-center justify-between ${
-            theme.isDark ? 'bg-white/[0.04] border-white/5' : 'bg-white border-slate-200/70'
-          }`}
-        >
-          <View className="flex-row items-center flex-1 mr-3">
-            {profile?.avatar_url ? (
-              <Image source={{ uri: profile.avatar_url }} style={{ width: 34, height: 34, borderRadius: 17 }} />
-            ) : (
-              <View className={`w-8 h-8 rounded-full items-center justify-center ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
-                <User size={16} color={theme.accentColor} />
-              </View>
-            )}
-            <View className="ml-3 flex-1">
-              <Text className={`text-[13.5px] font-medium ${theme.textMutedClass}`}>
-                {profile ? `${profile.full_name?.split(' ')[0] || 'Citizen'}, report an issue or post update...` : "Report an issue or update in your ward..."}
-              </Text>
-            </View>
-          </View>
-          <View className="px-3.5 py-1.5 rounded-full bg-indigo-600">
-            <Text className="text-[12px] font-bold text-white">Post</Text>
-          </View>
-        </TouchableOpacity>
       </View>
 
       {/* Category Chips */}

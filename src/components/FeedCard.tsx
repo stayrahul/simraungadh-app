@@ -244,11 +244,6 @@ function FeedCard({
               </View>
 
               <View className="flex-row items-center mt-0.5">
-                <MapPin size={10} color={theme.accentColor} />
-                <Text className={`text-[11px] font-semibold ml-0.5 ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
-                  Ward {item.ward_number || 1}
-                </Text>
-                <Text className={`text-[10px] mx-1.5 ${theme.textMutedClass}`}>•</Text>
                 <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>
                   {theme.timeAgo(item.created_at)}
                 </Text>
