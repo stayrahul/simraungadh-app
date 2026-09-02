@@ -13,6 +13,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useAlert } from '../../components/AlertProvider';
 import { useWeatherStore } from '../../store/weatherStore';
 import { useTheme } from '../../hooks/use-theme';
+import { getFastCache, setFastCache, CACHE_KEYS } from '../../lib/cache';
 import EventCard from '../../components/EventCard';
 
 const EMERGENCY_CONTACTS = [
@@ -259,53 +260,56 @@ export default function ServicesScreen() {
 
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
+    const fetchServicesData = async () => {
+      // 0ms Instant cache hit
+      const [cachedLead, cachedEvt] = await Promise.all([
+        getFastCache<Profile[]>(CACHE_KEYS.SERVICES_LEADERBOARD),
+        getFastCache<any[]>(CACHE_KEYS.SERVICES_EVENTS),
+      ]);
+
+      if (cachedLead && cachedLead.length > 0) {
+        setTopContributors(cachedLead);
+        setLoadingContributors(false);
+      }
+      if (cachedEvt && cachedEvt.length > 0) {
+        setEvents(cachedEvt);
+        setLoadingEvents(false);
+      }
+
+      // Fetch fresh in parallel
       try {
-        let { data, error } = await supabase
+        const leaderboardPromise = supabase
           .from('profiles')
-          .select('*')
+          .select('id, full_name, avatar_url, role, civic_points, badges, is_verified')
           .eq('role', 'citizen')
           .order('civic_points', { ascending: false })
           .limit(3);
 
-        if (error && error.code === '42703') {
-          const fallback = await supabase
-            .from('profiles')
-            .select('id, full_name, avatar_url, role')
-            .eq('role', 'citizen')
-            .limit(3);
-          data = fallback.data;
-          error = fallback.error;
-        }
-
-        if (error) throw error;
-        setTopContributors(data || []);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoadingContributors(false);
-      }
-    };
-
-    const fetchEvents = async () => {
-      try {
-        const { data, error } = await supabase
+        const eventsPromise = supabase
           .from('civic_events')
-          .select('*')
+          .select('id, title, description, event_date, location, category, image_url')
           .order('event_date', { ascending: true })
           .limit(5);
-        if (!error && data) {
-          setEvents(data);
+
+        const [leadRes, evtRes] = await Promise.all([leaderboardPromise, eventsPromise]);
+
+        if (leadRes.data) {
+          setTopContributors(leadRes.data);
+          setFastCache(CACHE_KEYS.SERVICES_LEADERBOARD, leadRes.data);
+        }
+        if (evtRes.data) {
+          setEvents(evtRes.data);
+          setFastCache(CACHE_KEYS.SERVICES_EVENTS, evtRes.data);
         }
       } catch (e) {
-        console.error(e);
+        console.error('Error fetching services data:', e);
       } finally {
+        setLoadingContributors(false);
         setLoadingEvents(false);
       }
     };
 
-    fetchLeaderboard();
-    fetchEvents();
+    fetchServicesData();
     fetchWeather();
   }, []);
 

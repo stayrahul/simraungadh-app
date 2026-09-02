@@ -146,50 +146,34 @@ export default function GlobalSearchScreen() {
         item.phone.includes(trimmed)
       );
 
-      // 2. Search People / Profiles
-      let peopleData: Profile[] = [];
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, full_name, avatar_url, role, badges, is_verified, home_ward, department, phone_number')
-          .ilike('full_name', searchTerm)
-          .limit(20);
-        if (!error && data) {
-          peopleData = data;
-        }
-      } catch (err) {
-        console.error('People search error:', err);
-      }
+      // Run People, Issues, and Notices search in parallel for ultra-fast response
+      const peoplePromise = supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, role, badges, is_verified, home_ward, department, phone_number')
+        .ilike('full_name', searchTerm)
+        .limit(15);
 
-      // 3. Search Issues / Reports
-      let issuesData: Issue[] = [];
-      try {
-        const { data, error } = await supabase
-          .from('issues')
-          .select('id, title, description, category, status, ward_number, created_at')
-          .or(`title.ilike.${searchTerm},description.ilike.${searchTerm},category.ilike.${searchTerm}`)
-          .limit(20);
-        if (!error && data) {
-          issuesData = data;
-        }
-      } catch (err) {
-        console.error('Issues search error:', err);
-      }
+      const issuesPromise = supabase
+        .from('issues')
+        .select('id, title, description, category, status, ward_number, created_at')
+        .or(`title.ilike.${searchTerm},description.ilike.${searchTerm},category.ilike.${searchTerm}`)
+        .limit(15);
 
-      // 4. Search Official Notices
-      let noticesData: Notice[] = [];
-      try {
-        const { data, error } = await supabase
-          .from('notices')
-          .select('*')
-          .or(`title.ilike.${searchTerm},content.ilike.${searchTerm},category.ilike.${searchTerm}`)
-          .limit(20);
-        if (!error && data) {
-          noticesData = data;
-        }
-      } catch (err) {
-        console.error('Notices search error:', err);
-      }
+      const noticesPromise = supabase
+        .from('notices')
+        .select('id, title, content, category, is_emergency, created_at, image_url')
+        .or(`title.ilike.${searchTerm},content.ilike.${searchTerm},category.ilike.${searchTerm}`)
+        .limit(15);
+
+      const [peopleRes, issuesRes, noticesRes] = await Promise.all([
+        peoplePromise,
+        issuesPromise,
+        noticesPromise,
+      ]);
+
+      const peopleData = peopleRes.data || [];
+      const issuesData = issuesRes.data || [];
+      const noticesData = noticesRes.data || [];
 
       setQuery((currentQuery) => {
         if (currentQuery === text) {

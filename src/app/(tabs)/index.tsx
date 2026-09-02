@@ -15,6 +15,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { useLangStore } from '../../store/langStore';
 import { translations } from '../../lib/translations';
+import { getFastCache, setFastCache, CACHE_KEYS } from '../../lib/cache';
 import { useAlert } from '../../components/AlertProvider';
 import { Issue } from '../../lib/types';
 import { useWeatherStore } from '../../store/weatherStore';
@@ -130,12 +131,17 @@ export default function FeedScreen() {
   const fetchIssues = useCallback(async (isLoadMore = false, isSilent = false) => {
     if (isLoadMore && (loadingMoreRef.current || !hasMoreRef.current || loadingRef.current)) return;
 
+    const cacheKey = CACHE_KEYS.FEED(activeCategory, feedTab);
+
     // Instant SWR cache hit for 0ms initial render
-    if (!isLoadMore && !isSilent && feedCache[activeCategory] && feedCache[activeCategory].length > 0 && issuesRef.current.length === 0) {
-      setIssues(feedCache[activeCategory]);
-      issuesRef.current = feedCache[activeCategory];
-      setLoading(false);
-      loadingRef.current = false;
+    if (!isLoadMore && !isSilent && issuesRef.current.length === 0) {
+      const cached = await getFastCache<Issue[]>(cacheKey);
+      if (cached && cached.length > 0 && issuesRef.current.length === 0) {
+        setIssues(cached);
+        issuesRef.current = cached;
+        setLoading(false);
+        loadingRef.current = false;
+      }
     }
 
     try {
@@ -164,7 +170,7 @@ export default function FeedScreen() {
       } else {
         let query = supabase
           .from('issues')
-          .select('*, author:profiles!issues_author_id_fkey(id, full_name, avatar_url, role, badges, is_verified), issue_comments(count)')
+          .select('id, title, description, category, ward_number, status, upvotes_count, image_url, image_urls, created_at, author_id, is_anonymous, is_pinned, is_locked, post_type, author:profiles!issues_author_id_fkey(id, full_name, avatar_url, role, badges, is_verified), issue_comments(count)')
           .eq('is_deleted', false)
           .order('is_pinned', { ascending: false })
           .order('created_at', { ascending: false })
@@ -190,7 +196,7 @@ export default function FeedScreen() {
       hasMoreRef.current = moreExist;
 
       if (!isLoadMoreTriggered) {
-        feedCache[activeCategory] = newIssues;
+        setFastCache(cacheKey, newIssues);
       }
 
       setIssues(prev => {
@@ -244,7 +250,7 @@ export default function FeedScreen() {
       loadingRef.current = false;
       loadingMoreRef.current = false;
     }
-  }, [activeCategory, profile, feedTab, followingUsers]);
+  }, [activeCategory, profile, feedTab]);
 
   useEffect(() => {
     issuesRef.current = issues;

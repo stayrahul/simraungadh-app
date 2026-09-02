@@ -15,6 +15,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useTheme } from '../../hooks/use-theme';
 import { useLangStore } from '../../store/langStore';
 import { translations } from '../../lib/translations';
+import { getFastCache, setFastCache, CACHE_KEYS } from '../../lib/cache';
 import { useAlert } from '../../components/AlertProvider';
 import IssueImageCarousel from '../../components/IssueImageCarousel';
 import FullScreenImageViewer from '../../components/FullScreenImageViewer';
@@ -57,15 +58,23 @@ export default function NoticesScreen() {
     { id: 'status_update', label: t.updatesFilter || 'Updates' },
   ];
 
-  // Fetch Notices
+  // Fetch Notices with 0ms instant cache read
   const fetchNotices = useCallback(async () => {
+    // 0ms instant cache hit
+    const cached = await getFastCache<Notice[]>(CACHE_KEYS.NOTICES);
+    if (cached && cached.length > 0) {
+      setNotices(cached);
+      setLoadingNotices(false);
+    }
+
     try {
       let { data, error } = await supabase
         .from('notices')
-        .select(`*, author:profiles!notices_author_id_fkey(*)`)
+        .select(`id, title, content, category, is_emergency, image_url, created_at, author:profiles!notices_author_id_fkey(id, full_name, avatar_url, role)`)
         .eq('is_deleted', false)
         .order('is_emergency', { ascending: false })
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(30);
 
       if (error) {
         const fallback = await supabase
@@ -73,11 +82,15 @@ export default function NoticesScreen() {
           .select('*')
           .eq('is_deleted', false)
           .order('is_emergency', { ascending: false })
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(30);
         data = fallback.data;
       }
 
-      setNotices(data || []);
+      if (data) {
+        setNotices(data);
+        setFastCache(CACHE_KEYS.NOTICES, data);
+      }
     } catch (e) {
       console.error('Error fetching notices', e);
     } finally {
@@ -86,22 +99,33 @@ export default function NoticesScreen() {
     }
   }, []);
 
-  // Fetch Personal Notifications
+  // Fetch Personal Notifications with instant cache
   const fetchNotifications = useCallback(async () => {
     if (!profile) {
       setLoadingNotifs(false);
       return;
     }
+
+    const notifKey = CACHE_KEYS.NOTIFICATIONS(profile.id);
+    const cached = await getFastCache<AppNotification[]>(notifKey);
+    if (cached && cached.length > 0) {
+      setNotifications(cached);
+      setLoadingNotifs(false);
+    }
+
     try {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', profile.id)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(40);
 
       if (error) throw error;
-      setNotifications(data || []);
+      if (data) {
+        setNotifications(data);
+        setFastCache(notifKey, data);
+      }
     } catch (e) {
       console.error('Error fetching notifications:', e);
     } finally {

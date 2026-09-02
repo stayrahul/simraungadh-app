@@ -23,6 +23,7 @@ import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/imageStorage';
 import { Issue, cleanCivicDescription, cleanCivicTitle } from '../../lib/types';
+import { getFastCache, setFastCache, CACHE_KEYS } from '../../lib/cache';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as Haptics from 'expo-haptics';
@@ -97,62 +98,84 @@ export default function ProfileScreen() {
 
   const fetchProfileData = useCallback(async (isSilent = false) => {
     if (!profileId) return;
-    if (!isSilent && issues.length === 0) {
+
+    // Instant SWR Cache for 0ms initial render
+    const cacheKey = CACHE_KEYS.PROFILE_POSTS(profileId);
+    const cachedPosts = await getFastCache<Issue[]>(cacheKey);
+    if (cachedPosts && cachedPosts.length > 0 && issues.length === 0) {
+      setIssues(cachedPosts);
+      setLoading(false);
+    }
+
+    if (!isSilent && issues.length === 0 && !cachedPosts) {
       setLoading(true);
     }
+
     try {
-      // 1. Fetch User Posts
-      let query = supabase
-        .from('issues')
-        .select('*, author:profiles!issues_author_id_fkey(id, full_name, avatar_url, role, badges, is_verified), issue_comments(count)')
-        .eq('is_deleted', false)
-        .order('created_at', { ascending: false });
+      // 1. Build all 5 queries to run in parallel
+      const postsQuery = (profileRole === 'official'
+        ? supabase
+            .from('issues')
+            .select('id, title, description, category, ward_number, status, upvotes_count, image_url, image_urls, created_at, author_id, author:profiles!issues_author_id_fkey(id, full_name, avatar_url, role, badges, is_verified), issue_comments(count)')
+            .eq('is_deleted', false)
+            .neq('status', 'resolved')
+            .order('created_at', { ascending: false })
+            .limit(30)
+        : supabase
+            .from('issues')
+            .select('id, title, description, category, ward_number, status, upvotes_count, image_url, image_urls, created_at, author_id, author:profiles!issues_author_id_fkey(id, full_name, avatar_url, role, badges, is_verified), issue_comments(count)')
+            .eq('is_deleted', false)
+            .eq('author_id', profileId)
+            .order('created_at', { ascending: false })
+            .limit(30));
 
-      if (profileRole === 'official') {
-        query = query.neq('status', 'resolved');
-      } else {
-        query = query.eq('author_id', profileId);
-      }
+      const savedQuery = bookmarkedIssueIds.length > 0
+        ? supabase
+            .from('issues')
+            .select('id, title, description, category, ward_number, status, upvotes_count, image_url, image_urls, created_at, author_id, author:profiles!issues_author_id_fkey(id, full_name, avatar_url, role, badges, is_verified), issue_comments(count)')
+            .in('id', bookmarkedIssueIds)
+            .eq('is_deleted', false)
+            .order('created_at', { ascending: false })
+            .limit(30)
+        : Promise.resolve({ data: [] });
 
-      const { data: postsData } = await query;
-      setIssues(postsData || []);
-
-      // 2. Fetch User Saved / Bookmarked Posts
-      if (bookmarkedIssueIds.length > 0) {
-        const { data: savedData } = await supabase
-          .from('issues')
-          .select('*, author:profiles!issues_author_id_fkey(id, full_name, avatar_url, role, badges, is_verified), issue_comments(count)')
-          .in('id', bookmarkedIssueIds)
-          .eq('is_deleted', false)
-          .order('created_at', { ascending: false });
-
-        setSavedIssues(savedData || []);
-      } else {
-        setSavedIssues([]);
-      }
-
-      // 3. Fetch Liked Issues
-      const { data: likesData } = await supabase
+      const likesQuery = supabase
         .from('issue_likes')
         .select('issue_id')
         .eq('user_id', profileId);
 
-      if (likesData) {
-        setLikedIssueIds(new Set(likesData.map(l => l.issue_id)));
-      }
-
-      // 4. Fetch Followers and Following counts
-      const { count: fCount } = await supabase
+      const followersQuery = supabase
         .from('user_follows')
         .select('*', { count: 'exact', head: true })
         .eq('following_id', profileId);
-      setFollowersCount(fCount || 0);
 
-      const { count: fwCount } = await supabase
+      const followingQuery = supabase
         .from('user_follows')
         .select('*', { count: 'exact', head: true })
         .eq('follower_id', profileId);
-      setFollowingCount(fwCount || 0);
+
+      // Run all queries simultaneously in 1 parallel network roundtrip
+      const [postsRes, savedRes, likesRes, followersRes, followingRes] = await Promise.all([
+        postsQuery,
+        savedQuery,
+        likesQuery,
+        followersQuery,
+        followingQuery,
+      ]);
+
+      if (postsRes.data) {
+        setIssues(postsRes.data);
+        setFastCache(cacheKey, postsRes.data);
+      }
+
+      setSavedIssues(savedRes.data || []);
+
+      if (likesRes.data) {
+        setLikedIssueIds(new Set(likesRes.data.map(l => l.issue_id)));
+      }
+
+      setFollowersCount(followersRes.count || 0);
+      setFollowingCount(followingRes.count || 0);
     } catch (e) {
       console.error('Error fetching profile data', e);
     } finally {

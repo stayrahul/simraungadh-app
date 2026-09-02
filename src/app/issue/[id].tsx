@@ -13,6 +13,7 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { Issue, IssueComment, cleanCivicDescription, cleanCivicTitle } from '../../lib/types';
+import { getFastCache, setFastCache, CACHE_KEYS } from '../../lib/cache';
 import Badge from '../../components/Badge';
 import Skeleton from '../../components/Skeleton';
 import IssueImageCarousel from '../../components/IssueImageCarousel';
@@ -120,36 +121,56 @@ export default function IssueDetailScreen() {
   const inputRef = useRef<TextInput>(null);
 
   const fetchIssueDetails = useCallback(async () => {
+    if (!id) return;
+    const cacheKey = CACHE_KEYS.ISSUE_DETAIL(id as string);
+
+    // Instant SWR Cache for 0ms initial render
+    const cached = await getFastCache<Issue>(cacheKey);
+    if (cached) {
+      setIssue(cached);
+      setLoading(false);
+    }
+
     try {
-      const { data: issueData, error: issueError } = await supabase
+      const issuePromise = supabase
         .from('issues')
-        .select('*, author:profiles!issues_author_id_fkey(*)')
+        .select('*, author:profiles!issues_author_id_fkey(id, full_name, avatar_url, role, badges, is_verified)')
         .eq('id', id)
         .single();
 
-      if (issueError) throw issueError;
-      setIssue(issueData);
-
-      const { data: commentsData, error: commentsError } = await supabase
+      const commentsPromise = supabase
         .from('issue_comments')
-        .select('*, author:profiles(*)')
+        .select('*, author:profiles(id, full_name, avatar_url, role, is_verified)')
         .eq('issue_id', id)
         .order('created_at', { ascending: true });
 
-      if (commentsError) throw commentsError;
+      const likePromise = profile
+        ? supabase
+            .from('issue_upvotes')
+            .select('issue_id')
+            .eq('issue_id', id)
+            .eq('user_id', profile.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null });
 
-      const rawComments = commentsData || [];
-      setComments(structureCommentList(rawComments));
+      // Run all requests in parallel
+      const [issueRes, commentsRes, likeRes] = await Promise.all([
+        issuePromise,
+        commentsPromise,
+        likePromise,
+      ]);
 
-      if (profile && issueData) {
-        const { data: likeData } = await supabase
-          .from('issue_upvotes')
-          .select('*')
-          .eq('issue_id', id)
-          .eq('user_id', profile.id)
-          .maybeSingle();
+      if (issueRes.data) {
+        setIssue(issueRes.data);
+        setFastCache(cacheKey, issueRes.data);
+      }
 
-        setIsLiked(!!likeData);
+      if (commentsRes.data) {
+        setComments(structureCommentList(commentsRes.data));
+      }
+
+      if (likeRes?.data) {
+        setIsLiked(true);
       }
     } catch (e) {
       console.error('Error fetching issue details:', e);
