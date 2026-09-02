@@ -620,7 +620,7 @@ export default function IssueDetailScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
       className={`flex-1 ${theme.bgClass}`}
     >
       {/* Navbar */}
@@ -638,7 +638,7 @@ export default function IssueDetailScreen() {
           keyExtractor={(item) => item.id}
           ListHeaderComponent={renderHeader()}
           renderItem={renderComment}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingBottom: isKeyboardVisible ? 120 : 20 }}
           estimatedItemSize={120}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -660,10 +660,12 @@ export default function IssueDetailScreen() {
       {profile && (
         <View 
           style={{
-            paddingBottom: isKeyboardVisible ? 8 : Math.max(insets.bottom, 12),
-            marginBottom: Platform.OS === 'android' ? keyboardHeight : 0,
+            paddingBottom: isKeyboardVisible ? 14 : Math.max(insets.bottom, 12),
+            marginBottom: Platform.OS === 'android' && isKeyboardVisible && keyboardHeight > 0
+              ? keyboardHeight + 36
+              : 0,
           }}
-          className="w-full px-4 pt-2 border-t border-slate-200/50 dark:border-white/5 bg-transparent"
+          className={`w-full px-4 pt-2 border-t border-slate-200/50 dark:border-white/5 ${theme.bgClass}`}
         >
           <View className={`border rounded-[24px] shadow-sm overflow-hidden ${theme.isDark ? 'bg-[#121216] border-white/10' : 'bg-white border-slate-200'}`}>
             {replyingTo && (
