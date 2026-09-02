@@ -3,8 +3,6 @@
  * Simraungadh Modern Design System – Royal Azure & Cyan Theme
  */
 
-import '@/global.css';
-
 import { Platform } from 'react-native';
 
 export const Colors = {
