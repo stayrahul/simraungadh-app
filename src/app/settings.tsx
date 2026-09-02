@@ -197,16 +197,18 @@ export default function SettingsScreen() {
   };
 
   const SettingRow = ({ icon: Icon, title, subtitle, rightElement, onPress, isDestructive, iconColor, isLast }: any) => {
-    const iconBgColor = isDestructive ? (theme.isDark ? 'rgba(255,69,58,0.12)' : 'rgba(255,59,48,0.08)') : (theme.isDark ? 'rgba(10,132,255,0.12)' : 'rgba(0,122,255,0.06)');
+    const iconBgColor = isDestructive 
+      ? (theme.isDark ? 'rgba(255,69,58,0.15)' : 'rgba(255,59,48,0.08)') 
+      : (iconColor ? `${iconColor}18` : (theme.isDark ? 'rgba(99,102,241,0.15)' : 'rgba(79,70,229,0.08)'));
 
     return (
       <TouchableOpacity
         onPress={() => { if (onPress) { triggerHaptic(); onPress(); } }}
         activeOpacity={0.7}
-        className={`flex-row items-center px-4 py-4 ${isLast ? '' : `border-b ${theme.isDark ? 'border-white/5' : 'border-slate-100'}`}`}
+        className={`flex-row items-center px-4 py-3.5 ${isLast ? '' : `border-b ${theme.isDark ? 'border-white/5' : 'border-slate-100'}`}`}
       >
-        <View style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginRight: 14, backgroundColor: iconBgColor }}>
-          <Icon size={20} color={isDestructive ? (theme.isDark ? '#fb7185' : '#e11d48') : iconColor || theme.iconColor} strokeWidth={2.5} />
+        <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 14, backgroundColor: iconBgColor }}>
+          <Icon size={18} color={isDestructive ? (theme.isDark ? '#fb7185' : '#e11d48') : iconColor || theme.iconColor} strokeWidth={2.2} />
         </View>
         <View className="flex-1 mr-2">
           <Text className={`text-[15px] font-bold ${isDestructive ? (theme.isDark ? 'text-rose-400' : 'text-rose-600') : theme.textClass}`}>{title}</Text>
@@ -257,11 +259,10 @@ export default function SettingsScreen() {
         </View>
         <TouchableOpacity
           onPress={() => { triggerHaptic(); router.push('/complete-profile?fromSettings=true'); }}
-          className={`mt-5 py-3.5 rounded-full items-center justify-center flex-row`}
-          style={{ backgroundColor: theme.isDark ? 'rgba(10,132,255,0.12)' : 'rgba(0,122,255,0.06)' }}
+          className="mt-4 px-6 py-2.5 rounded-full items-center justify-center flex-row border border-indigo-500/20 bg-indigo-500/10"
         >
-          <Text style={{ fontWeight: '700', fontSize: 14.5, color: theme.accentColor }}>Manage Profile</Text>
-          <ChevronRight size={16} color={theme.accentColor} style={{ marginLeft: 4 }} />
+          <Text className={`font-bold text-[14px] ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>Manage Profile</Text>
+          <ChevronRight size={15} color={theme.isDark ? '#818cf8' : '#4f46e5'} style={{ marginLeft: 4 }} />
         </TouchableOpacity>
       </View>
     );

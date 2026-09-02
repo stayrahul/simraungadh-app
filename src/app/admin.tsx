@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   Users, AlertTriangle, ShieldAlert, CheckCircle, Search, Check,
   MoreVertical, RefreshCw, X, Shield, MapPin, Award, 
-  Trash2, Ban, Heart, Zap, BadgeCheck, Crown, Star, ShieldCheck, ChevronLeft, ChevronRight, User, File, Briefcase, Megaphone, Send, Layers, BookOpen, AlertCircle, Edit3, Settings, Download
+  Trash2, Ban, Heart, Zap, BadgeCheck, Crown, Star, ShieldCheck, ChevronLeft, ChevronRight, User, File, Briefcase, Megaphone, Send, Layers, BookOpen, AlertCircle, Edit3, Settings, Download, BarChart2, Calendar
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
@@ -20,6 +20,19 @@ import { UserBadges } from '../components/UserBadges';
 
 // Segmented Control Tabs
 type AdminTab = 'analytics' | 'users' | 'moderation' | 'services' | 'directory' | 'notices' | 'settings' | 'polls' | 'events' | 'logs';
+
+const ADMIN_TABS: { id: AdminTab; label: string; icon: any }[] = [
+  { id: 'analytics', label: 'Analytics', icon: BarChart2 },
+  { id: 'users', label: 'Users', icon: Users },
+  { id: 'moderation', label: 'Moderation', icon: ShieldAlert },
+  { id: 'services', label: 'Services', icon: Briefcase },
+  { id: 'directory', label: 'Directory', icon: BookOpen },
+  { id: 'notices', label: 'Notices', icon: Megaphone },
+  { id: 'polls', label: 'Polls', icon: Layers },
+  { id: 'events', label: 'Events', icon: Calendar },
+  { id: 'logs', label: 'Logs', icon: File },
+  { id: 'settings', label: 'Settings', icon: Settings },
+];
 
 const AVAILABLE_BADGES = [
   {
@@ -516,32 +529,63 @@ export default function AdminDashboardScreen() {
 
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
-      {/* Header */}
+      {/* Header - Stitch Civic Modern */}
       <View className="px-5 py-3 flex-row justify-between items-center z-10">
-        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/settings')} className={`w-10 h-10 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-          <ChevronLeft size={24} color={theme.iconColor} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleRefresh} className={`w-10 h-10 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-          <RefreshCw size={20} color={theme.iconColor} />
+        <View className="flex-row items-center">
+          <TouchableOpacity 
+            onPress={() => router.canGoBack() ? router.back() : router.replace('/settings')} 
+            className={`w-10 h-10 rounded-full items-center justify-center border mr-3 ${theme.isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200/80'}`}
+          >
+            <ChevronLeft size={20} color={theme.iconColor} />
+          </TouchableOpacity>
+          <View>
+            <View className="flex-row items-center">
+              <Text className={`font-black text-[20px] tracking-tight ${theme.textClass}`}>
+                Admin Console
+              </Text>
+              <View className="ml-2 px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20">
+                <Text className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">HQ</Text>
+              </View>
+            </View>
+            <Text className={`text-[11.5px] font-medium ${theme.textMutedClass}`}>
+              Simraungadh Municipal Office
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity 
+          onPress={handleRefresh} 
+          className={`w-10 h-10 rounded-full items-center justify-center border ${theme.isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200/80'}`}
+        >
+          <RefreshCw size={16} color={theme.iconColor} />
         </TouchableOpacity>
       </View>
 
       {/* Tabs */}
-      <View className="px-4 py-3">
+      <View className="px-4 py-2">
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 20 }}>
-          {(['analytics', 'users', 'moderation', 'services', 'directory', 'notices', 'polls', 'events', 'logs', 'settings'] as AdminTab[]).map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => { Haptics.selectionAsync(); setActiveTab(tab); }}
-              className={`px-5 py-2.5 rounded-[24px] mr-3 ${activeTab === tab 
-                ? (theme.isDark ? 'bg-indigo-500/30' : 'bg-indigo-600') 
-                : (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100')}`}
-            >
-              <Text className={`text-[14px] font-bold capitalize tracking-wide ${activeTab === tab 
-                ? (theme.isDark ? 'text-indigo-300' : 'text-white') 
-                : theme.textSecondaryClass}`}>{tab}</Text>
-            </TouchableOpacity>
-          ))}
+          {ADMIN_TABS.map((tabItem) => {
+            const isActive = activeTab === tabItem.id;
+            const IconComp = tabItem.icon;
+            return (
+              <TouchableOpacity
+                key={tabItem.id}
+                onPress={() => { Haptics.selectionAsync(); setActiveTab(tabItem.id); }}
+                activeOpacity={0.8}
+                className={`flex-row items-center px-4 py-2 rounded-full mr-2 border ${
+                  isActive 
+                    ? 'bg-indigo-600 border-indigo-600 shadow-sm' 
+                    : (theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-white border-slate-200/80')
+                }`}
+              >
+                <IconComp size={14} color={isActive ? '#ffffff' : theme.iconColor} strokeWidth={isActive ? 2.4 : 2} />
+                <Text className={`ml-2 text-[13px] font-bold ${
+                  isActive ? 'text-white' : theme.textSecondaryClass
+                }`}>
+                  {tabItem.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -620,22 +664,22 @@ export default function AdminDashboardScreen() {
               {/* Primary Stats Grid */}
               <View className="flex-row flex-wrap justify-between gap-y-3 mb-4">
                 {[
-                  { label: 'TOTAL USERS', value: stats.users, icon: Users, color: theme.accentColor, bg: theme.isDark ? 'rgba(10,132,255,0.08)' : 'rgba(0,122,255,0.05)' },
-                  { label: 'CIVIC ISSUES', value: stats.issues, icon: File, color: theme.dangerColor, bg: theme.isDark ? 'rgba(255,69,58,0.08)' : 'rgba(255,59,48,0.05)' },
-                  { label: 'RESOLVED', value: stats.resolved, icon: CheckCircle, color: theme.successColor, bg: theme.isDark ? 'rgba(48,209,88,0.08)' : 'rgba(52,199,89,0.05)' },
-                  { label: 'NOTICES', value: stats.notices, icon: AlertTriangle, color: theme.warningColor, bg: theme.isDark ? 'rgba(255,159,10,0.08)' : 'rgba(255,149,0,0.05)' },
+                  { label: 'TOTAL USERS', value: stats.users, icon: Users, color: '#4F46E5', bg: theme.isDark ? 'rgba(79,70,229,0.12)' : 'rgba(79,70,229,0.06)' },
+                  { label: 'CIVIC ISSUES', value: stats.issues, icon: File, color: '#EF4444', bg: theme.isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.06)' },
+                  { label: 'RESOLVED', value: stats.resolved, icon: CheckCircle, color: '#10B981', bg: theme.isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.06)' },
+                  { label: 'NOTICES', value: stats.notices, icon: AlertTriangle, color: '#F59E0B', bg: theme.isDark ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.06)' },
                 ].map((stat, idx) => (
                   <View key={idx} className="w-[48%]">
                     <AnimatedCard style={{ padding: 0 }}>
-                      <View style={{ padding: 16, backgroundColor: stat.bg, borderRadius: 20 }}>
-                        <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: stat.color + '20', marginBottom: 12 }}>
+                      <View className={`p-4 rounded-[24px] border ${theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'}`} style={theme.cardShadow}>
+                        <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: stat.bg, marginBottom: 12 }}>
                           {(() => {
                             const Icon = stat.icon;
-                            return <Icon size={20} color={stat.color} />;
+                            return <Icon size={20} color={stat.color} strokeWidth={2.2} />;
                           })()}
                         </View>
-                        <Text style={{ fontSize: 30, fontWeight: '900', color: theme.textPrimary }}>{stat.value}</Text>
-                        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1.5, marginTop: 4, color: theme.textMuted }}>{stat.label}</Text>
+                        <Text className={`text-[28px] font-black tracking-tight ${theme.textClass}`}>{stat.value}</Text>
+                        <Text className={`text-[10px] font-bold tracking-widest uppercase mt-1 ${theme.textMutedClass}`}>{stat.label}</Text>
                       </View>
                     </AnimatedCard>
                   </View>
@@ -829,34 +873,34 @@ export default function AdminDashboardScreen() {
                       } else {
                         handleSelectUser(u);
                       }
-                    }} className="p-4 flex-row items-center">
+                    }} className={`p-4 rounded-[24px] border mb-2.5 flex-row items-center ${theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'}`} style={theme.cardShadow}>
                       {isBulkMode && (
                         <View className="mr-3">
-                          <View className={`w-5 h-5 rounded-full border items-center justify-center ${selectedUserIds.has(u.id) ? 'bg-indigo-500 border-indigo-500' : (theme.isDark ? 'border-white/20' : 'border-slate-300')}`}>
+                          <View className={`w-5 h-5 rounded-full border items-center justify-center ${selectedUserIds.has(u.id) ? 'bg-indigo-600 border-indigo-600' : (theme.isDark ? 'border-white/20' : 'border-slate-300')}`}>
                             {selectedUserIds.has(u.id) && <Check size={12} color="#fff" />}
                           </View>
                         </View>
                       )}
                       {u.avatar_url ? (
-                        <Image source={{ uri: u.avatar_url }} style={{ width: 48, height: 48, borderRadius: 24 }} />
+                        <Image source={{ uri: u.avatar_url }} style={{ width: 46, height: 46, borderRadius: 23 }} />
                       ) : (
-                        <View className={`w-12 h-12 rounded-full items-center justify-center ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
-                          <Text className={`text-[18px] font-black ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{u.full_name?.charAt(0)?.toUpperCase() || '?'}</Text>
+                        <View className={`w-11 h-11 rounded-full items-center justify-center ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50'}`}>
+                          <Text className={`text-[16px] font-black ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{u.full_name?.charAt(0)?.toUpperCase() || '?'}</Text>
                         </View>
                       )}
-                      <View className="flex-1 ml-3.5 mr-2">
+                      <View className="flex-1 ml-3 mr-2">
                         <View className="flex-row items-center mb-0.5">
-                          <Text className={`font-black text-[16px] ${theme.textClass}`}>{u.full_name || 'Unknown'}</Text>
+                          <Text className={`font-black text-[15px] ${theme.textClass}`}>{u.full_name || 'Unknown'}</Text>
                           <UserBadges badges={u.badges || (u.is_verified ? ['verified'] : [])} size={15} />
                         </View>
-                        <Text className={`text-[13px] font-medium mt-0.5 ${theme.textMutedClass}`}>{u.phone_number || 'No phone'}</Text>
+                        <Text className={`text-[12px] font-medium mt-0.5 ${theme.textMutedClass}`}>{u.phone_number || (u.home_ward ? `Ward ${u.home_ward}` : 'Citizen')}</Text>
                       </View>
-                      <View className="items-end mr-3">
-                        <View className={`px-2.5 py-1.5 rounded-[6px] ${u.role === 'admin' ? 'bg-rose-500/15' : u.role === 'official' ? 'bg-amber-500/15' : u.role === 'moderator' ? 'bg-purple-500/15' : theme.isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
-                          <Text className={`text-[10px] font-black uppercase tracking-widest ${u.role === 'admin' ? (theme.isDark ? 'text-rose-400' : 'text-rose-600') : u.role === 'official' ? (theme.isDark ? 'text-amber-400' : 'text-amber-700') : u.role === 'moderator' ? (theme.isDark ? 'text-purple-400' : 'text-purple-600') : theme.textSecondaryClass}`}>{u.role || 'citizen'}</Text>
+                      <View className="items-end mr-2">
+                        <View className={`px-3 py-1 rounded-full border ${u.role === 'admin' ? 'bg-rose-500/10 border-rose-500/20' : u.role === 'official' ? 'bg-amber-500/10 border-amber-500/20' : u.role === 'moderator' ? 'bg-purple-500/10 border-purple-500/20' : theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'}`}>
+                          <Text className={`text-[10px] font-black uppercase tracking-wider ${u.role === 'admin' ? (theme.isDark ? 'text-rose-400' : 'text-rose-600') : u.role === 'official' ? (theme.isDark ? 'text-amber-400' : 'text-amber-700') : u.role === 'moderator' ? (theme.isDark ? 'text-purple-400' : 'text-purple-600') : theme.textSecondaryClass}`}>{u.role || 'citizen'}</Text>
                         </View>
                       </View>
-                      <ChevronRight size={18} color={theme.iconColor} opacity={0.4} />
+                      <ChevronRight size={16} color={theme.iconColor} opacity={0.5} />
                     </AnimatedCard>
                   ))
                 )}
@@ -883,14 +927,14 @@ export default function AdminDashboardScreen() {
                       <TouchableOpacity
                         key={filter}
                         onPress={() => setIssueFilter(filter)}
-                        className={`px-4 py-2 rounded-full border ${issueFilter === filter ? (theme.isDark ? 'bg-primary-500/20 border-primary-500/50' : 'bg-primary border-primary') : (theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200')}`}
+                        className={`px-4 py-2 rounded-full border ${issueFilter === filter ? 'bg-indigo-600 border-indigo-600 shadow-sm' : (theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200')}`}
                       >
-                        <Text className={`text-[12px] font-bold capitalize ${issueFilter === filter ? (theme.isDark ? 'text-primary-300' : 'text-white') : theme.textSecondaryClass}`}>
+                        <Text className={`text-[12px] font-bold capitalize ${issueFilter === filter ? 'text-white' : theme.textSecondaryClass}`}>
                           {filter === 'flagged' ? '⚠️ Flagged' : filter}
                         </Text>
                       </TouchableOpacity>
                     ))}
-        </ScrollView>
+                  </ScrollView>
                 </View>
 
                 {displayedIssues.length === 0 ? (
@@ -901,21 +945,20 @@ export default function AdminDashboardScreen() {
                 </View>
               ) : (
                 displayedIssues.map(issue => (
-                  <AnimatedCard key={issue.id} className="mb-4">
-                    <View className="p-5 border-b border-white/5">
-
-                      <Text className={`text-[14.5px] font-medium leading-[22px] mb-3.5 ${theme.textClass}`} numberOfLines={3}>{issue.description}</Text>
+                  <AnimatedCard key={issue.id} className={`mb-3.5 rounded-[24px] border overflow-hidden ${theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'}`} style={theme.cardShadow}>
+                    <View className="p-4 border-b border-slate-100 dark:border-white/5">
+                      <Text className={`text-[14.5px] font-medium leading-[22px] mb-3 ${theme.textClass}`} numberOfLines={3}>{issue.description}</Text>
                       <View className="flex-row items-center justify-between">
                         <View className="flex-row items-center">
                           <User size={13} color={theme.textMuted} />
                           <Text className={`text-[12px] font-bold ml-1.5 ${theme.textMutedClass}`}>{issue.author?.full_name || 'Anonymous'}</Text>
                         </View>
-                        <View className={`px-3 py-1.5 rounded-md ${
-                          issue.status === 'resolved' ? 'bg-emerald-500/20' :
-                          issue.status === 'in_progress' ? 'bg-indigo-500/20' :
-                          issue.status === 'rejected' ? 'bg-rose-500/20' : 'bg-amber-500/20'
+                        <View className={`px-3 py-1 rounded-full border ${
+                          issue.status === 'resolved' ? 'bg-emerald-500/10 border-emerald-500/20' :
+                          issue.status === 'in_progress' ? 'bg-indigo-500/10 border-indigo-500/20' :
+                          issue.status === 'rejected' ? 'bg-rose-500/10 border-rose-500/20' : 'bg-amber-500/10 border-amber-500/20'
                         }`}>
-                          <Text className={`text-[10px] font-black uppercase tracking-widest ${
+                          <Text className={`text-[10px] font-black uppercase tracking-wider ${
                             issue.status === 'resolved' ? 'text-emerald-500' :
                             issue.status === 'in_progress' ? 'text-indigo-500' :
                             issue.status === 'rejected' ? 'text-rose-500' : 'text-amber-500'
@@ -923,21 +966,21 @@ export default function AdminDashboardScreen() {
                         </View>
                       </View>
                     </View>
-                    <View className={`flex-row ${theme.isDark ? 'bg-white/[0.02]' : 'bg-slate-50'}`}>
+                    <View className={`flex-row ${theme.isDark ? 'bg-white/[0.02]' : 'bg-slate-50/70'}`}>
                       {issue.status !== 'in_progress' && (
-                        <TouchableOpacity onPress={() => handleIssueStatusChange(issue, 'in_progress')} className={`flex-1 items-center justify-center py-4 border-r ${theme.borderSubtleClass}`}><Text className="text-indigo-500 font-bold text-[13.5px]">In Progress</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleIssueStatusChange(issue, 'in_progress')} className={`flex-1 items-center justify-center py-3.5 border-r ${theme.borderSubtleClass}`}><Text className="text-indigo-600 dark:text-indigo-400 font-bold text-[13px]">In Progress</Text></TouchableOpacity>
                       )}
                       {issue.status !== 'resolved' && (
-                        <TouchableOpacity onPress={() => handleIssueStatusChange(issue, 'resolved')} className={`flex-1 items-center justify-center py-4 border-r ${theme.borderSubtleClass}`}><Text className="text-emerald-500 font-bold text-[13.5px]">Resolve</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleIssueStatusChange(issue, 'resolved')} className={`flex-1 items-center justify-center py-3.5 border-r ${theme.borderSubtleClass}`}><Text className="text-emerald-600 dark:text-emerald-400 font-bold text-[13px]">Resolve</Text></TouchableOpacity>
                       )}
                       {issue.status !== 'rejected' && (
-                        <TouchableOpacity onPress={() => handleIssueStatusChange(issue, 'rejected')} className={`flex-1 items-center justify-center py-3.5 border-r ${theme.borderSubtleClass}`}><Text className="text-rose-500 font-bold text-[13px]">Reject</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleIssueStatusChange(issue, 'rejected')} className={`flex-1 items-center justify-center py-3.5 border-r ${theme.borderSubtleClass}`}><Text className="text-rose-600 dark:text-rose-400 font-bold text-[13px]">Reject</Text></TouchableOpacity>
                       )}
-                      <TouchableOpacity onPress={() => handleDeleteIssue(issue)} className="w-14 items-center justify-center py-3.5 bg-rose-500/10">
+                      <TouchableOpacity onPress={() => handleDeleteIssue(issue)} className="w-12 items-center justify-center py-3.5 bg-rose-500/10">
                         <Trash2 size={16} color="#f43f5e" />
                       </TouchableOpacity>
-                      <TouchableOpacity onPress={() => setEditingIssue(issue)} className="w-14 items-center justify-center py-3.5 bg-primary-500/10">
-                        <Edit3 size={16} color="#3b82f6" />
+                      <TouchableOpacity onPress={() => setEditingIssue(issue)} className="w-12 items-center justify-center py-3.5 bg-indigo-500/10">
+                        <Edit3 size={16} color="#6366f1" />
                       </TouchableOpacity>
                     </View>
                   </AnimatedCard>
@@ -958,14 +1001,14 @@ export default function AdminDashboardScreen() {
                  </View>
                ) : (
                  serviceApps.map(app => (
-                   <AnimatedCard key={app.id} className="p-5 mb-4">
+                   <AnimatedCard key={app.id} className={`p-5 mb-3.5 rounded-[24px] border ${theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'}`} style={theme.cardShadow}>
                      <View className="flex-row justify-between items-start mb-3">
                        <Text className={`font-black text-[16px] tracking-tight flex-1 mr-2 ${theme.textClass}`}>{app.service_type}</Text>
-                       <View className={`px-3 py-1.5 rounded-md ${
-                          app.status === 'approved' ? 'bg-emerald-500/20' :
-                          app.status === 'rejected' ? 'bg-rose-500/20' : 'bg-amber-500/20'
+                       <View className={`px-3 py-1 rounded-full border ${
+                          app.status === 'approved' ? 'bg-emerald-500/10 border-emerald-500/20' :
+                          app.status === 'rejected' ? 'bg-rose-500/10 border-rose-500/20' : 'bg-amber-500/10 border-amber-500/20'
                         }`}>
-                          <Text className={`text-[10px] font-black uppercase tracking-widest ${
+                          <Text className={`text-[10px] font-black uppercase tracking-wider ${
                             app.status === 'approved' ? 'text-emerald-500' :
                             app.status === 'rejected' ? 'text-rose-500' : 'text-amber-500'
                           }`}>{app.status}</Text>
@@ -975,14 +1018,14 @@ export default function AdminDashboardScreen() {
                      <Text className={`text-[13px] font-medium mt-1 mb-2 ${theme.textSecondaryClass}`}>Phone: {app.applicant_phone}  •  Ward: {app.home_ward}</Text>
                      <Text className={`text-[11px] font-bold ${theme.textMutedClass}`}>Created {new Date(app.created_at).toLocaleDateString()}</Text>
                      
-                     <View className="flex-row mt-5 gap-3">
-                        <TouchableOpacity onPress={() => handleAppStatus(app.id, 'approved')} className={`flex-1 py-3.5 rounded-[16px] items-center flex-row justify-center ${theme.isDark ? 'bg-emerald-500/20 border border-emerald-500/30' : 'bg-emerald-100 border border-emerald-200'}`}>
-                          <CheckCircle size={16} color={theme.isDark ? '#34d399' : '#059669'} className="mr-2" />
-                          <Text className="text-emerald-500 font-black text-[12.5px] tracking-widest uppercase">Approve</Text>
+                     <View className="flex-row mt-4 gap-2.5">
+                        <TouchableOpacity onPress={() => handleAppStatus(app.id, 'approved')} className={`flex-1 py-3 rounded-full items-center flex-row justify-center border ${theme.isDark ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
+                          <CheckCircle size={15} color={theme.isDark ? '#34d399' : '#059669'} className="mr-1.5" />
+                          <Text className={`font-bold text-[12.5px] ${theme.isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Approve</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => handleAppStatus(app.id, 'rejected')} className={`flex-1 py-3.5 rounded-[16px] items-center flex-row justify-center ${theme.isDark ? 'bg-rose-500/20 border border-rose-500/30' : 'bg-rose-100 border border-rose-200'}`}>
-                          <Ban size={16} color={theme.isDark ? '#fb7185' : '#e11d48'} className="mr-2" />
-                          <Text className="text-rose-500 font-black text-[12.5px] tracking-widest uppercase">Reject</Text>
+                        <TouchableOpacity onPress={() => handleAppStatus(app.id, 'rejected')} className={`flex-1 py-3 rounded-full items-center flex-row justify-center border ${theme.isDark ? 'bg-rose-500/10 border-rose-500/20' : 'bg-rose-50 border-rose-200'}`}>
+                          <Ban size={15} color={theme.isDark ? '#fb7185' : '#e11d48'} className="mr-1.5" />
+                          <Text className={`font-bold text-[12.5px] ${theme.isDark ? 'text-rose-400' : 'text-rose-700'}`}>Reject</Text>
                         </TouchableOpacity>
                      </View>
                    </AnimatedCard>
@@ -996,21 +1039,21 @@ export default function AdminDashboardScreen() {
             <View className="px-4 pt-4">
               <View className="flex-row justify-between items-center mb-4">
                 <Text className={`font-bold text-[12px] uppercase tracking-widest ml-1 ${theme.textSecondaryClass}`}>Emergency & Services</Text>
-                <TouchableOpacity onPress={() => { setDirForm({id:'', name:'', category:'', phone:'', details:'', ward:'All'}); setShowDirModal(true); }} className={`px-4 py-2 rounded-full ${theme.isDark ? 'bg-primary-500/20' : 'bg-primary-100'}`}>
-                  <Text className={`text-[12px] font-bold ${theme.isDark ? 'text-primary-400' : 'text-blue-700'}`}>+ ADD CONTACT</Text>
+                <TouchableOpacity onPress={() => { setDirForm({id:'', name:'', category:'', phone:'', details:'', ward:'All'}); setShowDirModal(true); }} className="px-3.5 py-1.5 rounded-full bg-indigo-600 border border-indigo-600 shadow-sm flex-row items-center">
+                  <Text className="text-[12px] font-bold text-white">+ Add Contact</Text>
                 </TouchableOpacity>
               </View>
-              <View className="gap-y-3">
+              <View className="gap-y-2.5">
               {directoryContacts.map(contact => (
-                <AnimatedCard key={contact.id} className="flex-row items-center justify-between p-4 mb-2 border-b border-white/5">
+                <AnimatedCard key={contact.id} className={`flex-row items-center justify-between p-4 mb-2 rounded-[24px] border ${theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'}`} style={theme.cardShadow}>
                   <View className="flex-1 pr-2">
-                    <Text className={`font-black text-[16px] tracking-tight ${theme.textClass}`}>{contact.name}</Text>
-                    <Text className={`text-[13.5px] mt-1 font-bold ${theme.textSecondaryClass}`}>{contact.category} • {contact.phone}</Text>
-                    {contact.details && <Text className={`text-[12px] mt-1.5 font-medium ${theme.textMutedClass}`}>{contact.details}</Text>}
+                    <Text className={`font-black text-[15px] tracking-tight ${theme.textClass}`}>{contact.name}</Text>
+                    <Text className={`text-[13px] mt-0.5 font-semibold ${theme.textSecondaryClass}`}>{contact.category} • {contact.phone}</Text>
+                    {contact.details && <Text className={`text-[12px] mt-1 font-medium ${theme.textMutedClass}`}>{contact.details}</Text>}
                   </View>
                   <View className="flex-row gap-2">
-                    <TouchableOpacity onPress={() => { setDirForm(contact); setShowDirModal(true); }} className="w-11 h-11 rounded-full items-center justify-center bg-indigo-500/10"><Edit3 size={17} color={theme.isDark ? '#818cf8' : '#4f46e5'} /></TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDeleteDirContact(contact.id)} className="w-11 h-11 rounded-full items-center justify-center bg-rose-500/10"><Trash2 size={17} color={theme.isDark ? '#fb7185' : '#e11d48'} /></TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setDirForm(contact); setShowDirModal(true); }} className="w-10 h-10 rounded-full items-center justify-center bg-indigo-500/10"><Edit3 size={16} color={theme.isDark ? '#818cf8' : '#4f46e5'} /></TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleDeleteDirContact(contact.id)} className="w-10 h-10 rounded-full items-center justify-center bg-rose-500/10"><Trash2 size={16} color={theme.isDark ? '#fb7185' : '#e11d48'} /></TouchableOpacity>
                   </View>
                 </AnimatedCard>
               ))}
@@ -1023,11 +1066,11 @@ export default function AdminDashboardScreen() {
             <View className="px-4 pt-4">
               <View className="flex-row justify-between items-center mb-4">
                 <Text className={`font-bold text-[12px] uppercase tracking-widest ml-1 ${theme.textSecondaryClass}`}>All Notices & Announcements ({noticesList.length})</Text>
-                <TouchableOpacity onPress={() => { setNoticeForm({id:'', title:'', content:'', category:'General', is_emergency:false}); setShowNoticeModal(true); }} className={`px-4 py-2 rounded-full ${theme.isDark ? 'bg-primary-500/20' : 'bg-primary-100'}`}>
-                  <Text className={`text-[12px] font-bold ${theme.isDark ? 'text-primary-400' : 'text-blue-700'}`}>+ NEW NOTICE</Text>
+                <TouchableOpacity onPress={() => { setNoticeForm({id:'', title:'', content:'', category:'General', is_emergency:false}); setShowNoticeModal(true); }} className="px-3.5 py-1.5 rounded-full bg-indigo-600 border border-indigo-600 shadow-sm flex-row items-center">
+                  <Text className="text-[12px] font-bold text-white">+ New Notice</Text>
                 </TouchableOpacity>
               </View>
-              <View className="gap-y-4">
+              <View className="gap-y-3">
               {noticesList.length === 0 ? (
                 <View className={`rounded-[28px] border py-16 items-center justify-center ${theme.glassCardClass}`}>
                   <Megaphone size={32} color="#94a3b8" />
@@ -1035,30 +1078,30 @@ export default function AdminDashboardScreen() {
                 </View>
               ) : (
                 noticesList.map(notice => (
-                  <AnimatedCard key={notice.id} className="p-5 mb-3">
+                  <AnimatedCard key={notice.id} className={`p-5 mb-3 rounded-[24px] border ${theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'}`} style={theme.cardShadow}>
                      <View className="flex-row justify-between items-start mb-3">
                        <Text className={`font-black text-[16px] tracking-tight flex-1 mr-2 ${theme.textClass}`}>{notice.title}</Text>
                        {notice.is_emergency && (
-                         <View className="bg-rose-500/20 px-2 py-0.5 rounded flex-row items-center">
+                         <View className="bg-rose-500/15 border border-rose-500/25 px-2.5 py-0.5 rounded-full flex-row items-center">
                            <AlertTriangle size={10} color="#f43f5e" />
-                           <Text className="text-rose-500 text-[9px] font-black uppercase tracking-widest ml-1">Emergency</Text>
+                           <Text className="text-rose-500 text-[10px] font-black uppercase tracking-wider ml-1">Emergency</Text>
                          </View>
                        )}
                      </View>
-                     <Text className={`text-[14px] font-medium leading-[22px] mb-4 ${theme.textSecondaryClass}`} numberOfLines={3}>{notice.content}</Text>
+                     <Text className={`text-[14px] font-medium leading-[22px] mb-3 ${theme.textSecondaryClass}`} numberOfLines={3}>{notice.content}</Text>
                      
                      <View className="flex-row justify-between items-center pt-2">
                        <Text className={`text-[11.5px] font-bold ${theme.textMutedClass}`}>By {notice.author?.full_name} • {new Date(notice.created_at).toLocaleDateString()}</Text>
                      </View>
                      
-                     <View className="flex-row mt-4 pt-4 border-t border-slate-200/10 gap-3">
-                        <TouchableOpacity onPress={() => { setNoticeForm(notice); setShowNoticeModal(true); }} className={`flex-1 py-3.5 rounded-[16px] items-center justify-center flex-row ${theme.isDark ? 'bg-indigo-500/20 border border-indigo-500/30' : 'bg-indigo-100 border border-indigo-200'}`}>
-                          <Edit3 size={15} color={theme.isDark ? '#818cf8' : '#4f46e5'} className="mr-2" />
-                          <Text className="text-indigo-500 font-black text-[12.5px] tracking-widest uppercase">Edit</Text>
+                     <View className="flex-row mt-3.5 pt-3.5 border-t border-slate-100 dark:border-white/5 gap-2.5">
+                        <TouchableOpacity onPress={() => { setNoticeForm(notice); setShowNoticeModal(true); }} className={`flex-1 py-2.5 rounded-full items-center justify-center flex-row border ${theme.isDark ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-indigo-50 border-indigo-200'}`}>
+                          <Edit3 size={14} color={theme.isDark ? '#818cf8' : '#4f46e5'} className="mr-1.5" />
+                          <Text className={`font-bold text-[12.5px] ${theme.isDark ? 'text-indigo-400' : 'text-indigo-700'}`}>Edit</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => handleDeleteNotice(notice.id)} className={`flex-1 py-3.5 rounded-[16px] items-center justify-center flex-row ${theme.isDark ? 'bg-rose-500/20 border border-rose-500/30' : 'bg-rose-100 border border-rose-200'}`}>
-                          <Trash2 size={15} color={theme.isDark ? '#fb7185' : '#e11d48'} className="mr-2" />
-                          <Text className="text-rose-500 font-black text-[12.5px] tracking-widest uppercase">Retract</Text>
+                        <TouchableOpacity onPress={() => handleDeleteNotice(notice.id)} className={`flex-1 py-2.5 rounded-full items-center justify-center flex-row border ${theme.isDark ? 'bg-rose-500/10 border-rose-500/20' : 'bg-rose-50 border-rose-200'}`}>
+                          <Trash2 size={14} color={theme.isDark ? '#fb7185' : '#e11d48'} className="mr-1.5" />
+                          <Text className={`font-bold text-[12.5px] ${theme.isDark ? 'text-rose-400' : 'text-rose-700'}`}>Retract</Text>
                         </TouchableOpacity>
                      </View>
                   </AnimatedCard>

@@ -213,41 +213,64 @@ export default function UserProfileScreen() {
             <View className="w-10 h-10" />
           </View>
 
-          {/* Profile Card */}
-          <View className="items-center mb-4">
-            <View className="relative mb-3">
+          {/* Profile Hero Card - Stitch Civic Modern */}
+          <View 
+            className={`p-5 rounded-[28px] border mb-4 relative overflow-hidden items-center ${
+              theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'
+            }`}
+            style={theme.cardShadow}
+          >
+            <LinearGradient
+              colors={theme.isDark ? ['rgba(79, 70, 229, 0.15)', 'transparent'] : ['rgba(79, 70, 229, 0.06)', 'transparent']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 100, borderTopLeftRadius: 28, borderTopRightRadius: 28 }}
+            />
+
+            <View className="relative mb-3.5 mt-2">
               {profile.avatar_url ? (
-                <Image source={{ uri: profile.avatar_url }} style={{ width: 72, height: 72, borderRadius: 36 }} cachePolicy="memory-disk" transition={200} />
+                <View className="p-1 rounded-full border-2 border-indigo-500/30">
+                  <Image source={{ uri: profile.avatar_url }} style={{ width: 76, height: 76, borderRadius: 38 }} cachePolicy="memory-disk" transition={200} />
+                </View>
               ) : (
-                <View className={`w-[72px] h-[72px] rounded-full justify-center items-center ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
-                  <User size={32} color={theme.isDark ? '#818cf8' : '#5b5ef6'} />
+                <View className={`w-20 h-20 rounded-full justify-center items-center border-2 border-indigo-500/30 ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
+                  <User size={36} color={theme.isDark ? '#818cf8' : '#5b5ef6'} />
                 </View>
               )}
             </View>
 
-            <View className="flex-1 items-center">
-              <View className="flex-row items-center mb-1">
-                <Text className={`text-xl font-bold tracking-tight ${theme.textClass}`}>{profile.full_name || 'Citizen'}</Text>
+            <View className="items-center">
+              <View className="flex-row items-center mb-1 gap-1.5">
+                <Text className={`text-[22px] font-black tracking-tight ${theme.textClass}`}>{profile.full_name || 'Citizen'}</Text>
                 <UserBadges badges={profile.badges || (profile.is_verified ? ['verified'] : [])} size={18} />
               </View>
-              <Text className={`text-[13px] mb-2 ${theme.textSecondaryClass}`}>{profile.tole ? `${profile.tole}, Ward ${profile.home_ward}` : 'Location unknown'}</Text>
+
+              {/* Resident / Official Verification Pill */}
+              <View className="flex-row items-center mt-1">
+                <View className="flex-row items-center px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
+                  <Text className="text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400">
+                    {profile.role === 'official' ? 'Municipal Official' : profile.role === 'admin' ? 'Municipality Admin' : 'Verified Resident'}
+                    {profile.home_ward ? ` • Ward ${profile.home_ward}` : ''}
+                  </Text>
+                </View>
+              </View>
+
+              {profile.bio ? (
+                <Text className={`text-[13px] text-center mt-2.5 font-normal px-4 ${theme.textSecondaryClass}`}>
+                  {profile.bio}
+                </Text>
+              ) : null}
             </View>
 
-            <Badge 
-              type={profile.role === 'official' ? 'department' : 'general'} 
-              text={profile.department || (profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'Citizen')} 
-              className="mt-1.5" 
-              size="md" 
-            />
-
-            <View className={`flex-row items-center justify-around mt-5 py-3 px-4 w-full ${theme.glassCardClass}`} style={theme.cardShadow}>
+            {/* Stats Row */}
+            <View className={`flex-row items-center justify-around mt-4 py-3 px-4 w-full rounded-2xl border ${theme.isDark ? 'bg-white/[0.03] border-white/5' : 'bg-slate-50 border-slate-200/60'}`}>
               <TouchableOpacity 
                 activeOpacity={0.7} 
                 onPress={() => { setUserListTab('followers'); setShowUserList(true); }}
                 className="items-center flex-1"
               >
-                <Text className={`font-bold text-[17px] ${theme.textClass}`}>{followersCount}</Text>
-                <Text className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${theme.textMutedClass}`}>{t.followers}</Text>
+                <Text className={`font-black text-[18px] ${theme.textClass}`}>{followersCount}</Text>
+                <Text className={`text-[10.5px] font-bold uppercase tracking-wider mt-0.5 ${theme.textMutedClass}`}>{t.followers}</Text>
               </TouchableOpacity>
 
               <View className={`w-px h-6 ${theme.isDark ? 'bg-white/[0.08]' : 'bg-slate-200'}`} />
@@ -257,15 +280,15 @@ export default function UserProfileScreen() {
                 onPress={() => { setUserListTab('following'); setShowUserList(true); }}
                 className="items-center flex-1"
               >
-                <Text className={`font-bold text-[17px] ${theme.textClass}`}>{followingCount}</Text>
-                <Text className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${theme.textMutedClass}`}>{t.following}</Text>
+                <Text className={`font-black text-[18px] ${theme.textClass}`}>{followingCount}</Text>
+                <Text className={`text-[10.5px] font-bold uppercase tracking-wider mt-0.5 ${theme.textMutedClass}`}>{t.following}</Text>
               </TouchableOpacity>
 
               <View className={`w-px h-6 ${theme.isDark ? 'bg-white/[0.08]' : 'bg-slate-200'}`} />
 
               <View className="items-center flex-1">
-                <Text className={`font-bold text-[17px] ${theme.textClass}`}>{issues.length}</Text>
-                <Text className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${theme.textMutedClass}`}>{t.reports}</Text>
+                <Text className={`font-black text-[18px] ${theme.textClass}`}>{issues.length}</Text>
+                <Text className={`text-[10.5px] font-bold uppercase tracking-wider mt-0.5 ${theme.textMutedClass}`}>{t.reports}</Text>
               </View>
             </View>
 
@@ -279,24 +302,24 @@ export default function UserProfileScreen() {
                   className="w-full"
                 >
                   {isFollowing && isFollowedBy ? (
-                    <View className={`h-11 rounded-[24px] items-center justify-center flex-row ${theme.isDark ? 'bg-indigo-900/30' : 'bg-indigo-50'}`}>
-                      <Users size={16} color={theme.isDark ? '#a78bfa' : '#7c3aed'} />
-                      <Text className={`font-bold text-[14px] ml-2 ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>{t.friends || 'Friends 🤝'}</Text>
+                    <View className={`h-11 rounded-full items-center justify-center flex-row border ${theme.isDark ? 'bg-indigo-900/30 border-indigo-700/50' : 'bg-indigo-50 border-indigo-200'}`}>
+                      <Users size={16} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
+                      <Text className={`font-bold text-[14px] ml-2 ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>{t.friends || 'Friends 🤝'}</Text>
                     </View>
                   ) : isFollowing ? (
-                    <View className={`h-11 rounded-[24px] items-center justify-center flex-row ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+                    <View className={`h-11 rounded-full items-center justify-center flex-row border ${theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-slate-100 border-slate-200'}`}>
                       <UserCheck size={16} color={theme.isDark ? '#34d399' : '#059669'} />
                       <Text className={`font-bold text-[14px] ml-2 ${theme.textClass}`}>{t.following}</Text>
                     </View>
                   ) : (
                     <LinearGradient
-                      colors={['#6366f1', '#4f46e5']}
+                      colors={['#4f46e5', '#6366f1']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
-                      style={{ height: 44, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
+                      style={{ height: 44, borderRadius: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
                     >
                       <UserPlus size={16} color="#ffffff" />
-                      <Text className="font-bold text-[14px] ml-2 color-white">{isFollowedBy ? (t.followBack || 'Follow Back') : t.follow}</Text>
+                      <Text className="font-bold text-[14px] ml-2 text-white">{isFollowedBy ? (t.followBack || 'Follow Back') : t.follow}</Text>
                     </LinearGradient>
                   )}
                 </TouchableOpacity>
