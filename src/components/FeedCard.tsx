@@ -95,6 +95,7 @@ function FeedCard({
   const commentCount = item.issue_comments?.[0]?.count || 0;
   const displayDescription = cleanCivicDescription(translationsCache?.[item.id] || item.description);
   const isLongDescription = displayDescription && displayDescription.length > 100;
+  const isFriends = isFollowing && Boolean(initialFollowedBy);
   const canFollow = profile && !item.is_anonymous && item.author_id && item.author_id !== profile.id;
 
   const categoryLabel = cleanCivicTitle(item.category, item.title);
