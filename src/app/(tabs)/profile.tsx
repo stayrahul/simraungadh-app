@@ -16,8 +16,9 @@ import {
   Search, Share2, Settings, Plus, Camera, Check, 
   CheckCircle2, ChevronRight, X, Heart, MessageSquare, 
   Navigation, MapPin, Bookmark, BookmarkCheck, PhoneCall, 
-  Building2, Edit3, User, Globe, AlertTriangle
+  Building2, Edit3, User, Globe, AlertTriangle, Users, UserCheck
 } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/imageStorage';
@@ -29,6 +30,7 @@ import AnimatedCard from '../../components/AnimatedCard';
 import Badge from '../../components/Badge';
 import { UserBadges } from '../../components/UserBadges';
 import IssueImageCarousel from '../../components/IssueImageCarousel';
+import UserListModal from '../../components/UserListModal';
 import FullScreenImageViewer from '../../components/FullScreenImageViewer';
 import { useTheme } from '../../hooks/use-theme';
 
@@ -47,6 +49,12 @@ export default function ProfileScreen() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [savedIssues, setSavedIssues] = useState<Issue[]>([]);
   const [likedIssueIds, setLikedIssueIds] = useState<Set<string>>(new Set());
+
+  // Followers & Following state
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [showUserList, setShowUserList] = useState(false);
+  const [userListTab, setUserListTab] = useState<'followers' | 'following'>('followers');
 
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -132,6 +140,19 @@ export default function ProfileScreen() {
       if (likesData) {
         setLikedIssueIds(new Set(likesData.map(l => l.issue_id)));
       }
+
+      // 4. Fetch Followers and Following counts
+      const { count: fCount } = await supabase
+        .from('user_follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', profileId);
+      setFollowersCount(fCount || 0);
+
+      const { count: fwCount } = await supabase
+        .from('user_follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', profileId);
+      setFollowingCount(fwCount || 0);
     } catch (e) {
       console.error('Error fetching profile data', e);
     } finally {
@@ -349,15 +370,22 @@ export default function ProfileScreen() {
 
       {/* 2. PROFILE HERO CARD (Stitch Civic Modern) */}
       <View 
-        className={`p-5 rounded-[28px] border mb-4 ${
+        className={`p-5 rounded-[28px] border mb-4 relative overflow-hidden ${
           isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'
         }`}
         style={theme.cardShadow}
       >
+        <LinearGradient
+          colors={isDark ? ['rgba(79, 70, 229, 0.15)', 'transparent'] : ['rgba(79, 70, 229, 0.06)', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 110, borderTopLeftRadius: 28, borderTopRightRadius: 28 }}
+        />
+
         <View className="flex-row items-start justify-between">
           <View className="flex-1 mr-3">
             <View className="flex-row items-center flex-wrap gap-1.5">
-              <Text className={`font-black text-[22px] tracking-tight ${theme.textClass}`}>
+              <Text className={`font-black text-[23px] tracking-tight ${theme.textClass}`}>
                 {profile.full_name}
               </Text>
               {profile.is_verified && (
@@ -367,9 +395,9 @@ export default function ProfileScreen() {
 
             {/* Resident / Official Verification Pill */}
             <View className="flex-row items-center mt-1.5">
-              <View className="flex-row items-center px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25">
-                <CheckCircle2 size={11} color="#10B981" />
-                <Text className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 ml-1">
+              <View className="flex-row items-center px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
+                <CheckCircle2 size={12} color="#10B981" />
+                <Text className="text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400 ml-1.5">
                   {profile.role === 'official' ? 'Municipal Official' : profile.role === 'admin' ? 'Municipality Admin' : 'Verified Resident'}
                   {profile.home_ward ? ` • Ward ${profile.home_ward}` : ''}
                 </Text>
@@ -378,18 +406,55 @@ export default function ProfileScreen() {
 
             {/* Address / Tole info */}
             {profile.tole && (
-              <View className="flex-row items-center mt-1.5">
-                <MapPin size={11} color={theme.accentColor} />
-                <Text className={`text-[12px] font-medium ml-1 ${theme.textMutedClass}`}>
+              <View className="flex-row items-center mt-2">
+                <MapPin size={12} color={theme.accentColor} />
+                <Text className={`text-[12.5px] font-medium ml-1.5 ${theme.textMutedClass}`}>
                   {profile.tole}, Simraungadh
                 </Text>
               </View>
             )}
 
             {/* Bio */}
-            <Text className={`text-[13.5px] leading-relaxed mt-2 font-normal ${theme.textSecondaryClass}`}>
+            <Text className={`text-[13.5px] leading-relaxed mt-2.5 font-normal ${theme.textSecondaryClass}`}>
               {profile.bio || (profile.department ? `🏛️ ${profile.department} Department` : 'Citizen of Simraungadh contributing to a cleaner, safer municipality.')}
             </Text>
+
+            {/* Followers & Following Interactive Bar */}
+            <View className="flex-row items-center gap-2.5 mt-3.5">
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setUserListTab('followers');
+                  setShowUserList(true);
+                }}
+                activeOpacity={0.75}
+                className={`flex-row items-center px-3.5 py-1.5 rounded-full border ${
+                  isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
+                }`}
+              >
+                <Users size={14} color={theme.accentColor} />
+                <Text className={`ml-1.5 text-[12.5px] font-bold ${theme.textClass}`}>
+                  {followersCount} <Text className={`font-semibold ${theme.textMutedClass}`}>Followers</Text>
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setUserListTab('following');
+                  setShowUserList(true);
+                }}
+                activeOpacity={0.75}
+                className={`flex-row items-center px-3.5 py-1.5 rounded-full border ${
+                  isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
+                }`}
+              >
+                <UserCheck size={14} color="#10B981" />
+                <Text className={`ml-1.5 text-[12.5px] font-bold ${theme.textClass}`}>
+                  {followingCount} <Text className={`font-semibold ${theme.textMutedClass}`}>Following</Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Avatar with Camera Update Trigger */}
@@ -397,15 +462,16 @@ export default function ProfileScreen() {
             <TouchableOpacity
               onPress={() => profile.avatar_url && setShowAvatarViewer(true)}
               activeOpacity={0.85}
+              className="p-1 rounded-full border-2 border-indigo-500/20 dark:border-indigo-400/30"
             >
               {profile.avatar_url ? (
                 <Image
                   source={{ uri: profile.avatar_url }}
-                  style={{ width: 72, height: 72, borderRadius: 36 }}
+                  style={{ width: 74, height: 74, borderRadius: 37 }}
                   transition={200}
                 />
               ) : (
-                <View className={`w-[72px] h-[72px] rounded-full items-center justify-center ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
+                <View className={`w-[74px] h-[74px] rounded-full items-center justify-center ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
                   <Text className={`font-black text-2xl ${isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
                     {profile.full_name?.[0]?.toUpperCase() || 'C'}
                   </Text>
@@ -475,12 +541,19 @@ export default function ProfileScreen() {
         <TouchableOpacity
           onPress={() => setShowEditProfile(true)}
           activeOpacity={0.8}
-          className="flex-1 py-3 rounded-2xl bg-indigo-600 flex-row items-center justify-center shadow-sm"
+          className="flex-1 rounded-2xl overflow-hidden shadow-sm"
         >
-          <Edit3 size={15} color="#ffffff" />
-          <Text className="font-bold text-[13.5px] text-white ml-2">
-            Edit Profile
-          </Text>
+          <LinearGradient
+            colors={['#4F46E5', '#6366F1']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Edit3 size={15} color="#ffffff" />
+            <Text className="font-bold text-[13.5px] text-white ml-2">
+              Edit Profile
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -844,6 +917,18 @@ export default function ProfileScreen() {
           onClose={() => setPreviewVisible(false)}
         />
       )}
+
+      {/* USER LIST MODAL (FOLLOWERS & FOLLOWING) */}
+      <UserListModal
+        visible={showUserList}
+        onClose={() => {
+          setShowUserList(false);
+          fetchProfileData(true);
+        }}
+        userId={profile?.id}
+        userName={profile?.full_name}
+        initialTab={userListTab}
+      />
     </SafeAreaView>
   );
 }
