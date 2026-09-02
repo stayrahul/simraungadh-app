@@ -22,7 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/imageStorage';
-import { Issue } from '../../lib/types';
+import { Issue, cleanCivicDescription } from '../../lib/types';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as Haptics from 'expo-haptics';
@@ -703,7 +703,7 @@ export default function ProfileScreen() {
             {item.title}
           </Text>
           <Text className={`text-[13.5px] leading-relaxed ${theme.textSecondaryClass}`} numberOfLines={3}>
-            {item.description}
+            {cleanCivicDescription(item.description)}
           </Text>
 
           {/* Photos Carousel if available */}

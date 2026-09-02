@@ -148,3 +148,24 @@ export interface Feedback {
   created_at: string;
   user?: Profile;
 }
+
+/**
+ * Removes legacy "📍 Location: ... [Priority: ...]" prefix from issue descriptions
+ */
+export function cleanCivicDescription(desc?: string | null): string {
+  if (!desc) return '';
+  // 1. Remove [Priority: ...] tag
+  let cleaned = desc.replace(/\[Priority:\s*[^\]]+\]/gi, '').trim();
+
+  // 2. Match leading 📍 Location: <landmark>\n\n<body text>
+  const match = cleaned.match(/^📍\s*Location:\s*([^\n]*)(?:\n+([\s\S]*))?$/i);
+  if (match) {
+    const landmark = match[1]?.trim();
+    const body = match[2]?.trim();
+    if (body) return body;
+    if (landmark) return landmark;
+  }
+
+  // 3. Fallback: strip any remaining "📍 Location:" prefix
+  return cleaned.replace(/^📍\s*Location:\s*/i, '').trim();
+}

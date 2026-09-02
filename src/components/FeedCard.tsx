@@ -5,7 +5,7 @@ import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { User, Check, MapPin, MoreHorizontal, Globe, Heart, MessageSquare, Share2, Sparkles, ChevronDown, ChevronUp, Repeat, UserPlus, UserCheck, Users, Bookmark, BookmarkCheck } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { Issue } from '../lib/types';
+import { Issue, cleanCivicDescription } from '../lib/types';
 import AnimatedCard from './AnimatedCard';
 import IssueImageCarousel from './IssueImageCarousel';
 import FullScreenImageViewer from './FullScreenImageViewer';
@@ -28,9 +28,9 @@ interface FeedCardProps {
   item: Issue;
   isLiked: boolean;
   onLike: (id: string, currentlyLiked: boolean) => void;
-  translationsCache: Record<string, string>;
-  translating: Record<string, boolean>;
-  onTranslate: (id: string, text: string) => void;
+  translationsCache?: Record<string, string>;
+  translating?: Record<string, boolean>;
+  onTranslate?: (id: string, text: string) => void;
   isFollowingAuthor?: boolean;
   isFollowedByAuthor?: boolean;
   onFollowToggle?: (authorId: string) => void;
@@ -41,7 +41,7 @@ interface FeedCardProps {
 
 function FeedCard({
   item,
-  isLiked,
+  isLiked = false,
   onLike,
   translationsCache,
   translating,
@@ -93,7 +93,8 @@ function FeedCard({
   }, [bookmarkedIssueIds, item.id]);
 
   const commentCount = item.issue_comments?.[0]?.count || 0;
-  const isLongDescription = item.description && item.description.length > 100;
+  const displayDescription = cleanCivicDescription(translationsCache?.[item.id] || item.description);
+  const isLongDescription = displayDescription && displayDescription.length > 100;
   const canFollow = profile && !item.is_anonymous && item.author_id && item.author_id !== profile.id;
 
   const isFriends = isFollowing && initialFollowedBy;
@@ -292,7 +293,7 @@ function FeedCard({
 
         <View className="px-3.5 pb-2 pt-1">
           <Text className={`text-[14px] leading-[21px] font-normal ${theme.textClass}`} numberOfLines={expanded ? undefined : 3}>
-            {translationsCache?.[item.id] || item.description}
+            {displayDescription}
           </Text>
 
           {isLongDescription && (
@@ -307,9 +308,9 @@ function FeedCard({
             </TouchableOpacity>
           )}
 
-          {item.description && onTranslate && translationsCache && translating && (
+          {displayDescription && onTranslate && translationsCache && translating && (
             <TouchableOpacity
-              onPress={() => onTranslate(item.id, item.description)}
+              onPress={() => onTranslate(item.id, displayDescription)}
               disabled={translating[item.id]}
               className="mt-2 flex-row items-center self-start py-1"
             >

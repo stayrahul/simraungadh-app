@@ -12,7 +12,7 @@ import * as Clipboard from 'expo-clipboard';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { Issue, IssueComment } from '../../lib/types';
+import { Issue, IssueComment, cleanCivicDescription } from '../../lib/types';
 import Badge from '../../components/Badge';
 import Skeleton from '../../components/Skeleton';
 import IssueImageCarousel from '../../components/IssueImageCarousel';
@@ -314,11 +314,6 @@ export default function IssueDetailScreen() {
                   )}
                 </View>
                 <View className="flex-row items-center mt-1 flex-wrap gap-1.5">
-                  <View className="flex-row items-center">
-                    <MapPin size={10} color={theme.iconColor} />
-                    <Text className={`text-[11px] font-semibold ml-1 ${theme.textMutedClass}`}>Ward {issue.ward_number || 1}</Text>
-                  </View>
-                  <Text className={`text-[10px] ${theme.textMutedClass}`}>·</Text>
                   <Badge type="category" text={issue.category || 'General'} size="sm" />
                   {issue.status && issue.status !== 'pending' && <Badge type={issue.status as any} text={issue.status.replace('_', ' ')} size="sm" />}
                   <Text className={`text-[10px] ${theme.textMutedClass}`}>·</Text>
@@ -334,7 +329,7 @@ export default function IssueDetailScreen() {
 
           {/* Description Text */}
           <View className="pt-4 pb-3">
-            <Text className={`text-[15.5px] leading-[24px] font-medium tracking-wide ${theme.textClass}`}>{issue.description}</Text>
+            <Text className={`text-[15.5px] leading-[24px] font-medium tracking-wide ${theme.textClass}`}>{cleanCivicDescription(issue.description)}</Text>
           </View>
 
           {/* Photos Carousel */}
@@ -652,7 +647,7 @@ export default function IssueDetailScreen() {
               try {
                 const title = issue?.title ? issue.title.replace(/- Ward \d+/i, '').trim() : issue?.category || 'Issue';
                 await Share.share({
-                  message: `Check out this issue on Simraungadh:\n\n*${title}*\n${issue?.description}\n\n📍 Ward ${issue?.ward_number || 1}\nhttps://simraungadh.live/issue/${issue?.id}`,
+                  message: `Check out this issue on Simraungadh:\n\n*${title}*\n${cleanCivicDescription(issue?.description)}\n\nhttps://simraungadh.live/issue/${issue?.id}`,
                 });
               } catch (error) { }
             },
@@ -670,7 +665,7 @@ export default function IssueDetailScreen() {
             icon: 'copy',
             onPress: async () => {
               if (issue?.description) {
-                await Clipboard.setStringAsync(issue.description);
+                await Clipboard.setStringAsync(cleanCivicDescription(issue.description));
                 showAlert('Copied', 'Description copied to clipboard.');
               }
             },
