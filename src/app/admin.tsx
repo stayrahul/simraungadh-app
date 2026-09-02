@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   Users, AlertTriangle, ShieldAlert, CheckCircle, Search, Check,
   MoreVertical, RefreshCw, X, Shield, MapPin, Award, 
-  Trash2, Ban, Heart, Zap, BadgeCheck, Crown, Star, ShieldCheck, ChevronLeft, ChevronRight, User, File, Briefcase, Megaphone, Send, Layers, BookOpen, AlertCircle, Edit3, Settings, Download, BarChart2, Calendar
+  Trash2, Ban, Heart, Zap, BadgeCheck, Crown, Star, ShieldCheck, ChevronLeft, ChevronRight, User, FileText, Briefcase, Megaphone, Send, Layers, BookOpen, AlertCircle, Edit3, Settings, Download, BarChart2, Calendar
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
@@ -44,7 +44,7 @@ const renderAdminTabIcon = (tab: AdminTab, color: string) => {
     case 'notices': return <Megaphone size={14} color={color} strokeWidth={2.2} />;
     case 'polls': return <Layers size={14} color={color} strokeWidth={2.2} />;
     case 'events': return <Calendar size={14} color={color} strokeWidth={2.2} />;
-    case 'logs': return <File size={14} color={color} strokeWidth={2.2} />;
+    case 'logs': return <FileText size={14} color={color} strokeWidth={2.2} />;
     case 'settings': return <Settings size={14} color={color} strokeWidth={2.2} />;
     default: return <BarChart2 size={14} color={color} strokeWidth={2.2} />;
   }
@@ -683,7 +683,7 @@ export default function AdminDashboardScreen() {
               <View className="flex-row flex-wrap justify-between gap-y-3 mb-4">
                 {[
                   { label: 'TOTAL USERS', value: stats.users, icon: Users, color: '#4F46E5', bg: theme.isDark ? 'rgba(79,70,229,0.12)' : 'rgba(79,70,229,0.06)' },
-                  { label: 'CIVIC ISSUES', value: stats.issues, icon: File, color: '#EF4444', bg: theme.isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.06)' },
+                  { label: 'CIVIC ISSUES', value: stats.issues, icon: FileText, color: '#EF4444', bg: theme.isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.06)' },
                   { label: 'RESOLVED', value: stats.resolved, icon: CheckCircle, color: '#10B981', bg: theme.isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.06)' },
                   { label: 'NOTICES', value: stats.notices, icon: AlertTriangle, color: '#F59E0B', bg: theme.isDark ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.06)' },
                 ].map((stat, idx) => (

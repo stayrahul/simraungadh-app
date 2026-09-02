@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView, Platform, ActivityIndicator, Linking, AppState, Share, Modal } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, Globe, Bell, MessageSquare, CheckCircle2, Lock, ChevronRight, LogOut, Moon, Sun, HelpCircle, Mail, Shield, File, DownloadCloud, Fingerprint, Volume2, Share2, Star, ShieldAlert, Code2, Heart, Database, Smartphone, Activity, Bookmark } from 'lucide-react-native';
+import { X, Globe, Bell, MessageSquare, CheckCircle2, Lock, ChevronRight, LogOut, Moon, Sun, HelpCircle, Mail, Shield, FileText, DownloadCloud, Fingerprint, Volume2, Share2, Star, ShieldAlert, Code2, Heart, Database, Smartphone, Activity, Bookmark } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
 import { useLangStore } from '../store/langStore';
@@ -403,7 +403,7 @@ export default function SettingsScreen() {
               onPress={() => router.push('/privacy')}
             />
             <SettingRow
-              icon={File}
+              icon={FileText}
               iconColor={theme.isDark ? '#c084fc' : '#9333ea'}
               title="Terms of Service"
               subtitle="Usage guidelines"

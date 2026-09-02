@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Linking, TextInput, Modal, Clipboard, Platform, ActivityIndicator, Share, LayoutAnimation, UIManager } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PhoneCall, Shield, AlertTriangle, Activity, File, BookOpen, Edit3, CreditCard, Briefcase, Search, Smartphone, Trash2, Info, Phone, Calendar, MapPin, Users, LayoutGrid, Sun, CloudRain, Cloud, Maximize2, ArrowRight, Building2, ExternalLink, X, CheckCircle2, ChevronRight, Copy, Check, Globe, Award, Navigation, Star, UserCheck, Crosshair, Wrench, Zap, Share2, ShieldAlert } from 'lucide-react-native';
+import { PhoneCall, Shield, AlertTriangle, Activity, FileText, BookOpen, Edit3, CreditCard, Briefcase, Search, Smartphone, Trash2, Info, Phone, Calendar, MapPin, Users, LayoutGrid, Sun, CloudRain, Cloud, Maximize2, ArrowRight, Building2, ExternalLink, X, CheckCircle2, ChevronRight, Copy, Check, Globe, Award, Navigation, Star, UserCheck, Crosshair, Wrench, Zap, Share2, ShieldAlert } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useLangStore } from '../../store/langStore';
 import { translations } from '../../lib/translations';
@@ -37,7 +37,7 @@ const DIGITAL_SERVICES = [
     title: 'राष्ट्रिय परिचयपत्र फारम', 
     subtitle: 'NID Pre-Enrollment Portal',
     url: 'https://enrollment.donidcr.gov.np',
-    icon: File, 
+    icon: FileText, 
     color: '#3b82f6' 
   },
   { 
@@ -45,7 +45,7 @@ const DIGITAL_SERVICES = [
     title: 'नागरिक घटना दर्ता', 
     subtitle: 'Civil Registration Portal',
     url: 'https://citizenportal.donidcr.gov.np',
-    icon: File, 
+    icon: FileText, 
     color: '#4f46e5' 
   },
   { 
@@ -904,7 +904,7 @@ export default function ServicesScreen() {
             <View className="flex-row items-center justify-between pb-4 border-b border-slate-200/60 dark:border-white/10 mb-4">
               <View className="flex-row items-center flex-1 pr-3">
                 <View className={`w-10 h-10 rounded-[24px] items-center justify-center mr-3 ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
-                  {activeModal === 'vital' && <File size={22} color="#3b82f6" />}
+                  {activeModal === 'vital' && <FileText size={22} color="#3b82f6" />}
                   {activeModal === 'social' && <Shield size={22} color="#8b5cf6" />}
                   {activeModal === 'charter' && <BookOpen size={22} color="#f59e0b" />}
                   {activeModal === 'forms' && <Edit3 size={22} color="#ef4444" />}

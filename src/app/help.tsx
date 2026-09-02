@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, HelpCircle, File, MessageSquare, AlertTriangle, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, HelpCircle, FileText, MessageSquare, AlertTriangle, ChevronRight } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../hooks/use-theme';
 
@@ -52,7 +52,7 @@ export default function HelpScreen() {
           {/* Q2 */}
           <View className={`p-4 border-b ${theme.borderSubtleClass}`}>
             <View className="flex-row items-center mb-2">
-              <File size={16} color={theme.isDark ? '#818cf8' : '#6366f1'} className="mr-2" />
+              <FileText size={16} color={theme.isDark ? '#818cf8' : '#6366f1'} className="mr-2" />
               <Text className={`font-bold text-[15px] ${theme.textClass}`}>How do I track my reports?</Text>
             </View>
             <Text className={`text-[13px] leading-relaxed ${theme.textSecondaryClass}`}>

@@ -6,7 +6,7 @@ import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, Sun, CloudRain, Cloud, MapPin, Bell, User, Inbox, Flame, Navigation, Droplets, Zap, Trash2, HelpCircle, TrendingUp, ArrowUp, Globe, Users, X, Camera, ImagePlus, Search, Plus, PhoneCall, File, Sparkles, PieChart, Landmark } from 'lucide-react-native';
+import { Calendar, Sun, CloudRain, Cloud, MapPin, Bell, User, Inbox, Flame, Navigation, Droplets, Zap, Trash2, HelpCircle, TrendingUp, ArrowUp, Globe, Users, X, Camera, ImagePlus, Search, Plus, PhoneCall, Sparkles, PieChart, Landmark } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { BlurView } from 'expo-blur';
 import { decode } from 'base64-arraybuffer';
