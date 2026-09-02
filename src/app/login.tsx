@@ -579,18 +579,19 @@ export default function LoginScreen() {
             <TouchableOpacity
               onPress={handleAuth}
               disabled={loading || !email.trim() || !password.trim()}
-              className={`h-12 rounded-[24px] items-center justify-center ${(!email.trim() || !password.trim())
+              activeOpacity={0.85}
+              className={`h-12 rounded-full items-center justify-center ${(!email.trim() || !password.trim())
                   ? (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-200')
-                  : (theme.isDark ? 'bg-indigo-500/20 border border-indigo-500/30' : 'bg-indigo-600')
+                  : 'bg-indigo-600 shadow-md'
                 }`}
               style={{ opacity: loading ? 0.6 : 1 }}
             >
               {loading ? (
-                <ActivityIndicator color={theme.isDark ? '#818cf8' : '#fff'} />
+                <ActivityIndicator color="#fff" />
               ) : (
-                <Text className={`font-bold text-[14px] ${(!email.trim() || !password.trim())
+                <Text className={`font-bold text-[14.5px] ${(!email.trim() || !password.trim())
                     ? theme.textMutedClass
-                    : (theme.isDark ? 'text-indigo-300' : 'text-white')
+                    : 'text-white'
                   }`}>
                   {isLogin ? t.signIn : t.createAccount}
                 </Text>
@@ -605,7 +606,7 @@ export default function LoginScreen() {
                 {isLogin ? t.dontHaveAccount : t.alreadyHaveAccount}
               </Text>
               <TouchableOpacity onPress={() => setIsLogin(!isLogin)} className="ml-1.5 py-1">
-                <Text className={`font-bold text-[13px] ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>
+                <Text className={`font-bold text-[13px] ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
                   {isLogin ? t.signUp : t.signIn}
                 </Text>
               </TouchableOpacity>
@@ -613,19 +614,20 @@ export default function LoginScreen() {
           )}
 
           {/* 1-Click Quick Demo Login Box */}
-          <View className="mt-5 pt-3 border-t border-dashed border-slate-300/40">
-            <Text className={`text-[11px] font-bold uppercase tracking-wider text-center mb-2.5 ${theme.textMutedClass}`}>
+          <View className="mt-5 pt-4 border-t border-slate-200/60 dark:border-white/10">
+            <Text className={`text-[11px] font-bold uppercase tracking-wider text-center mb-3 ${theme.textMutedClass}`}>
               ⚡ 1-Click Instant Demo Login
             </Text>
-            <View className="flex-row gap-2">
+            <View className="flex-row gap-2.5">
               <TouchableOpacity 
                 onPress={() => handleQuickDemo('citizen')}
                 disabled={loading}
-                className={`flex-1 py-3 px-2 rounded-xl items-center border ${
-                  theme.isDark ? 'border-primary-500/30 bg-primary-500/12' : 'border-blue-200 bg-primary-50'
+                activeOpacity={0.8}
+                className={`flex-1 py-3 px-2 rounded-full items-center justify-center border ${
+                  theme.isDark ? 'border-indigo-500/30 bg-indigo-500/10' : 'border-indigo-200 bg-indigo-50'
                 }`}
               >
-                <Text className={`font-bold text-[12px] ${theme.isDark ? 'text-primary-300' : 'text-blue-700'}`}>
+                <Text className={`font-bold text-[12.5px] ${theme.isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>
                   👤 Demo Citizen
                 </Text>
               </TouchableOpacity>
@@ -633,11 +635,12 @@ export default function LoginScreen() {
               <TouchableOpacity 
                 onPress={() => handleQuickDemo('official')}
                 disabled={loading}
-                className={`flex-1 py-3 px-2 rounded-xl items-center border ${
-                  theme.isDark ? 'border-indigo-500/30 bg-indigo-500/12' : 'border-indigo-200 bg-indigo-50'
+                activeOpacity={0.8}
+                className={`flex-1 py-3 px-2 rounded-full items-center justify-center border ${
+                  theme.isDark ? 'border-indigo-500/30 bg-indigo-500/10' : 'border-indigo-200 bg-indigo-50'
                 }`}
               >
-                <Text className={`font-bold text-[12px] ${theme.isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>
+                <Text className={`font-bold text-[12.5px] ${theme.isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>
                   🛡️ Demo Official
                 </Text>
               </TouchableOpacity>
