@@ -411,9 +411,9 @@ export default function ProfileScreen() {
               <Text className={`font-black text-[23px] tracking-tight ${theme.textClass}`}>
                 {profile.full_name}
               </Text>
-              {profile.is_verified && (
+              {Boolean(profile.is_verified) ? (
                 <UserBadges badges={profile.badges || ['verified']} size={16} />
-              )}
+              ) : null}
             </View>
 
             {/* Resident / Official Verification Pill */}
@@ -428,14 +428,14 @@ export default function ProfileScreen() {
             </View>
 
             {/* Address / Tole info */}
-            {profile.tole && (
+            {Boolean(profile.tole) ? (
               <View className="flex-row items-center mt-2">
                 <MapPin size={12} color={theme.accentColor} />
                 <Text className={`text-[12.5px] font-medium ml-1.5 ${theme.textMutedClass}`}>
                   {profile.tole}, Simraungadh
                 </Text>
               </View>
-            )}
+            ) : null}
 
             {/* Bio */}
             <Text className={`text-[13.5px] leading-relaxed mt-2.5 font-normal ${theme.textSecondaryClass}`}>
@@ -677,10 +677,15 @@ export default function ProfileScreen() {
 
   // Render Civic Issue Item (Stitch Civic Modern Card)
   const renderIssueItem = ({ item }: { item: Issue }) => {
-    const hasPhotos = (item.image_urls && item.image_urls.length > 0) || item.image_url;
+    const hasPhotos = Boolean((item.image_urls && item.image_urls.length > 0) || item.image_url);
     const photos = item.image_urls && item.image_urls.length > 0 ? item.image_urls : item.image_url ? [item.image_url] : [];
     const isLiked = likedIssueIds.has(item.id);
     const isBookmarked = bookmarkedIssueIds.includes(item.id);
+    const shouldShowTitle = Boolean(
+      item.title &&
+      !item.title.match(/Report\s*-\s*Ward/i) &&
+      item.title.toLowerCase() !== item.category?.toLowerCase()
+    );
 
     return (
       <View className="px-5 mb-3">
@@ -722,17 +727,17 @@ export default function ProfileScreen() {
           </View>
 
           {/* Title (hidden if auto-generated Report - Ward ... or matches category) */}
-          {item.title && !item.title.match(/Report\s*-\s*Ward/i) && item.title.toLowerCase() !== item.category?.toLowerCase() && (
+          {shouldShowTitle ? (
             <Text className={`font-bold text-[15.5px] mb-1 tracking-tight ${theme.textClass}`}>
               {cleanCivicTitle(item.title)}
             </Text>
-          )}
+          ) : null}
           <Text className={`text-[13.5px] leading-relaxed ${theme.textSecondaryClass}`} numberOfLines={3}>
             {cleanCivicDescription(item.description)}
           </Text>
 
           {/* Photos Carousel if available */}
-          {hasPhotos && photos.length > 0 && (
+          {hasPhotos && photos.length > 0 ? (
             <View className="mt-3 rounded-2xl overflow-hidden">
               <IssueImageCarousel
                 imageUrls={photos}
@@ -744,7 +749,7 @@ export default function ProfileScreen() {
                 }}
               />
             </View>
-          )}
+          ) : null}
 
           {/* Interactive Footer */}
           <View className="flex-row items-center justify-between mt-3 pt-2.5 border-t border-slate-100 dark:border-white/5">
@@ -924,24 +929,24 @@ export default function ProfileScreen() {
       </Modal>
 
       {/* FULLSCREEN AVATAR VIEWER */}
-      {profile.avatar_url && (
+      {Boolean(profile.avatar_url) ? (
         <FullScreenImageViewer
           visible={showAvatarViewer}
           imageUrls={[profile.avatar_url]}
           initialIndex={0}
           onClose={() => setShowAvatarViewer(false)}
         />
-      )}
+      ) : null}
 
       {/* FULLSCREEN ISSUE PHOTO VIEWER */}
-      {previewImages.length > 0 && (
+      {previewImages.length > 0 ? (
         <FullScreenImageViewer
           visible={previewVisible}
           imageUrls={previewImages}
           initialIndex={previewIndex}
           onClose={() => setPreviewVisible(false)}
         />
-      )}
+      ) : null}
 
       {/* USER LIST MODAL (FOLLOWERS & FOLLOWING) */}
       <UserListModal

@@ -167,14 +167,14 @@ function FeedCard({
         onPress={() => router.push(`/issue/${item.id}`)}
         className={theme.glassCardClass}
       >
-        {isReposted && (
+        {Boolean(isReposted) ? (
           <View className="flex-row items-center px-3 py-1">
             <Repeat size={11} color={theme.isDark ? '#34d399' : '#059669'} />
             <Text className={`${theme.isDark ? 'text-emerald-400' : 'text-emerald-600'} font-bold text-[10.5px] ml-1.5`}>
               You Reposted
             </Text>
           </View>
-        )}
+        ) : null}
 
         <View className="flex-row items-center px-3.5 pt-3 pb-1">
           <View className="flex-row items-center flex-1 mr-2">
@@ -186,7 +186,7 @@ function FeedCard({
                 }
               }}
             >
-              {item.author?.avatar_url && !item.is_anonymous ? (
+              {Boolean(item.author?.avatar_url && !item.is_anonymous) ? (
                 <Image
                   source={{ uri: item.author.avatar_url }}
                   cachePolicy="memory-disk"
@@ -215,13 +215,13 @@ function FeedCard({
                     {item.is_anonymous ? t.anonymous : (item.author?.full_name || t.anonymous)}
                   </Text>
                 </TouchableOpacity>
-                {!item.is_anonymous && item.author && (
+                {Boolean(!item.is_anonymous && item.author) ? (
                   <View className="ml-1">
                     <UserBadges badges={item.author.badges || (item.author.is_verified ? ['verified'] : [])} size={15} />
                   </View>
-                )}
+                ) : null}
 
-                {canFollow && !isFollowing && (
+                {Boolean(canFollow && !isFollowing) ? (
                   <TouchableOpacity
                     onPress={handleFollow}
                     disabled={followLoading}
@@ -230,9 +230,9 @@ function FeedCard({
                   >
                     <Text className={`text-[12px] font-bold ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>{initialFollowedBy ? (t.followBack || 'Follow Back') : t.follow}</Text>
                   </TouchableOpacity>
-                )}
+                ) : null}
 
-                {!item.is_anonymous && isFollowing && (
+                {Boolean(!item.is_anonymous && isFollowing) ? (
                   <View className="ml-2 py-0.5">
                     {isFriends ? (
                       <Users size={12} color={theme.isDark ? '#34d399' : '#059669'} />
@@ -240,7 +240,7 @@ function FeedCard({
                       <UserCheck size={12} color={theme.isDark ? '#34d399' : '#059669'} />
                     )}
                   </View>
-                )}
+                ) : null}
               </View>
 
               <View className="flex-row items-center mt-0.5">
@@ -256,7 +256,7 @@ function FeedCard({
           </View>
 
           <View className="flex-row items-center gap-1.5">
-            {item.post_type === 'report' && item.status && (
+            {Boolean(item.post_type === 'report' && item.status) ? (
               item.status === 'in_progress' ? (
                 <View className="px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/80">
                   <Text className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300">In Progress</Text>
@@ -268,7 +268,7 @@ function FeedCard({
               ) : (
                 <Badge type={item.status as any} text={item.status.replace('_', ' ')} size="sm" />
               )
-            )}
+            ) : null}
 
             <TouchableOpacity
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -295,7 +295,7 @@ function FeedCard({
             {displayDescription}
           </Text>
 
-          {isLongDescription && (
+          {Boolean(isLongDescription) ? (
             <TouchableOpacity
               onPress={() => setExpanded(!expanded)}
               className="mt-1 flex-row items-center py-0.5"
@@ -305,9 +305,9 @@ function FeedCard({
               </Text>
               {expanded ? <ChevronUp size={12} color={theme.isDark ? '#818cf8' : '#4f46e5'} /> : <ChevronDown size={12} color={theme.isDark ? '#818cf8' : '#4f46e5'} />}
             </TouchableOpacity>
-          )}
+          ) : null}
 
-          {displayDescription && onTranslate && translationsCache && translating && (
+          {Boolean(displayDescription && onTranslate && translationsCache && translating) ? (
             <TouchableOpacity
               onPress={() => onTranslate(item.id, displayDescription)}
               disabled={translating[item.id]}
@@ -318,10 +318,10 @@ function FeedCard({
                 {translating[item.id] ? 'Translating...' : (translationsCache[item.id] ? 'Show Original' : 'Translate')}
               </Text>
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
 
-        {((item.image_urls && item.image_urls.length > 0) || item.image_url) ? (
+        {Boolean((item.image_urls && item.image_urls.length > 0) || item.image_url) ? (
           <View className="mb-1 w-full relative">
             <View className="overflow-hidden">
               <IssueImageCarousel
