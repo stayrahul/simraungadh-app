@@ -1,12 +1,12 @@
 // @ts-nocheck
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Share, Modal, Dimensions } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Share, Modal, Dimensions, Keyboard } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, User, Check, MapPin, MoreHorizontal, Heart, MessageSquare, Share2, Shield, Send, X, Clock, Sparkles, MessageCircle, ThumbsUp, ThumbsDown, CornerUpLeft, Activity } from 'lucide-react-native';
+import { ArrowLeft, User, Check, MapPin, MoreHorizontal, Heart, MessageSquare, Share2, Shield, Send, X, Clock, Sparkles, MessageCircle, ThumbsUp, ThumbsDown, CornerUpLeft, CornerDownRight, Activity } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
 import ImageViewer from 'react-native-image-zoom-viewer';
@@ -34,6 +34,30 @@ function formatTimeAgo(dateString?: string) {
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
+function structureCommentList(rawComments: IssueComment[]): IssueComment[] {
+  const topLevel: IssueComment[] = [];
+  const childrenMap = new Map<string, IssueComment[]>();
+
+  rawComments.forEach(c => {
+    if (c.parent_id) {
+      if (!childrenMap.has(c.parent_id)) childrenMap.set(c.parent_id, []);
+      childrenMap.get(c.parent_id)!.push(c);
+    } else {
+      topLevel.push(c);
+    }
+  });
+
+  const structuredComments: IssueComment[] = [];
+  topLevel.forEach(parent => {
+    structuredComments.push(parent);
+    if (childrenMap.has(parent.id)) {
+      structuredComments.push(...childrenMap.get(parent.id)!);
+    }
+  });
+
+  return structuredComments;
+}
+
 export default function IssueDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
@@ -50,6 +74,33 @@ export default function IssueDetailScreen() {
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
   const [fullScreenImageIndex, setFullScreenImageIndex] = useState<number | null>(null);
+
+  // Keyboard avoidance tracking for Android edge-to-edge
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setIsKeyboardVisible(true);
+      setKeyboardHeight(e.endCoordinates.height);
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    });
+
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setIsKeyboardVisible(false);
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   // Comment Like/Dislike & Reply state
   const [isLikingComment, setIsLikingComment] = useState<Record<string, boolean>>({});
@@ -88,27 +139,7 @@ export default function IssueDetailScreen() {
       if (commentsError) throw commentsError;
 
       const rawComments = commentsData || [];
-      const topLevel: IssueComment[] = [];
-      const childrenMap = new Map<string, IssueComment[]>();
-
-      rawComments.forEach(c => {
-        if (c.parent_id) {
-          if (!childrenMap.has(c.parent_id)) childrenMap.set(c.parent_id, []);
-          childrenMap.get(c.parent_id)!.push(c);
-        } else {
-          topLevel.push(c);
-        }
-      });
-
-      const structuredComments: IssueComment[] = [];
-      topLevel.forEach(parent => {
-        structuredComments.push(parent);
-        if (childrenMap.has(parent.id)) {
-          structuredComments.push(...childrenMap.get(parent.id)!);
-        }
-      });
-
-      setComments(structuredComments);
+      setComments(structureCommentList(rawComments));
 
       if (profile && issueData) {
         const { data: likeData } = await supabase
@@ -232,6 +263,8 @@ export default function IssueDetailScreen() {
 
       if (replyingTo) {
         payload.parent_id = replyingTo.id;
+        // Auto-expand the thread so user sees the newly added reply
+        setVisibleReplies(prev => new Set(prev).add(replyingTo.id));
       }
 
       let { data, error } = await supabase
@@ -250,7 +283,7 @@ export default function IssueDetailScreen() {
         author: profile,
       };
 
-      setComments(prev => [...prev, fullComment]);
+      setComments(prev => structureCommentList([...prev, fullComment]));
       const currentCommentText = commentText.trim();
       setCommentText('');
       setReplyingTo(null);
@@ -409,7 +442,6 @@ export default function IssueDetailScreen() {
   };
 
   const renderComment = ({ item }: { item: IssueComment }) => {
-
     const isMe = profile && item.author_id === profile.id;
     const isCommentLiked = likedComments.has(item.id);
     const isCommentDisliked = dislikedComments.has(item.id);
@@ -419,12 +451,12 @@ export default function IssueDetailScreen() {
     const isRepliesVisible = visibleReplies.has(item.id);
 
     return (
-      <View className={`px-5 py-4 border-b ${theme.borderSubtleClass} ${
+      <View className={`px-5 py-3.5 border-b ${theme.borderSubtleClass} ${
         item.is_official_response 
           ? (theme.isDark ? 'bg-indigo-500/[0.08]' : 'bg-indigo-50/60') 
           : 'bg-transparent'
-      } ${item.parent_id ? 'pl-16' : ''}`}>
-        <View className="flex-row items-start">
+      }`}>
+        <View className={`flex-row items-start ${item.parent_id ? 'ml-7 pl-3.5 border-l-2 border-indigo-400/30 dark:border-indigo-500/35' : ''}`}>
           <TouchableOpacity 
             activeOpacity={item.author_id ? 0.75 : 1}
             onPress={() => {
@@ -432,9 +464,9 @@ export default function IssueDetailScreen() {
             }}
           >
             {item.author?.avatar_url ? (
-              <Image source={{ uri: item.author.avatar_url }} style={{ width: item.parent_id ? 28 : 36, height: item.parent_id ? 28 : 36, borderRadius: item.parent_id ? 14 : 18 }} cachePolicy="memory-disk" className="bg-slate-800 mr-3 mt-0.5" transition={200} />
+              <Image source={{ uri: item.author.avatar_url }} style={{ width: item.parent_id ? 28 : 36, height: item.parent_id ? 28 : 36, borderRadius: item.parent_id ? 14 : 18 }} cachePolicy="memory-disk" className="bg-slate-800 mr-2.5 mt-0.5" transition={200} />
             ) : (
-              <View className={`${item.parent_id ? 'w-7 h-7' : 'w-9 h-9'} rounded-full items-center justify-center mr-3 mt-0.5 ${item.is_official_response ? 'bg-indigo-600' : (theme.isDark ? 'bg-white/[0.08]' : 'bg-slate-200')}`}>
+              <View className={`${item.parent_id ? 'w-7 h-7' : 'w-9 h-9'} rounded-full items-center justify-center mr-2.5 mt-0.5 ${item.is_official_response ? 'bg-indigo-600' : (theme.isDark ? 'bg-white/[0.08]' : 'bg-slate-200')}`}>
                 <Text className={`font-bold ${item.parent_id ? 'text-[10px]' : 'text-xs'} ${item.is_official_response ? 'text-white' : theme.textClass}`}>
                   {item.author?.full_name?.[0]?.toUpperCase() || 'C'}
                 </Text>
@@ -442,7 +474,7 @@ export default function IssueDetailScreen() {
             )}
           </TouchableOpacity>
 
-          <View className="flex-1 ml-0.5">
+          <View className="flex-1">
             {/* Author Name Row */}
             <View className="flex-row items-center justify-between mb-1 flex-wrap">
               <View className="flex-row items-center flex-wrap gap-1.5">
@@ -455,6 +487,12 @@ export default function IssueDetailScreen() {
                     <Text className={`text-[9px] font-black uppercase tracking-wider ${theme.isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>Official Response</Text>
                   </View>
                 )}
+                {item.parent_id && (
+                  <View className="bg-indigo-500/10 px-1.5 py-0.5 rounded flex-row items-center">
+                    <CornerDownRight size={10} color={theme.isDark ? '#818cf8' : '#4f46e5'} style={{ marginRight: 2 }} />
+                    <Text className={`text-[10px] font-bold ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>reply</Text>
+                  </View>
+                )}
               </View>
               <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>
                 {formatTimeAgo(item.created_at)}
@@ -462,15 +500,16 @@ export default function IssueDetailScreen() {
             </View>
 
             {/* Comment Text with Vertical Breathing Room */}
-            <Text className={`text-[14.5px] leading-[22px] font-medium mt-0.5 mb-2.5 ${theme.textClass}`}>
+            <Text className={`text-[14px] leading-[22px] font-normal mt-0.5 mb-2 ${theme.textClass}`}>
               {item.content}
             </Text>
+
             {/* Compact Comment Like / Dislike / Reply Bar */}
-            <View className="flex-row items-center gap-4 pt-1">
+            <View className="flex-row items-center gap-4 pt-0.5">
               <TouchableOpacity
                 onPress={() => handleCommentLikeToggle(item.id)}
                 activeOpacity={0.7}
-                className="flex-row items-center py-0.5 pr-2"
+                className="flex-row items-center py-1 pr-2"
               >
                 <Heart
                   size={13}
@@ -485,7 +524,7 @@ export default function IssueDetailScreen() {
               <TouchableOpacity
                 onPress={() => handleCommentDislikeToggle(item.id)}
                 activeOpacity={0.7}
-                className="flex-row items-center py-0.5 pr-2 ml-1"
+                className="flex-row items-center py-1 pr-2 ml-1"
               >
                 <ThumbsDown
                   size={13}
@@ -501,13 +540,14 @@ export default function IssueDetailScreen() {
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   const name = item.author?.full_name || 'Citizen';
-                  const replyId = item.parent_id ? item.parent_id : item.id;
-                  setReplyingTo({ id: replyId, name });
-                  setCommentText(`@${name} `);
+                  const rootParentId = item.parent_id || item.id;
+                  setReplyingTo({ id: rootParentId, name });
+                  // Auto-expand replies so the user can see the thread
+                  setVisibleReplies(prev => new Set(prev).add(rootParentId));
                   inputRef.current?.focus();
                 }}
                 activeOpacity={0.7}
-                className="flex-row items-center py-0.5 pr-2 ml-1"
+                className="flex-row items-center py-1 pr-2 ml-1"
               >
                 <CornerUpLeft
                   size={13}
@@ -519,10 +559,11 @@ export default function IssueDetailScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Show/Hide Replies Toggle */}
+            {/* Show/Hide Replies Toggle Button */}
             {!item.parent_id && repliesCount > 0 && (
               <TouchableOpacity
                 onPress={() => {
+                  Haptics.selectionAsync();
                   setVisibleReplies(prev => {
                     const next = new Set(prev);
                     if (next.has(item.id)) next.delete(item.id);
@@ -530,11 +571,12 @@ export default function IssueDetailScreen() {
                     return next;
                   });
                 }}
-                className="mt-3 flex-row items-center"
+                activeOpacity={0.7}
+                className="mt-2.5 flex-row items-center self-start px-3 py-1.5 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 border border-indigo-500/20"
               >
-                <View className="w-6 h-[1px] bg-slate-300 dark:bg-slate-600 mr-2" />
+                <CornerDownRight size={12} color={theme.isDark ? '#818cf8' : '#4f46e5'} style={{ marginRight: 6 }} />
                 <Text className={`text-[11.5px] font-bold ${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                  {isRepliesVisible ? 'Hide replies' : `Show ${repliesCount} repl${repliesCount === 1 ? 'y' : 'ies'}`}
+                  {isRepliesVisible ? 'Hide replies' : `View ${repliesCount} ${repliesCount === 1 ? 'reply' : 'replies'}`}
                 </Text>
               </TouchableOpacity>
             )}
@@ -557,7 +599,7 @@ export default function IssueDetailScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       className={`flex-1 ${theme.bgClass}`}
     >
       {/* Navbar */}
@@ -578,6 +620,10 @@ export default function IssueDetailScreen() {
           contentContainerStyle={{ paddingBottom: 20 }}
           estimatedItemSize={120}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          onScrollBeginDrag={() => {
+            if (isKeyboardVisible) Keyboard.dismiss();
+          }}
           ListEmptyComponent={
             <View className="items-center justify-center py-12 px-5">
               <View className={`w-14 h-14 rounded-2xl items-center justify-center mb-3 ${theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
@@ -591,23 +637,39 @@ export default function IssueDetailScreen() {
       </View>
 
       {profile && (
-        <View className="w-full px-5 py-4 pt-2 border-t border-slate-200/50 dark:border-white/5 bg-transparent">
-          <View className={`border rounded-[24px] ${theme.isDark ? 'bg-[#0A0A0C]/80 border-white/10' : 'bg-white border-slate-200'}`}>
+        <View 
+          style={{
+            paddingBottom: isKeyboardVisible ? 8 : Math.max(insets.bottom, 12),
+            marginBottom: Platform.OS === 'android' ? keyboardHeight : 0,
+          }}
+          className="w-full px-4 pt-2 border-t border-slate-200/50 dark:border-white/5 bg-transparent"
+        >
+          <View className={`border rounded-[24px] shadow-sm overflow-hidden ${theme.isDark ? 'bg-[#121216] border-white/10' : 'bg-white border-slate-200'}`}>
             {replyingTo && (
-              <View className={`px-4 py-2.5 flex-row justify-between items-center rounded-t-[24px] ${theme.isDark ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>
-                <Text className={`text-[12.5px] font-medium ${theme.isDark ? 'text-indigo-200' : 'text-indigo-800'}`}>
-                  Replying to <Text className="font-extrabold">@{replyingTo.name}</Text>
-                </Text>
-                <TouchableOpacity onPress={() => setReplyingTo(null)} className="p-1">
-                  <X size={16} color={theme.isDark ? '#818CF8' : '#4F46E5'} />
+              <View className={`px-4 py-2 flex-row justify-between items-center border-b ${theme.isDark ? 'bg-indigo-500/15 border-indigo-500/20' : 'bg-indigo-50 border-indigo-100'}`}>
+                <View className="flex-row items-center flex-1 mr-2">
+                  <CornerDownRight size={13} color={theme.isDark ? '#818cf8' : '#4f46e5'} style={{ marginRight: 6 }} />
+                  <Text className={`text-[12px] font-medium ${theme.isDark ? 'text-indigo-200' : 'text-indigo-800'}`} numberOfLines={1}>
+                    Replying to <Text className="font-extrabold">@{replyingTo.name}</Text>
+                  </Text>
+                </View>
+                <TouchableOpacity 
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    setReplyingTo(null);
+                  }} 
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  className="w-5 h-5 rounded-full items-center justify-center bg-indigo-500/20"
+                >
+                  <X size={12} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
                 </TouchableOpacity>
               </View>
             )}
-            <View className="px-4 py-3 flex-row items-end">
+            <View className="px-3.5 py-2.5 flex-row items-end">
               {profile?.avatar_url ? (
-                <Image source={{ uri: profile.avatar_url }} style={{ width: 34, height: 34, borderRadius: 17, marginBottom: 2 }} className="bg-slate-800 mr-3" transition={200} />
+                <Image source={{ uri: profile.avatar_url }} style={{ width: 32, height: 32, borderRadius: 16, marginBottom: 2 }} className="bg-slate-800 mr-2.5" transition={200} />
               ) : (
-                <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 mb-1 ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50'}`}>
+                <View className={`w-8 h-8 rounded-full items-center justify-center mr-2.5 mb-0.5 ${theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50'}`}>
                   <User size={16} color={theme.isDark ? '#818cf8' : '#6366f1'} />
                 </View>
               )}
@@ -615,8 +677,8 @@ export default function IssueDetailScreen() {
               <View className="flex-1 flex-row items-center">
                 <TextInput
                   ref={inputRef}
-                  className={`flex-1 text-[14px] min-h-[36px] max-h-[120px] py-1.5 font-medium ${theme.textClass}`}
-                  placeholder="Add a comment..."
+                  className={`flex-1 text-[14.5px] min-h-[36px] max-h-[120px] py-1 font-medium ${theme.textClass}`}
+                  placeholder={replyingTo ? `Reply to @${replyingTo.name}...` : "Add a comment..."}
                   placeholderTextColor={theme.inputPlaceholder}
                   multiline
                   value={commentText}
@@ -625,7 +687,11 @@ export default function IssueDetailScreen() {
                 <TouchableOpacity
                   onPress={handlePostComment}
                   disabled={!commentText.trim() || posting}
-                  className={`w-8 h-8 items-center justify-center rounded-full ml-2 ${!commentText.trim() || posting ? (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100') : (theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600')}`}
+                  className={`w-8 h-8 items-center justify-center rounded-full ml-2 ${
+                    !commentText.trim() || posting 
+                      ? (theme.isDark ? 'bg-white/[0.06]' : 'bg-slate-100') 
+                      : (theme.isDark ? 'bg-indigo-500' : 'bg-indigo-600')
+                  }`}
                 >
                   <Send size={14} color={!commentText.trim() || posting ? theme.iconColor : '#ffffff'} style={commentText.trim() && !posting ? { marginLeft: -2 } : {}} />
                 </TouchableOpacity>
