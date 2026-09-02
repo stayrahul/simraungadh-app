@@ -364,22 +364,19 @@ function FeedCard({
           </View>
         ) : null}
 
-        <View className="flex-row items-center px-4 py-2.5 border-t border-slate-100 dark:border-white/5 mt-1">
+        {/* Action Row - Stitch Civic Modern */}
+        <View className="flex-row items-center justify-between px-3 py-2.5 border-t border-slate-100 dark:border-white/5">
           <TouchableOpacity
-            onPress={() => {
-              Animated.sequence([
-                Animated.timing(scaleAnim, { toValue: 1.3, duration: 100, useNativeDriver: Platform.OS !== 'web' }),
-                Animated.timing(scaleAnim, { toValue: 1, duration: 100, useNativeDriver: Platform.OS !== 'web' }),
-              ]).start();
-              onLike(item.id, isLiked);
-            }}
+            onPress={handleLike}
             activeOpacity={0.7}
-            className="flex-row items-center justify-center py-1 flex-1"
+            className="flex-row items-center py-1 px-2 rounded-full"
           >
-            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-              <Heart size={18} color={isLiked ? '#F43F5E' : theme.iconColor} fill={isLiked ? '#F43F5E' : 'transparent'} strokeWidth={2} />
-            </Animated.View>
-            <Text className={`ml-1.5 font-bold text-[13px] ${isLiked ? 'text-rose-500' : theme.textSecondaryClass}`}>
+            <View className={`w-8 h-8 rounded-full items-center justify-center mr-1.5 ${isLiked ? 'bg-rose-500/10 dark:bg-rose-500/20' : (theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-50')}`}>
+              <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
+                <Heart size={16} color={isLiked ? '#F43F5E' : theme.iconColor} fill={isLiked ? '#F43F5E' : 'transparent'} strokeWidth={2.2} />
+              </Animated.View>
+            </View>
+            <Text className={`font-bold text-[13px] ${isLiked ? 'text-rose-500' : theme.textSecondaryClass}`}>
               {item.upvotes_count || 0}
             </Text>
           </TouchableOpacity>
@@ -393,12 +390,14 @@ function FeedCard({
               router.push(`/issue/${item.id}`);
             }}
             activeOpacity={0.7}
-            className="flex-row items-center justify-center py-1 flex-1 border-l border-slate-100 dark:border-white/5"
+            className="flex-row items-center py-1 px-2 rounded-full"
           >
-            <Animated.View style={{ transform: [{ scale: commentScaleAnim }] }}>
-              <MessageSquare size={18} color={theme.iconColor} strokeWidth={2} />
-            </Animated.View>
-            <Text className={`ml-1.5 font-bold text-[13px] ${theme.textSecondaryClass}`}>
+            <View className={`w-8 h-8 rounded-full items-center justify-center mr-1.5 ${commentCount > 0 ? (theme.isDark ? 'bg-indigo-500/15' : 'bg-indigo-50') : (theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-50')}`}>
+              <Animated.View style={{ transform: [{ scale: commentScaleAnim }] }}>
+                <MessageSquare size={16} color={commentCount > 0 ? (theme.isDark ? '#818cf8' : '#4f46e5') : theme.iconColor} strokeWidth={2} />
+              </Animated.View>
+            </View>
+            <Text className={`font-bold text-[13px] ${commentCount > 0 ? (theme.isDark ? 'text-indigo-300' : 'text-indigo-600') : theme.textSecondaryClass}`}>
               {commentCount}
             </Text>
           </TouchableOpacity>
@@ -412,12 +411,14 @@ function FeedCard({
             onPressOut={() => {
               Animated.timing(shareScaleAnim, { toValue: 1, duration: 100, useNativeDriver: Platform.OS !== 'web' }).start();
             }}
-            className="flex-row items-center justify-center py-1 flex-1 border-l border-slate-100 dark:border-white/5"
+            className="flex-row items-center py-1 px-2 rounded-full"
           >
-            <Animated.View style={{ transform: [{ scale: shareScaleAnim }] }}>
-              <Share2 size={18} color={theme.iconColor} strokeWidth={2} />
-            </Animated.View>
-            <Text className={`ml-1.5 font-bold text-[13px] ${theme.textSecondaryClass}`}>
+            <View className={`w-8 h-8 rounded-full items-center justify-center mr-1.5 ${theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
+              <Animated.View style={{ transform: [{ scale: shareScaleAnim }] }}>
+                <Share2 size={16} color={theme.iconColor} strokeWidth={2} />
+              </Animated.View>
+            </View>
+            <Text className={`font-bold text-[13px] ${theme.textSecondaryClass}`}>
               {t.share}
             </Text>
           </TouchableOpacity>

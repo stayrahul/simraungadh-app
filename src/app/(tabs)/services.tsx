@@ -633,9 +633,14 @@ export default function ServicesScreen() {
         )}
 
         {/* EMERGENCY SECTION */}
-        <TouchableOpacity onPress={() => toggleSection('emergency')} className={`flex-row items-center justify-between mb-3 px-1 ${theme.sectionHeaderStyle}`}>
-          <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>Quick Emergency Dialer</Text>
-          <ChevronRight size={18} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.emergency ? '90deg' : '0deg' }] }} />
+        <TouchableOpacity onPress={() => toggleSection('emergency')} className="flex-row items-center justify-between mb-3 px-1 mt-2">
+          <View className="flex-row items-center">
+            <View className="w-2 h-2 rounded-full bg-rose-500 mr-2" />
+            <Text className={`font-black text-[16px] tracking-tight ${theme.textClass}`}>Quick Emergency Dialer</Text>
+          </View>
+          <View className={`w-7 h-7 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
+            <ChevronRight size={14} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.emergency ? '90deg' : '0deg' }] }} />
+          </View>
         </TouchableOpacity>
         {expandedSections.emergency && (
           <View className="mb-6">
@@ -721,11 +726,16 @@ export default function ServicesScreen() {
         )}
 
         {/* DIGITAL SERVICES SECTION */}
-        <TouchableOpacity onPress={() => toggleSection('digital')} className={`flex-row items-center justify-between mb-3 px-1 mt-2 ${theme.sectionHeaderStyle}`}>
-          <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>
-            {language === 'ne' ? 'अनलाइन पोर्टल तथा निवेदनहरू' : 'Online Portals & Forms'}
-          </Text>
-          <ChevronRight size={18} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.digital ? '90deg' : '0deg' }] }} />
+        <TouchableOpacity onPress={() => toggleSection('digital')} className="flex-row items-center justify-between mb-3 px-1 mt-3">
+          <View className="flex-row items-center">
+            <View className="w-2 h-2 rounded-full bg-indigo-500 mr-2" />
+            <Text className={`font-black text-[16px] tracking-tight ${theme.textClass}`}>
+              {language === 'ne' ? 'अनलाइन पोर्टल तथा निवेदनहरू' : 'Online Portals & Forms'}
+            </Text>
+          </View>
+          <View className={`w-7 h-7 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
+            <ChevronRight size={14} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.digital ? '90deg' : '0deg' }] }} />
+          </View>
         </TouchableOpacity>
         {expandedSections.digital && (
           <View className="mb-6">
@@ -777,9 +787,14 @@ export default function ServicesScreen() {
         )}
 
         {/* WASTE SECTION */}
-        <TouchableOpacity onPress={() => toggleSection('waste')} className={`flex-row items-center justify-between mb-3 px-1 mt-2 ${theme.sectionHeaderStyle}`}>
-          <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>{t.weeklySchedule}</Text>
-          <ChevronRight size={18} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.waste ? '90deg' : '0deg' }] }} />
+        <TouchableOpacity onPress={() => toggleSection('waste')} className="flex-row items-center justify-between mb-3 px-1 mt-3">
+          <View className="flex-row items-center">
+            <View className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />
+            <Text className={`font-black text-[16px] tracking-tight ${theme.textClass}`}>{t.weeklySchedule}</Text>
+          </View>
+          <View className={`w-7 h-7 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
+            <ChevronRight size={14} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.waste ? '90deg' : '0deg' }] }} />
+          </View>
         </TouchableOpacity>
         {expandedSections.waste && (
           <View className="mb-6">
@@ -805,9 +820,14 @@ export default function ServicesScreen() {
         )}
 
         {/* INFO SECTION */}
-        <TouchableOpacity onPress={() => toggleSection('info')} className={`flex-row items-center justify-between mb-3 px-1 mt-2 ${theme.sectionHeaderStyle}`}>
-          <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>Municipality Info</Text>
-          <ChevronRight size={18} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.info ? '90deg' : '0deg' }] }} />
+        <TouchableOpacity onPress={() => toggleSection('info')} className="flex-row items-center justify-between mb-3 px-1 mt-3">
+          <View className="flex-row items-center">
+            <View className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
+            <Text className={`font-black text-[16px] tracking-tight ${theme.textClass}`}>Municipality Info</Text>
+          </View>
+          <View className={`w-7 h-7 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
+            <ChevronRight size={14} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.info ? '90deg' : '0deg' }] }} />
+          </View>
         </TouchableOpacity>
         {expandedSections.info && (
           <View className="mb-6">

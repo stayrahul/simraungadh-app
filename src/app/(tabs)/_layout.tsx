@@ -38,44 +38,60 @@ function TabIcon({ icon: Icon, label, focused, color, theme, hasBadge }: any) {
     ]).start();
   }, [focused]);
 
-  const activeColor = theme.accentColor;
+  const activeColor = theme.isDark ? '#818cf8' : '#4f46e5';
 
   return (
     <Animated.View
       style={{
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 4,
-        paddingHorizontal: 14,
-        borderRadius: 24,
+        paddingVertical: 5,
+        paddingHorizontal: 15,
+        borderRadius: 22,
         backgroundColor: focused
-          ? (theme.isDark ? 'rgba(10,132,255,0.12)' : 'rgba(0,122,255,0.08)')
+          ? (theme.isDark ? 'rgba(99, 102, 241, 0.16)' : 'rgba(79, 70, 229, 0.10)')
+          : 'transparent',
+        borderWidth: focused ? 1 : 0,
+        borderColor: focused
+          ? (theme.isDark ? 'rgba(129, 140, 248, 0.25)' : 'rgba(79, 70, 229, 0.18)')
           : 'transparent',
         transform: [{ scale: scaleAnim }],
       }}
     >
       <Icon
-        size={22}
-        color={focused ? activeColor : color}
-        fill={focused ? activeColor : 'none'}
-        strokeWidth={focused ? 2.2 : 1.6}
+        size={21}
+        color={focused ? activeColor : (theme.isDark ? '#94a3b8' : '#64748b')}
+        fill={focused ? (theme.isDark ? 'rgba(129, 140, 248, 0.2)' : 'rgba(79, 70, 229, 0.15)') : 'none'}
+        strokeWidth={focused ? 2.3 : 1.7}
       />
       {hasBadge && (
-        <View style={{ position: 'absolute', top: 4, right: 12, width: 8, height: 8, borderRadius: 4, backgroundColor: theme.isDark ? '#f43f5e' : '#e11d48', borderWidth: 1.5, borderColor: theme.isDark ? '#000' : '#fff' }} />
+        <View style={{ position: 'absolute', top: 4, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: '#f43f5e', borderWidth: 1.5, borderColor: theme.isDark ? '#000' : '#fff' }} />
       )}
       <Animated.Text
         style={{
-          fontSize: 10,
+          fontSize: 10.5,
           fontWeight: '700',
-          color: focused ? activeColor : color,
+          color: focused ? activeColor : (theme.isDark ? '#94a3b8' : '#64748b'),
           marginTop: 2,
           opacity: labelOpacity,
-          letterSpacing: 0.3,
+          letterSpacing: 0.2,
         }}
         numberOfLines={1}
       >
         {label}
       </Animated.Text>
+      {focused && (
+        <Animated.View
+          style={{
+            width: 4,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: activeColor,
+            marginTop: 2,
+            transform: [{ scale: dotScale }],
+          }}
+        />
+      )}
     </Animated.View>
   );
 }
@@ -128,16 +144,16 @@ function FABIcon({ theme }: any) {
       <Animated.View
         style={{
           position: 'absolute',
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: theme.accentColor,
+          width: 58,
+          height: 58,
+          borderRadius: 29,
+          backgroundColor: '#4f46e5',
           opacity: pulseOpacity,
           transform: [{ scale: pulseAnim }],
         }}
       />
       <LinearGradient
-        colors={theme.accentGradient as any}
+        colors={['#4f46e5', '#6366f1']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{
@@ -147,17 +163,17 @@ function FABIcon({ theme }: any) {
           justifyContent: 'center',
           alignItems: 'center',
           ...Platform.select({
-            web: { boxShadow: `0px 8px 20px ${theme.accentColor}70` },
+            web: { boxShadow: '0px 10px 24px rgba(79, 70, 229, 0.45)' },
             default: {
-              shadowColor: theme.accentColor,
-              shadowOpacity: 0.5,
-              shadowRadius: 16,
+              shadowColor: '#4f46e5',
+              shadowOpacity: 0.45,
+              shadowRadius: 18,
               shadowOffset: { width: 0, height: 8 },
             },
           }),
           elevation: 10,
-          borderWidth: 3,
-          borderColor: theme.isDark ? '#000000' : '#ffffff',
+          borderWidth: 2.5,
+          borderColor: theme.isDark ? '#1e1b4b' : '#ffffff',
         }}
       >
         <Plus size={26} color="#ffffff" strokeWidth={2.8} />
@@ -223,8 +239,8 @@ export default function TabLayout() {
               borderRadius: 32,
               overflow: 'hidden',
               backgroundColor: theme.tabBarBg,
-              borderWidth: 0.5,
-              borderColor: theme.tabBarBorder,
+              borderWidth: 1,
+              borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(226, 232, 240, 0.85)',
             }}
           >
             <BlurView

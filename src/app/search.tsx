@@ -264,7 +264,9 @@ export default function GlobalSearchScreen() {
                   }}
                   activeOpacity={0.8}
                   className={`px-4 py-1.5 mr-2 rounded-full border ${
-                    isSelected ? theme.pillActiveClass : theme.pillInactiveClass
+                    isSelected 
+                      ? 'bg-indigo-600 border-indigo-600 shadow-sm' 
+                      : (theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-slate-100 border-slate-200/60')
                   }`}
                 >
                   <Text className={`font-bold text-[12px] ${isSelected ? 'text-white' : theme.textSecondaryClass}`}>
