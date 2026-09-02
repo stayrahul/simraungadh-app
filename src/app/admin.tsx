@@ -21,18 +21,34 @@ import { UserBadges } from '../components/UserBadges';
 // Segmented Control Tabs
 type AdminTab = 'analytics' | 'users' | 'moderation' | 'services' | 'directory' | 'notices' | 'settings' | 'polls' | 'events' | 'logs';
 
-const ADMIN_TABS: { id: AdminTab; label: string; icon: any }[] = [
-  { id: 'analytics', label: 'Analytics', icon: BarChart2 },
-  { id: 'users', label: 'Users', icon: Users },
-  { id: 'moderation', label: 'Moderation', icon: ShieldAlert },
-  { id: 'services', label: 'Services', icon: Briefcase },
-  { id: 'directory', label: 'Directory', icon: BookOpen },
-  { id: 'notices', label: 'Notices', icon: Megaphone },
-  { id: 'polls', label: 'Polls', icon: Layers },
-  { id: 'events', label: 'Events', icon: Calendar },
-  { id: 'logs', label: 'Logs', icon: File },
-  { id: 'settings', label: 'Settings', icon: Settings },
+const ADMIN_TABS: { id: AdminTab; label: string }[] = [
+  { id: 'analytics', label: 'Analytics' },
+  { id: 'users', label: 'Users' },
+  { id: 'moderation', label: 'Moderation' },
+  { id: 'services', label: 'Services' },
+  { id: 'directory', label: 'Directory' },
+  { id: 'notices', label: 'Notices' },
+  { id: 'polls', label: 'Polls' },
+  { id: 'events', label: 'Events' },
+  { id: 'logs', label: 'Logs' },
+  { id: 'settings', label: 'Settings' },
 ];
+
+const renderAdminTabIcon = (tab: AdminTab, color: string) => {
+  switch (tab) {
+    case 'analytics': return <BarChart2 size={14} color={color} strokeWidth={2.2} />;
+    case 'users': return <Users size={14} color={color} strokeWidth={2.2} />;
+    case 'moderation': return <ShieldAlert size={14} color={color} strokeWidth={2.2} />;
+    case 'services': return <Briefcase size={14} color={color} strokeWidth={2.2} />;
+    case 'directory': return <BookOpen size={14} color={color} strokeWidth={2.2} />;
+    case 'notices': return <Megaphone size={14} color={color} strokeWidth={2.2} />;
+    case 'polls': return <Layers size={14} color={color} strokeWidth={2.2} />;
+    case 'events': return <Calendar size={14} color={color} strokeWidth={2.2} />;
+    case 'logs': return <File size={14} color={color} strokeWidth={2.2} />;
+    case 'settings': return <Settings size={14} color={color} strokeWidth={2.2} />;
+    default: return <BarChart2 size={14} color={color} strokeWidth={2.2} />;
+  }
+};
 
 const AVAILABLE_BADGES = [
   {
@@ -533,7 +549,9 @@ export default function AdminDashboardScreen() {
       <View className="px-5 py-3 flex-row justify-between items-center z-10">
         <View className="flex-row items-center">
           <TouchableOpacity 
-            onPress={() => router.canGoBack() ? router.back() : router.replace('/settings')} 
+            onPress={() => {
+              try { router.back(); } catch (e) { router.replace('/settings'); }
+            }} 
             className={`w-10 h-10 rounded-full items-center justify-center border mr-3 ${theme.isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200/80'}`}
           >
             <ChevronLeft size={20} color={theme.iconColor} />
@@ -543,11 +561,11 @@ export default function AdminDashboardScreen() {
               <Text className={`font-black text-[20px] tracking-tight ${theme.textClass}`}>
                 Admin Console
               </Text>
-              <View className="ml-2 px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20">
-                <Text className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">HQ</Text>
+              <View className="ml-2 px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/25">
+                <Text className="text-[10px] font-black tracking-widest text-indigo-600 dark:text-indigo-400">HQ</Text>
               </View>
             </View>
-            <Text className={`text-[11.5px] font-medium ${theme.textMutedClass}`}>
+            <Text className={`text-[12px] font-semibold mt-0.5 ${theme.textMutedClass}`}>
               Simraungadh Municipal Office
             </Text>
           </View>
@@ -565,7 +583,7 @@ export default function AdminDashboardScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 20 }}>
           {ADMIN_TABS.map((tabItem) => {
             const isActive = activeTab === tabItem.id;
-            const IconComp = tabItem.icon;
+            const iconColor = isActive ? '#ffffff' : theme.iconColor;
             return (
               <TouchableOpacity
                 key={tabItem.id}
@@ -577,7 +595,7 @@ export default function AdminDashboardScreen() {
                     : (theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-white border-slate-200/80')
                 }`}
               >
-                <IconComp size={14} color={isActive ? '#ffffff' : theme.iconColor} strokeWidth={isActive ? 2.4 : 2} />
+                {renderAdminTabIcon(tabItem.id, iconColor)}
                 <Text className={`ml-2 text-[13px] font-bold ${
                   isActive ? 'text-white' : theme.textSecondaryClass
                 }`}>
