@@ -169,3 +169,16 @@ export function cleanCivicDescription(desc?: string | null): string {
   // 3. Fallback: strip any remaining "📍 Location:" prefix
   return cleaned.replace(/^📍\s*Location:\s*/i, '').trim();
 }
+
+/**
+ * Cleans auto-generated "General Report - Ward X" or similar titles into clean category names
+ */
+export function cleanCivicTitle(title?: string | null, category?: string | null): string {
+  const source = title || category || 'General';
+  const cleaned = source
+    .replace(/\s*Report\s*-\s*Ward\s*\d+/gi, '')
+    .replace(/\s*-\s*Ward\s*\d+/gi, '')
+    .replace(/\bReport\b/gi, '')
+    .trim();
+  return cleaned || 'General';
+}

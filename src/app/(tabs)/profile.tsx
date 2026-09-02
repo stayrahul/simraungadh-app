@@ -22,7 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/imageStorage';
-import { Issue, cleanCivicDescription } from '../../lib/types';
+import { Issue, cleanCivicDescription, cleanCivicTitle } from '../../lib/types';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as Haptics from 'expo-haptics';
@@ -674,7 +674,7 @@ export default function ProfileScreen() {
             <View className="flex-row items-center">
               <View className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 mr-2">
                 <Text className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
-                  {item.category || 'General'}
+                  {cleanCivicTitle(item.category)}
                 </Text>
               </View>
               <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>
@@ -698,10 +698,12 @@ export default function ProfileScreen() {
             )}
           </View>
 
-          {/* Title & Description */}
-          <Text className={`font-bold text-[15.5px] mb-1 tracking-tight ${theme.textClass}`}>
-            {item.title}
-          </Text>
+          {/* Title (hidden if auto-generated Report - Ward ... or matches category) */}
+          {item.title && !item.title.match(/Report\s*-\s*Ward/i) && item.title.toLowerCase() !== item.category?.toLowerCase() && (
+            <Text className={`font-bold text-[15.5px] mb-1 tracking-tight ${theme.textClass}`}>
+              {cleanCivicTitle(item.title)}
+            </Text>
+          )}
           <Text className={`text-[13.5px] leading-relaxed ${theme.textSecondaryClass}`} numberOfLines={3}>
             {cleanCivicDescription(item.description)}
           </Text>

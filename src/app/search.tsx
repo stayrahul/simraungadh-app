@@ -8,7 +8,7 @@ import { Search, ArrowLeft, X, User, Megaphone, AlertCircle, Phone, Shield, Chev
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { supabase } from '../lib/supabase';
-import { Profile, Issue, Notice } from '../lib/types';
+import { Profile, Issue, Notice, cleanCivicDescription, cleanCivicTitle } from '../lib/types';
 import { useTheme } from '../hooks/use-theme';
 import { useAuthStore } from '../store/authStore';
 import { UserBadges } from '../components/UserBadges';
@@ -565,11 +565,11 @@ export default function GlobalSearchScreen() {
                           theme.isDark ? 'bg-white/[0.03] border-white/5' : 'bg-white border-slate-200/60'
                         }`}
                       >
-                        <Text className={`font-bold text-[14.5px] ${theme.textClass}`}>{item.title}</Text>
-                        <Text className={`text-[12.5px] font-medium mt-1 leading-relaxed ${theme.textSecondaryClass}`} numberOfLines={2}>{item.description}</Text>
+                        <Text className={`font-bold text-[14.5px] ${theme.textClass}`}>{cleanCivicTitle(item.title, item.category)}</Text>
+                        <Text className={`text-[12.5px] font-medium mt-1 leading-relaxed ${theme.textSecondaryClass}`} numberOfLines={2}>{cleanCivicDescription(item.description)}</Text>
                         <View className="flex-row items-center justify-between mt-2.5">
                           <Text className={`text-[11px] font-bold ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
-                            {item.ward_number ? `Ward ${item.ward_number} · ` : ''}{item.category}
+                            {cleanCivicTitle(item.category)}
                           </Text>
                           <Text className={`text-[11px] font-bold ${theme.textMutedClass}`}>{item.status}</Text>
                         </View>

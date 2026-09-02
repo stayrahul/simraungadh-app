@@ -12,7 +12,7 @@ import * as Clipboard from 'expo-clipboard';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { Issue, IssueComment, cleanCivicDescription } from '../../lib/types';
+import { Issue, IssueComment, cleanCivicDescription, cleanCivicTitle } from '../../lib/types';
 import Badge from '../../components/Badge';
 import Skeleton from '../../components/Skeleton';
 import IssueImageCarousel from '../../components/IssueImageCarousel';
@@ -314,7 +314,7 @@ export default function IssueDetailScreen() {
                   )}
                 </View>
                 <View className="flex-row items-center mt-1 flex-wrap gap-1.5">
-                  <Badge type="category" text={issue.category || 'General'} size="sm" />
+                  <Badge type="category" text={cleanCivicTitle(issue.category)} size="sm" />
                   {issue.status && issue.status !== 'pending' && <Badge type={issue.status as any} text={issue.status.replace('_', ' ')} size="sm" />}
                   <Text className={`text-[10px] ${theme.textMutedClass}`}>·</Text>
                   <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>{formatTimeAgo(issue.created_at)}</Text>
@@ -645,7 +645,7 @@ export default function IssueDetailScreen() {
             icon: 'share-2',
             onPress: async () => {
               try {
-                const title = issue?.title ? issue.title.replace(/- Ward \d+/i, '').trim() : issue?.category || 'Issue';
+                const title = cleanCivicTitle(issue?.title, issue?.category);
                 await Share.share({
                   message: `Check out this issue on Simraungadh:\n\n*${title}*\n${cleanCivicDescription(issue?.description)}\n\nhttps://simraungadh.live/issue/${issue?.id}`,
                 });

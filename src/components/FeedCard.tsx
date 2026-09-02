@@ -5,7 +5,7 @@ import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { User, Check, MapPin, MoreHorizontal, Globe, Heart, MessageSquare, Share2, Sparkles, ChevronDown, ChevronUp, Repeat, UserPlus, UserCheck, Users, Bookmark, BookmarkCheck } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { Issue, cleanCivicDescription } from '../lib/types';
+import { Issue, cleanCivicDescription, cleanCivicTitle } from '../lib/types';
 import AnimatedCard from './AnimatedCard';
 import IssueImageCarousel from './IssueImageCarousel';
 import FullScreenImageViewer from './FullScreenImageViewer';
@@ -97,9 +97,7 @@ function FeedCard({
   const isLongDescription = displayDescription && displayDescription.length > 100;
   const canFollow = profile && !item.is_anonymous && item.author_id && item.author_id !== profile.id;
 
-  const isFriends = isFollowing && initialFollowedBy;
-
-  const categoryLabel = item.category || (item.title ? item.title.replace(/ Report/i, '').replace(/- Ward \d+/i, '').trim() : 'General');
+  const categoryLabel = cleanCivicTitle(item.category, item.title);
 
   const handleFollow = useCallback(async () => {
     if (!profile) {

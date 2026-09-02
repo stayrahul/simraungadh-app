@@ -142,11 +142,11 @@ export default function ReportScreen() {
         }));
       }
 
-      const generatedTitle = `${category} Report - Ward ${wardNum}`;
+      const generatedTitle = postType === 'report' ? category : (description.trim().substring(0, 40) || 'Community Post');
       const formattedDescription = description.trim();
 
       const basePayload = {
-        title: postType === 'report' ? generatedTitle : (description.trim().substring(0, 40) || 'Community Post'),
+        title: generatedTitle,
         description: formattedDescription,
         ward_number: postType === 'report' ? wardNum : (profile?.home_ward || 1),
         category: postType === 'report' ? category : 'General',
