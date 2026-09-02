@@ -307,26 +307,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
-      {/* 6. Search Tab (Hidden from Tab Bar) */}
-      <Tabs.Screen
-        name="search"
-        options={{
-          title: 'Search',
-          href: null,
-          tabBarItemStyle: { display: 'none' },
-        }}
-      />
-
-      {/* 7. Directory Tab (Redirect / Hidden) */}
-      <Tabs.Screen
-        name="directory"
-        options={{
-          title: 'Directory',
-          href: null,
-          tabBarItemStyle: { display: 'none' },
-        }}
-      />
     </Tabs>
   );
 }
