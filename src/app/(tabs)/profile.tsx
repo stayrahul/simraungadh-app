@@ -545,7 +545,7 @@ export default function ProfileScreen() {
                 {tab}
               </Text>
               {isSelected && (
-                <View className={`absolute bottom-0 left-4 right-4 h-[2px] rounded-full ${isDark ? 'bg-white' : 'bg-black'}`} />
+                <View className="absolute bottom-0 left-4 right-4 h-[2.5px] rounded-full bg-indigo-600" />
               )}
             </TouchableOpacity>
           );

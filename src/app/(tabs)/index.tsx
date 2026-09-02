@@ -6,7 +6,7 @@ import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, Sun, CloudRain, Cloud, MapPin, Bell, User, Inbox, Flame, Navigation, Droplets, Zap, Trash2, HelpCircle, TrendingUp, ArrowUp, Globe, Users, X, Camera, ImagePlus, Search, Plus, PhoneCall, File, Sparkles, PieChart } from 'lucide-react-native';
+import { Calendar, Sun, CloudRain, Cloud, MapPin, Bell, User, Inbox, Flame, Navigation, Droplets, Zap, Trash2, HelpCircle, TrendingUp, ArrowUp, Globe, Users, X, Camera, ImagePlus, Search, Plus, PhoneCall, File, Sparkles, PieChart, Landmark } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { BlurView } from 'expo-blur';
 import { decode } from 'base64-arraybuffer';
@@ -42,7 +42,7 @@ const PAGE_SIZE = 15;
 
 export default function FeedScreen() {
   const { profile, signOut } = useAuthStore();
-  const { language } = useLangStore();
+  const { language, setLanguage } = useLangStore();
   const t = translations[language];
   const router = useRouter();
   const theme = useTheme();
@@ -531,34 +531,117 @@ export default function FeedScreen() {
 
   return (
     <SafeAreaView edges={['top']} className={`flex-1 ${theme.bgClass}`}>
-      {/* Threads-Style Top Header */}
-      <View className="px-5 pt-2 pb-1 z-10">
+      {/* Stitch Civic Modern Top Bar */}
+      <View className="px-5 pt-2 pb-2 z-10">
         <View className="flex-row items-center justify-between">
-          {/* Left spacer for perfect centering */}
-          <View className="w-10" />
-
-          {/* Center: Threads-style Brand Logo */}
-          <View className="flex-1 items-center">
-            <Text className={`font-black text-[22px] tracking-tight ${theme.textClass}`}>
-              @simraungadh
-            </Text>
+          {/* Left: Municipality Crest & Branding */}
+          <View className="flex-row items-center">
+            <View className="w-10 h-10 rounded-2xl bg-indigo-600/10 items-center justify-center mr-2.5 border border-indigo-500/20">
+              <Landmark size={20} color={theme.accentColor} />
+            </View>
+            <View>
+              <View className="flex-row items-center">
+                <Text className={`font-black text-[20px] tracking-tight ${theme.textClass}`}>
+                  Simraungadh
+                </Text>
+                <View className="ml-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                  <Text className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">सिम्रौनगढ</Text>
+                </View>
+              </View>
+              <Text className={`text-[11px] font-semibold ${theme.textMutedClass}`}>
+                {formattedDate}
+              </Text>
+            </View>
           </View>
 
-          {/* Right: Actions */}
-          <View className="w-10 items-end">
+          {/* Right: Actions (Language toggle, Search, Notification Bell) */}
+          <View className="flex-row items-center gap-2">
+            {/* Language Switcher */}
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.selectionAsync();
+                setLanguage(language === 'en' ? 'ne' : 'en');
+              }}
+              activeOpacity={0.75}
+              className={`px-2.5 py-1.5 rounded-full border flex-row items-center ${
+                theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
+              }`}
+            >
+              <Globe size={13} color={theme.iconColor} />
+              <Text className={`ml-1 text-[11px] font-bold ${theme.textClass}`}>
+                {language === 'en' ? 'नेपाली' : 'EN'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Search Trigger */}
             <TouchableOpacity
               onPress={() => { Haptics.selectionAsync(); router.push('/search'); }}
-              activeOpacity={0.7}
-              className={`w-9 h-9 rounded-full items-center justify-center ${theme.isDark ? 'bg-white/5' : 'bg-slate-100'}`}
+              activeOpacity={0.75}
+              className={`w-9 h-9 rounded-full items-center justify-center border ${
+                theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
+              }`}
             >
-              <Search size={18} color={theme.iconColor} strokeWidth={2} />
+              <Search size={16} color={theme.iconColor} strokeWidth={2.2} />
+            </TouchableOpacity>
+
+            {/* Notification Bell */}
+            <TouchableOpacity
+              onPress={() => { Haptics.selectionAsync(); router.push('/notifications'); }}
+              activeOpacity={0.75}
+              className={`w-9 h-9 rounded-full items-center justify-center border relative ${
+                theme.isDark ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
+              }`}
+            >
+              <Bell size={16} color={theme.iconColor} strokeWidth={2.2} />
+              {hasUnread && (
+                <View className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border border-white" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      {/* Threads-Style "What's new?" Quick Post Bar */}
-      <View className="px-4 pt-1.5 pb-1">
+      {/* Weather & Civic Status Card (Stitch Civic Modern) */}
+      <View className="px-4 pb-2">
+        <TouchableOpacity
+          onPress={() => {
+            fetchWeather();
+            Haptics.selectionAsync();
+          }}
+          activeOpacity={0.9}
+          className={`p-3.5 rounded-[24px] border flex-row items-center justify-between ${
+            theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'
+          }`}
+          style={theme.cardShadow}
+        >
+          <View className="flex-row items-center flex-1 mr-2">
+            <View className={`w-10 h-10 rounded-2xl items-center justify-center mr-3 ${
+              theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'
+            }`}>
+              <WeatherIcon size={22} color={weatherColor} />
+            </View>
+            <View className="flex-1">
+              <View className="flex-row items-center">
+                <MapPin size={12} color={theme.accentColor} />
+                <Text className={`font-bold text-[13.5px] ml-1 ${theme.textClass}`}>
+                  Simraungadh {profile?.home_ward ? `• Ward ${profile.home_ward}` : ''}
+                </Text>
+              </View>
+              <Text className={`text-[12px] font-medium ${theme.textMutedClass} mt-0.5`}>
+                {condition || 'Partly Cloudy'} • {formattedDate}
+              </Text>
+            </View>
+          </View>
+          <View className="items-end">
+            <Text className="font-extrabold text-[20px] text-indigo-600 dark:text-indigo-400">
+              {temp ? `${temp}°C` : '28°C'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Quick Civic Post Bar */}
+      <View className="px-4 pb-2">
         <TouchableOpacity
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -578,13 +661,13 @@ export default function FeedScreen() {
               </View>
             )}
             <View className="ml-3 flex-1">
-              <Text className={`text-[14px] font-medium ${theme.textMutedClass}`}>
-                {profile ? `${profile.full_name?.split(' ')[0] || 'Citizen'}, what's new?` : "What's new in Simraungadh?"}
+              <Text className={`text-[13.5px] font-medium ${theme.textMutedClass}`}>
+                {profile ? `${profile.full_name?.split(' ')[0] || 'Citizen'}, report an issue or post update...` : "Report an issue or update in your ward..."}
               </Text>
             </View>
           </View>
-          <View className={`px-3.5 py-1.5 rounded-full ${theme.isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
-            <Text className={`text-[12px] font-bold ${theme.isDark ? 'text-white' : 'text-slate-700'}`}>Post</Text>
+          <View className="px-3.5 py-1.5 rounded-full bg-indigo-600">
+            <Text className="text-[12px] font-bold text-white">Post</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -598,14 +681,14 @@ export default function FeedScreen() {
             activeOpacity={0.8}
             className={`flex-row items-center px-4 py-2 mr-2 rounded-full border ${
               feedTab === 'following' 
-                ? (theme.isDark ? 'bg-white border-white' : 'bg-black border-black')
-                : (theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-slate-100 border-slate-200')
+                ? 'bg-indigo-600 border-indigo-600 shadow-sm'
+                : (theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-white border-slate-200/80')
             }`}
           >
-            <Users size={14} color={feedTab === 'following' ? (theme.isDark ? '#000000' : '#ffffff') : theme.iconColor} strokeWidth={2.4} />
+            <Users size={14} color={feedTab === 'following' ? '#ffffff' : theme.iconColor} strokeWidth={2.4} />
             <Text className={`ml-2 font-bold text-[13px] ${
               feedTab === 'following' 
-                ? (theme.isDark ? 'text-black' : 'text-white')
+                ? 'text-white'
                 : theme.textSecondaryClass
             }`}>
               Following
@@ -624,14 +707,14 @@ export default function FeedScreen() {
                 activeOpacity={0.8}
                 className={`flex-row items-center px-4 py-2 mr-2 rounded-full border ${
                   isActive 
-                    ? (theme.isDark ? 'bg-white border-white' : 'bg-black border-black')
-                    : (theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-slate-100 border-slate-200')
+                    ? 'bg-indigo-600 border-indigo-600 shadow-sm'
+                    : (theme.isDark ? 'bg-white/[0.06] border-white/10' : 'bg-white border-slate-200/80')
                 }`}
               >
-                <IconComp size={14} color={isActive ? (theme.isDark ? '#000000' : '#ffffff') : theme.iconColor} strokeWidth={isActive ? 2.4 : 2} />
+                <IconComp size={14} color={isActive ? '#ffffff' : theme.iconColor} strokeWidth={isActive ? 2.4 : 2} />
                 <Text className={`ml-2 font-bold text-[13px] ${
                   isActive 
-                    ? (theme.isDark ? 'text-black' : 'text-white')
+                    ? 'text-white'
                     : theme.textSecondaryClass
                 }`}>
                   {cat.name}

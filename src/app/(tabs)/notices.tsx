@@ -455,11 +455,11 @@ export default function NoticesScreen() {
                       setActiveCategory(cat);
                     }}
                     activeOpacity={0.8}
-                    className={`px-3.5 py-1.5 rounded-full border ${
-                      isSelected ? theme.pillActiveClass : theme.pillInactiveClass
+                    className={`px-4 py-2 rounded-full border ${
+                      isSelected ? 'bg-indigo-600 border-indigo-600 shadow-sm' : (theme.isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200/80')
                     }`}
                   >
-                    <Text className={`font-bold text-[12px] ${isSelected ? 'text-white' : theme.textSecondaryClass}`}>
+                    <Text className={`font-bold text-[12.5px] ${isSelected ? 'text-white' : theme.textSecondaryClass}`}>
                       {cat}
                     </Text>
                   </TouchableOpacity>
@@ -497,11 +497,12 @@ export default function NoticesScreen() {
                 return (
                   <View
                     key={notice.id}
-                    className={`p-4 mb-4 rounded-3xl border overflow-hidden ${
+                    className={`p-4 mb-4 rounded-[26px] border overflow-hidden ${
                       notice.is_emergency
                         ? 'bg-rose-500/10 border-rose-500/25'
-                        : theme.isDark ? 'bg-white/[0.03] border-white/5' : 'bg-white border-slate-200/70'
+                        : theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'
                     }`}
+                    style={theme.cardShadow}
                   >
                     {/* Notice Header */}
                     <View className="flex-row items-center justify-between mb-2">

@@ -176,7 +176,7 @@ function FeedCard({
           </View>
         )}
 
-        <View className="flex-row items-center px-2.5 pt-2 pb-0.5">
+        <View className="flex-row items-center px-3.5 pt-3 pb-1">
           <View className="flex-row items-center flex-1 mr-2">
             <TouchableOpacity
               activeOpacity={item.is_anonymous ? 1 : 0.7}
@@ -190,18 +190,18 @@ function FeedCard({
                 <Image
                   source={{ uri: item.author.avatar_url }}
                   cachePolicy="memory-disk"
-                  placeholder="LKO2?U%2Tw=w]~RBVZRi};RPxuwH" // Light gray blurhash
-                  style={{ width: 36, height: 36, borderRadius: 18 }}
+                  placeholder="LKO2?U%2Tw=w]~RBVZRi};RPxuwH"
+                  style={{ width: 40, height: 40, borderRadius: 20 }}
                   transition={200}
                 />
               ) : (
-                <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(79,70,229,0.15)' : '#eef2ff' }}>
-                  <User size={18} color={theme.accentColor} />
+                <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.isDark ? 'rgba(79,70,229,0.15)' : '#eef2ff' }}>
+                  <User size={20} color={theme.accentColor} />
                 </View>
               )}
             </TouchableOpacity>
 
-            <View className="ml-2.5 flex-1">
+            <View className="ml-3 flex-1">
               <View className="flex-row items-center">
                 <TouchableOpacity
                   activeOpacity={item.is_anonymous ? 1 : 0.7}
@@ -211,7 +211,7 @@ function FeedCard({
                     }
                   }}
                 >
-                  <Text className={`font-bold text-[15px] tracking-tight ${theme.textClass}`}>
+                  <Text className={`font-bold text-[15.5px] tracking-tight ${theme.textClass}`}>
                     {item.is_anonymous ? t.anonymous : (item.author?.full_name || t.anonymous)}
                   </Text>
                 </TouchableOpacity>
@@ -244,16 +244,16 @@ function FeedCard({
               </View>
 
               <View className="flex-row items-center mt-0.5">
-                <MapPin size={9} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
-                <Text className={`text-[9px] font-medium ml-0.5 ${theme.isDark ? 'text-primary-300' : 'text-primary'}`}>
+                <MapPin size={10} color={theme.accentColor} />
+                <Text className={`text-[11px] font-semibold ml-0.5 ${theme.isDark ? 'text-indigo-300' : 'text-indigo-600'}`}>
                   Ward {item.ward_number || 1}
                 </Text>
-                <Text className={`text-[8px] mx-1 ${theme.textMutedClass}`}>•</Text>
-                <Text className={`text-[9px] font-medium ${theme.textMutedClass}`}>
+                <Text className={`text-[10px] mx-1.5 ${theme.textMutedClass}`}>•</Text>
+                <Text className={`text-[11px] font-medium ${theme.textMutedClass}`}>
                   {theme.timeAgo(item.created_at)}
                 </Text>
-                <Text className={`text-[8px] mx-1 ${theme.textMutedClass}`}>•</Text>
-                <Text className={`text-[9px] font-medium ${theme.textMutedClass}`}>
+                <Text className={`text-[10px] mx-1.5 ${theme.textMutedClass}`}>•</Text>
+                <Text className={`text-[11px] font-semibold ${theme.textMutedClass}`}>
                   {categoryLabel}
                 </Text>
               </View>
@@ -262,7 +262,17 @@ function FeedCard({
 
           <View className="flex-row items-center gap-1.5">
             {item.post_type === 'report' && item.status && (
-              <Badge type={item.status as any} text={item.status.replace('_', ' ')} size="sm" />
+              item.status === 'in_progress' ? (
+                <View className="px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/80">
+                  <Text className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300">In Progress</Text>
+                </View>
+              ) : item.status === 'resolved' ? (
+                <View className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/80">
+                  <Text className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">Resolved</Text>
+                </View>
+              ) : (
+                <Badge type={item.status as any} text={item.status.replace('_', ' ')} size="sm" />
+              )
             )}
 
             <TouchableOpacity
@@ -285,8 +295,8 @@ function FeedCard({
           </View>
         </View>
 
-        <View className="px-2.5 pb-1.5 pt-0.5">
-          <Text className={`text-[12px] leading-[16px] font-medium tracking-tight ${theme.textClass}`} numberOfLines={expanded ? undefined : 3}>
+        <View className="px-3.5 pb-2 pt-1">
+          <Text className={`text-[14px] leading-[21px] font-normal ${theme.textClass}`} numberOfLines={expanded ? undefined : 3}>
             {translationsCache?.[item.id] || item.description}
           </Text>
 
@@ -359,7 +369,7 @@ function FeedCard({
           </View>
         ) : null}
 
-        <View className="flex-row items-center px-2 pt-1 pb-1 border-t border-slate-100 dark:border-white/5 mt-0.5">
+        <View className="flex-row items-center px-4 py-2.5 border-t border-slate-100 dark:border-white/5 mt-1">
           <TouchableOpacity
             onPress={() => {
               Animated.sequence([
@@ -369,12 +379,12 @@ function FeedCard({
               onLike(item.id, isLiked);
             }}
             activeOpacity={0.7}
-            className="flex-row items-center justify-center py-1.5 flex-1"
+            className="flex-row items-center justify-center py-1 flex-1"
           >
             <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-              <Heart size={18} color={isLiked ? '#F43F5E' : theme.iconColor} fill={isLiked ? '#F43F5E' : 'transparent'} />
+              <Heart size={18} color={isLiked ? '#F43F5E' : theme.iconColor} fill={isLiked ? '#F43F5E' : 'transparent'} strokeWidth={2} />
             </Animated.View>
-            <Text className={`ml-1 font-medium text-[12px] ${isLiked ? 'text-rose-500' : theme.textSecondaryClass}`}>
+            <Text className={`ml-1.5 font-bold text-[13px] ${isLiked ? 'text-rose-500' : theme.textSecondaryClass}`}>
               {item.upvotes_count || 0}
             </Text>
           </TouchableOpacity>
@@ -388,12 +398,12 @@ function FeedCard({
               router.push(`/issue/${item.id}`);
             }}
             activeOpacity={0.7}
-            className="flex-row items-center justify-center py-1.5 flex-1 border-l border-slate-100 dark:border-white/5"
+            className="flex-row items-center justify-center py-1 flex-1 border-l border-slate-100 dark:border-white/5"
           >
             <Animated.View style={{ transform: [{ scale: commentScaleAnim }] }}>
-              <MessageSquare size={18} color={theme.iconColor} />
+              <MessageSquare size={18} color={theme.iconColor} strokeWidth={2} />
             </Animated.View>
-            <Text className={`ml-1 font-medium text-[12px] ${theme.textSecondaryClass}`}>
+            <Text className={`ml-1.5 font-bold text-[13px] ${theme.textSecondaryClass}`}>
               {commentCount}
             </Text>
           </TouchableOpacity>
@@ -407,12 +417,12 @@ function FeedCard({
             onPressOut={() => {
               Animated.timing(shareScaleAnim, { toValue: 1, duration: 100, useNativeDriver: Platform.OS !== 'web' }).start();
             }}
-            className="flex-row items-center justify-center py-1.5 flex-1 border-l border-slate-100 dark:border-white/5"
+            className="flex-row items-center justify-center py-1 flex-1 border-l border-slate-100 dark:border-white/5"
           >
             <Animated.View style={{ transform: [{ scale: shareScaleAnim }] }}>
-              <Share2 size={18} color={theme.iconColor} />
+              <Share2 size={18} color={theme.iconColor} strokeWidth={2} />
             </Animated.View>
-            <Text className={`ml-1 font-medium text-[12px] ${theme.textSecondaryClass}`}>
+            <Text className={`ml-1.5 font-bold text-[13px] ${theme.textSecondaryClass}`}>
               {t.share}
             </Text>
           </TouchableOpacity>

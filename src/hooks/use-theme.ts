@@ -27,18 +27,18 @@ function getGlowShadow(color: string, isDark: boolean) {
 const LIGHT_THEME = {
   isDark: false,
   colors: Colors.light,
-  bgClass: 'bg-white', // #ffffff
-  headerBgClass: 'bg-white/70 border-b border-slate-100', // Glassmorphic header
-  cardClass: 'bg-white rounded-[28px] border border-slate-100',
+  bgClass: 'bg-[#F8FAFC]', // Stitch Civic Modern Off-White
+  headerBgClass: 'bg-white/80 border-b border-slate-200/50', // Glassmorphic header
+  cardClass: 'bg-white rounded-[28px] border border-slate-200/70',
   cardSubtleClass: 'bg-white rounded-[24px] border border-slate-100',
-  cardElevatedClass: 'bg-white rounded-[28px] border border-slate-200/60',
-  glassCardClass: 'bg-white/70 rounded-[28px] border border-slate-100 overflow-hidden', 
-  chipClass: 'bg-slate-100 border-transparent text-[#191C1E] rounded-full',
+  cardElevatedClass: 'bg-white rounded-[28px] border border-slate-200/80 shadow-[0px_8px_30px_rgba(0,0,0,0.04)]',
+  glassCardClass: 'bg-white/75 rounded-[28px] border border-white/60 overflow-hidden', 
+  chipClass: 'bg-white border-slate-200/80 text-[#191C1E] rounded-full',
   chipActiveClass: 'bg-indigo-600 border-indigo-600 text-white rounded-full',
   textClass: 'text-[#191C1E]', 
   textSecondaryClass: 'text-[#475569]',
   textMutedClass: 'text-[#94a3b8]',
-  borderClass: 'border-slate-200',
+  borderClass: 'border-slate-200/80',
   borderSubtleClass: 'border-slate-100',
   iconColor: '#64748b',
   iconActiveColor: '#4F46E5', // Indigo primary

@@ -523,7 +523,8 @@ export default function ServicesScreen() {
                       Haptics.selectionAsync();
                       setExpandedDirId(prev => prev === contact.id ? null : contact.id);
                     }}
-                    className={`rounded-[24px] p-4 mb-3 border ${theme.isDark ? 'bg-white/[0.03] border-white/5' : 'bg-white border-slate-100'}`}
+                    className={`rounded-[24px] p-4 mb-3 border ${theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'}`}
+                    style={theme.cardShadow}
                   >
                     <View className="flex-row items-center">
                       <View className={`w-11 h-11 rounded-2xl items-center justify-center mr-3.5 ${
@@ -629,54 +630,89 @@ export default function ServicesScreen() {
 
         {/* EMERGENCY SECTION */}
         <TouchableOpacity onPress={() => toggleSection('emergency')} className={`flex-row items-center justify-between mb-3 px-1 ${theme.sectionHeaderStyle}`}>
-          <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>Emergency Contacts</Text>
+          <Text className={`font-bold text-[16px] tracking-tight ${theme.textClass}`}>Quick Emergency Dialer</Text>
           <ChevronRight size={18} color={theme.iconColor} style={{ transform: [{ rotate: expandedSections.emergency ? '90deg' : '0deg' }] }} />
         </TouchableOpacity>
         {expandedSections.emergency && (
           <View className="mb-6">
-            <TouchableOpacity 
-              onPress={() => handleDial('053411072')} 
-              activeOpacity={0.85}
-              className="bg-rose-600 rounded-[24px] p-4 mb-5 flex-row items-center"
-              style={theme.glowShadow('#ef4444')}
-            >
-              <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center mr-3.5">
-                <PhoneCall size={22} color="#ffffff" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-white font-bold text-base mb-0.5">SOS Helpline</Text>
-                <Text className="text-rose-100/80 font-medium text-[12px]">Tap to call municipality emergency</Text>
-              </View>
-            </TouchableOpacity>
+            {/* High-contrast 2x2 Quick Dialer Grid (Stitch Civic Modern) */}
+            <View className="flex-row flex-wrap justify-between mb-3">
+              {/* Police */}
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                  handleDial('100');
+                }}
+                activeOpacity={0.85}
+                className="w-[48%] bg-blue-600 rounded-[22px] p-3.5 mb-2.5 flex-col justify-between h-28 shadow-sm"
+              >
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-white font-bold text-[13px]">Police (प्रहरी)</Text>
+                  <Shield size={18} color="#ffffff" />
+                </View>
+                <View>
+                  <Text className="text-white/80 text-[11px] font-medium">Control Room</Text>
+                  <Text className="text-white font-black text-[22px]">100</Text>
+                </View>
+              </TouchableOpacity>
 
-            <Text className={`font-bold text-[15px] mb-3 ${theme.textClass}`}>Emergency Contacts</Text>
-            {EMERGENCY_CONTACTS.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase())).map((contact) => {
-              const IconComp = contact.icon;
-              return (
-                  <AnimatedCard
-                    key={contact.id}
-                    className={`p-4 mb-2.5 flex-row items-center justify-between border ${theme.isDark ? 'bg-[#0B1120] border-white/5' : 'bg-white border-slate-100'}`}
-                    style={{ ...theme.glowShadow(contact.color), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
-                  onPress={() => handleDial(contact.number)}
-                >
-                  <View className="flex-row items-center flex-1 mr-3">
-                    <View
-                      className="w-10 h-10 rounded-xl items-center justify-center mr-3"
-                      style={{ backgroundColor: `${contact.color}15` }}
-                    >
-                      <IconComp size={20} color={contact.color} />
-                    </View>
-                    <View className="flex-1">
-                      <Text className={`font-bold text-[14px] ${theme.textClass}`}>{contact.title}</Text>
-                      <Text className={`font-extrabold text-[13px] mt-0.5 ${theme.isDark ? 'text-primary-400' : 'text-primary'}`}>{contact.number}</Text>
-                    </View>
-                  </View>
-                  <View className={`w-9 h-9 rounded-full items-center justify-center ${theme.isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
-                    <PhoneCall size={15} color={theme.isDark ? '#818cf8' : '#4f46e5'} />
-                  </View>
-                </AnimatedCard>
-              );
-            })}
+              {/* Ambulance */}
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                  handleDial('102');
+                }}
+                activeOpacity={0.85}
+                className="w-[48%] bg-rose-600 rounded-[22px] p-3.5 mb-2.5 flex-col justify-between h-28 shadow-sm"
+              >
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-white font-bold text-[13px]">Ambulance</Text>
+                  <Activity size={18} color="#ffffff" />
+                </View>
+                <View>
+                  <Text className="text-white/80 text-[11px] font-medium">Emergency Care</Text>
+                  <Text className="text-white font-black text-[22px]">102</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Fire Brigade */}
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                  handleDial('101');
+                }}
+                activeOpacity={0.85}
+                className="w-[48%] bg-amber-600 rounded-[22px] p-3.5 flex-col justify-between h-28 shadow-sm"
+              >
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-white font-bold text-[13px]">Fire Brigade</Text>
+                  <AlertTriangle size={18} color="#ffffff" />
+                </View>
+                <View>
+                  <Text className="text-white/80 text-[11px] font-medium">दमकल सेवा</Text>
+                  <Text className="text-white font-black text-[22px]">101</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Helpline */}
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                  handleDial('053411072');
+                }}
+                activeOpacity={0.85}
+                className="w-[48%] bg-indigo-600 rounded-[22px] p-3.5 flex-col justify-between h-28 shadow-sm"
+              >
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-white font-bold text-[13px]">Mun. Helpline</Text>
+                  <PhoneCall size={18} color="#ffffff" />
+                </View>
+                <View>
+                  <Text className="text-white/80 text-[10.5px] font-medium">SOS 24/7</Text>
+                  <Text className="text-white font-black text-[16px] mt-0.5">053-411072</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -698,8 +734,8 @@ export default function ServicesScreen() {
                 return (
                   <View key={service.id} className="w-[48%] mb-3">
                     <AnimatedCard
-                      className={`p-3.5 flex-col justify-between border ${theme.isDark ? 'bg-[#0B1120] border-white/5' : 'bg-white border-slate-100'}`}
-                      style={{ height: 135, ...theme.glowShadow(service.color) }}
+                      className={`p-4 flex-col justify-between rounded-[24px] border ${theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'}`}
+                      style={{ height: 140, ...theme.cardShadow }}
                       onPress={() => {
                         if (['vital', 'social', 'procurement'].includes(service.id)) {
                           setActiveModal(service.id);
@@ -712,7 +748,7 @@ export default function ServicesScreen() {
                     >
                       <View className="flex-row items-center justify-between w-full">
                         <View
-                          className="w-10 h-10 rounded-xl items-center justify-center"
+                          className="w-10 h-10 rounded-2xl items-center justify-center"
                           style={{ backgroundColor: `${service.color}15` }}
                         >
                           <IconComp size={20} color={service.color} />
@@ -721,10 +757,10 @@ export default function ServicesScreen() {
                       </View>
 
                       <View className="mt-2">
-                        <Text className={`font-bold text-[13px] leading-tight mb-1 ${theme.textClass}`} numberOfLines={2}>
+                        <Text className={`font-bold text-[13.5px] leading-tight mb-1 ${theme.textClass}`} numberOfLines={2}>
                           {service.title}
                         </Text>
-                        <Text className={`font-medium text-[10.5px] ${theme.textMutedClass}`} numberOfLines={1}>
+                        <Text className={`font-medium text-[11px] ${theme.textMutedClass}`} numberOfLines={1}>
                           {service.subtitle}
                         </Text>
                       </View>
@@ -744,21 +780,21 @@ export default function ServicesScreen() {
         {expandedSections.waste && (
           <View className="mb-6">
             {WASTE_SCHEDULE.filter(c => c.type.toLowerCase().includes(searchQuery.toLowerCase())).map((item, index) => (
-              <View key={index} className={`p-4 mb-2.5 flex-row items-center border ${theme.isDark ? 'bg-[#0B1120] border-white/5' : 'bg-white border-slate-100'}`}
-                style={theme.glowShadow(item.color)}
+              <View key={index} className={`p-4 mb-2.5 flex-row items-center rounded-[24px] border ${theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'}`}
+                style={theme.cardShadow}
               >
                 <View className={`w-12 items-center justify-center border-r mr-3.5 pr-3.5 ${theme.borderClass}`}>
-                  <Text className={`${theme.isDark ? 'text-primary-400' : 'text-primary'} font-bold text-[12px] uppercase tracking-wider mb-1`}>{item.day.substring(0, 3)}</Text>
+                  <Text className={`${theme.isDark ? 'text-indigo-400' : 'text-indigo-600'} font-bold text-[12px] uppercase tracking-wider mb-1`}>{item.day.substring(0, 3)}</Text>
                   <Calendar size={18} color={theme.iconColor} />
                 </View>
                 <View className="flex-1">
-                  <Text className={`font-semibold text-[14px] mb-0.5 ${theme.textClass}`}>{item.type}</Text>
+                  <Text className={`font-bold text-[14.5px] mb-0.5 ${theme.textClass}`}>{item.type}</Text>
                   <View className="flex-row items-center">
-                    <MapPin size={11} color={theme.iconColor} />
-                    <Text className={`font-medium text-[11px] ml-1 ${theme.textSecondaryClass}`}>Wards: {item.wards}</Text>
+                    <MapPin size={11} color={theme.accentColor} />
+                    <Text className={`font-semibold text-[11.5px] ml-1 ${theme.textSecondaryClass}`}>Wards: {item.wards}</Text>
                   </View>
                 </View>
-                <View className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                <View className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: item.color }} />
               </View>
             ))}
           </View>

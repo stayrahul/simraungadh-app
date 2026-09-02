@@ -429,9 +429,12 @@ export default function ReportScreen() {
           )}
 
           {/* TEXT AREA */}
-          <View className={`rounded-3xl p-5 mb-5 border ${theme.isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100'}`}>
+          <View 
+            className={`rounded-[28px] p-5 mb-5 border ${theme.isDark ? 'bg-[#121212] border-white/10' : 'bg-white border-slate-200/70'}`}
+            style={theme.cardShadow}
+          >
             <TextInput
-              className={`text-[17px] leading-[26px] font-medium ${theme.textClass}`}
+              className={`text-[17px] leading-[26px] font-normal ${theme.textClass}`}
               placeholder={postType === 'report' ? "Describe the civic issue in detail..." : "What's happening in your neighborhood?"}
               placeholderTextColor={theme.inputPlaceholder}
               multiline
