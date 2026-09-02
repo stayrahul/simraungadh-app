@@ -367,12 +367,18 @@ function FeedCard({
         {/* Action Row - Stitch Civic Modern */}
         <View className="flex-row items-center justify-between px-3 py-2.5 border-t border-slate-100 dark:border-white/5">
           <TouchableOpacity
-            onPress={handleLike}
+            onPress={() => {
+              Animated.sequence([
+                Animated.timing(scaleAnim, { toValue: 1.3, duration: 100, useNativeDriver: Platform.OS !== 'web' }),
+                Animated.timing(scaleAnim, { toValue: 1, duration: 100, useNativeDriver: Platform.OS !== 'web' }),
+              ]).start();
+              if (onLike) onLike(item.id, isLiked);
+            }}
             activeOpacity={0.7}
             className="flex-row items-center py-1 px-2 rounded-full"
           >
             <View className={`w-8 h-8 rounded-full items-center justify-center mr-1.5 ${isLiked ? 'bg-rose-500/10 dark:bg-rose-500/20' : (theme.isDark ? 'bg-white/[0.04]' : 'bg-slate-50')}`}>
-              <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
+              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
                 <Heart size={16} color={isLiked ? '#F43F5E' : theme.iconColor} fill={isLiked ? '#F43F5E' : 'transparent'} strokeWidth={2.2} />
               </Animated.View>
             </View>
